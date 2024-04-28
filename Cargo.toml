@@ -49,4 +49,4 @@ ntex-cors = { version = "1.0", optional = true }
 reqwest = { version = "0.12", features = ["json", "blocking"], optional = true }
 diesel = { version = "2", features = ["postgres", "r2d2", "uuid", "chrono", "serde_json"], optional = true }
 jsonwebtoken = { version = "9.1.0", optional = true }
-validator = { version = "0.17", features = ["derive"], optional = true }
+validator = { version = "0.18", features = ["derive"], optional = true }
