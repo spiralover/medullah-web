@@ -1,0 +1,52 @@
+[package]
+name = "medullah_web"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["feat-mailer", "r2d2"]
+feat-database = ["diesel", "r2d2", 'sha2']
+feat-base64 = ["base64"]
+feat-hmac = ["hmac", 'hex']
+feat-nerve = ["reqwest"]
+feat-mailer = ["reqwest", "feat-templating"]
+feat-crypto = ["rust-argon2", "jsonwebtoken"]
+feat-regex = ["fancy-regex"]
+feat-validator = ["validator"]
+feat-templating = ["tera"]
+feat-id-generator = ["nanoid"]
+feat-ntex = ["feat-database", "ntex", "ntex-cors"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+toml = {version = "0.8"}
+uuid = { version = "1.8", features = ["v4", "serde"] }
+log = { version = "0.4" }
+mobc = { version = "0.8", features = ["tokio"] }
+redis = { version = "0.24.0", default-features = false, features = ["tokio-comp", "connection-manager"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.34", features = ["rt-multi-thread", "macros"] }
+chrono = { version = "0.4", features = ["serde"] }
+dotenv = { version = "0.15" }
+env_logger = { version = "0.11" }
+chrono-tz = { version = "0.9", features = ["serde"] }
+serde_json = { version = "1.0", features = ["raw_value"] }
+futures-util = { version = "0.3" }
+base64 = { version = "0.22", optional = true }
+dyn-clone = { version = "1.0" }
+hex = { version = "0.4", optional = true }
+sha2 = { version = "0.10", optional = true }
+hmac = { version = "0.12", optional = true }
+fancy-regex = { version = "0.13", optional = true }
+rust-argon2 = { version = "1", optional = true }
+tera = { version = "1", optional = true }
+nanoid = { version = "0.4", optional = true }
+ntex = { version = "1.2", features = ["tokio"], optional = true }
+ntex-multipart = { version = "1.0", optional = true }
+r2d2 = { version = "0.8", optional = true }
+ntex-cors = { version = "1.0", optional = true }
+reqwest = { version = "0.12", features = ["json", "blocking"], optional = true }
+diesel = { version = "2", features = ["postgres", "r2d2", "uuid", "chrono", "serde_json"], optional = true }
+jsonwebtoken = { version = "9.1.0", optional = true }
+validator = { version = "0.17", features = ["derive"], optional = true }
