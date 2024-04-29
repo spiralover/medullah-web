@@ -1,7 +1,7 @@
-use crate::prelude::OnceLockHelper;
-
 #[cfg(feature = "feat-crypto")]
 pub fn password_hash(password: String) -> String {
+    use crate::prelude::OnceLockHelper;
+
     let salt = crate::MEDULLAH.app().app_key.clone();
     let config = argon2::Config::default();
 
