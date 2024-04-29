@@ -2,7 +2,6 @@ use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 
 use redis::Client as RedisClient;
-use serde::Deserialize;
 use tera::{Context, Tera};
 
 use crate::redis::RedisPool;
@@ -10,7 +9,7 @@ use crate::services::cache_service::CacheService;
 use crate::services::redis_service::RedisService;
 
 #[derive(Clone)]
-pub struct AppState {
+pub struct MedullahState {
     pub app_id: String,
     pub app_domain: String,
     pub app_name: String,
@@ -18,8 +17,6 @@ pub struct AppState {
     pub app_help_email: String,
     pub app_frontend_url: String,
     pub app_key: String,
-
-    pub frontend: Frontend,
 
     #[cfg(feature = "feat-templating")]
     pub(crate) tera: Tera,
@@ -30,6 +27,7 @@ pub struct AppState {
     pub(crate) database: crate::database::DBPool,
 
     pub auth_pat_prefix: String,
+    pub auth_token_lifetime: i64,
 
     pub allowed_origins: Vec<String>,
 
@@ -38,9 +36,6 @@ pub struct AppState {
     pub mailer_server_endpoint: String,
     pub mailer_server_auth_token: String,
     pub mailer_server_application_id: String,
-
-    pub redis_queues: AppRedisQueues,
-    pub redis_channels: AppRedisChannels,
 
     pub monnify_contract_code: String,
     pub monnify_api_key: String,
@@ -56,33 +51,7 @@ pub struct AppServices {
     pub cache: Arc<CacheService>,
 }
 
-#[derive(Clone)]
-pub struct AppRedisQueues {
-    pub virtual_acc_num: String,
-    pub announcement_un_synced: String,
-}
-
-#[derive(Clone)]
-pub struct AppRedisChannels {
-    pub payment_received: String
-}
-
-#[derive(Deserialize, Clone)]
-pub struct Frontend {
-    pub url: FrontendUrl,
-}
-
-#[derive(Deserialize, Clone)]
-pub struct FrontendUrl {
-    pub base: String,
-    pub profile: String,
-    pub login: String,
-    pub register: String,
-    pub forget_password: String,
-    pub change_password: String,
-}
-
-impl AppState {
+impl MedullahState {
     #[cfg(feature = "feat-database")]
     pub fn database(&self) -> &crate::database::DBPool {
         &self.database
@@ -113,7 +82,7 @@ impl AppState {
     }
 }
 
-impl Debug for AppState {
+impl Debug for MedullahState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str("application state")
     }

@@ -1,8 +1,9 @@
-use std::env;
-
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
+
+use crate::MEDULLAH;
+use crate::prelude::OnceLockHelper;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
@@ -25,12 +26,8 @@ pub fn generate_token(
     header: Option<Header>,
     lifetime: Option<i64>,
 ) -> AuthTokenData {
-    let token_lifetime_in_minutes: i64 = lifetime.unwrap_or_else(|| {
-        env::var("SPACE_AUTH_TOKEN_LIFETIME")
-            .unwrap()
-            .parse()
-            .unwrap()
-    });
+    let token_lifetime_in_minutes: i64 =
+        lifetime.unwrap_or_else(|| MEDULLAH.app().auth_token_lifetime);
 
     let now = Utc::now();
     let iat = now.timestamp() as usize;
@@ -47,7 +44,7 @@ pub fn generate_token(
     let token = encode(
         &token_header,
         &claims,
-        &EncodingKey::from_secret(env::var("SPACE_APP_KEY").unwrap().as_ref()),
+        &EncodingKey::from_secret(MEDULLAH.app().app_key.clone().as_ref()),
     )
     .unwrap();
 

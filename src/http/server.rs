@@ -1,21 +1,44 @@
+use std::future::Future;
+
+use log::error;
 use ntex::web;
 
 use crate::app_setup::{get_server_host_config, load_environment_variables, make_app_state};
 use crate::env_logger::init_env_logger;
-use crate::http::kernel::{
-    ntex_default_service, register_routes, setup_cors, setup_logger, Route,
-};
+use crate::http::kernel::{ntex_default_service, register_routes, Route, setup_cors, setup_logger};
+use crate::prelude::{AppResult, MedullahState};
 
-pub async fn start_ntex_server(app: &str, routes: Vec<Route>) -> std::io::Result<()> {
-    load_environment_variables(app);
+pub struct ServerConfig {
+    app: String,
+    env_prefix: String,
+    routes: Vec<Route>,
+}
+
+pub async fn start_ntex_server<Callback, Fut>(
+    config: ServerConfig,
+    callback: Callback,
+) -> std::io::Result<()>
+where
+    Callback: FnOnce(MedullahState) -> Fut + Copy + Send + 'static,
+    Fut: Future<Output = AppResult<()>> + Send + 'static,
+{
+    load_environment_variables(&config.app);
 
     init_env_logger();
 
-    let app_state = make_app_state().await;
-    let (host, port, workers) = get_server_host_config();
+    let app_state = make_app_state(config.env_prefix.clone()).await;
+    let (host, port, workers) = get_server_host_config(&config.env_prefix);
+
+    match callback(app_state.clone()).await {
+        Ok(_) => {}
+        Err(err) => {
+            error!("app bootstrap callback returned error: {:?}", err);
+            panic!("boostrap failed");
+        }
+    }
 
     web::HttpServer::new(move || {
-        let routes = routes.clone();
+        let routes = config.routes.clone();
         web::App::new()
             .state(app_state.clone())
             .configure(|cfg| register_routes(cfg, routes))

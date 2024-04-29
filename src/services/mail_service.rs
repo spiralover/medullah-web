@@ -11,7 +11,7 @@ use crate::helpers::once_lock::OnceLockHelper;
 // use crate::models::user::{FullName, UserMinimalData};
 use crate::prelude::AppMessage;
 use crate::results::AppResult;
-use crate::APP;
+use crate::MEDULLAH;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Mailbox {
@@ -75,8 +75,8 @@ impl Default for MailerService {
             message: String::from(""),
             subject: String::from(""),
             from: Mailbox {
-                name: APP.app().mailer_from_name.clone(),
-                email: APP.app().mailer_from_email.clone(),
+                name: MEDULLAH.app().mailer_from_name.clone(),
+                email: MEDULLAH.app().mailer_from_email.clone(),
             },
         }
     }
@@ -103,7 +103,7 @@ impl MailerService {
     }
 
     pub fn subject_titled(&mut self, s: &str) -> &mut MailerService {
-        self.subject = APP.app().title(s);
+        self.subject = MEDULLAH.app().title(s);
         self
     }
 
@@ -123,7 +123,7 @@ impl MailerService {
     }
 
     pub fn view(&mut self, file: &str, mut ctx: Context) -> &mut MailerService {
-        let app = APP.app();
+        let app = MEDULLAH.app();
         ctx.insert("year", &Utc::now().year());
         ctx.insert("app_name", &app.app_name.clone());
         ctx.insert("app_desc", &app.app_desc.clone());
@@ -170,8 +170,8 @@ impl MailerService {
         let client = reqwest::Client::new();
         let address = format!(
             "{}/api/v1/applications/{}/mails",
-            APP.app().mailer_server_endpoint,
-            APP.app().mailer_server_application_id,
+            MEDULLAH.app().mailer_server_endpoint,
+            MEDULLAH.app().mailer_server_application_id,
         );
 
         let payload = match self.for_each_recv {
@@ -197,7 +197,7 @@ impl MailerService {
         let resp = client
             .post(address)
             .json(&payload)
-            .bearer_auth(APP.app().mailer_server_auth_token.clone())
+            .bearer_auth(MEDULLAH.app().mailer_server_auth_token.clone())
             .send()
             .map_err(AppMessage::MailerError)
             .await?

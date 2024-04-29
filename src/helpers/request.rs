@@ -3,7 +3,7 @@ use ntex::util::Bytes;
 use ntex::web::HttpRequest;
 use serde::de::DeserializeOwned;
 
-use crate::app_state::AppState;
+use crate::app_state::MedullahState;
 use crate::database::DBPool;
 use crate::helpers::http::get_ip_and_ua;
 use crate::http::extractors::client_info::ClientInfo;
@@ -11,7 +11,7 @@ use crate::results::app_result::IntoAppResult;
 use crate::results::AppResult;
 
 pub trait RequestHelper {
-    fn app(&self) -> &AppState;
+    fn app(&self) -> &MedullahState;
 
     fn db_pool(&self) -> &DBPool;
 
@@ -21,8 +21,8 @@ pub trait RequestHelper {
 }
 
 impl RequestHelper for HttpRequest {
-    fn app(&self) -> &AppState {
-        self.app_state::<AppState>().unwrap()
+    fn app(&self) -> &MedullahState {
+        self.app_state::<MedullahState>().unwrap()
     }
 
     fn db_pool(&self) -> &DBPool {

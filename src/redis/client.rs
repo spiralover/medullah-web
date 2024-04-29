@@ -11,7 +11,7 @@ use tokio::time;
 use crate::helpers::once_lock::OnceLockHelper;
 use crate::results::redis_result::RedisResultToAppResult;
 use crate::results::AppResult;
-use crate::APP;
+use crate::MEDULLAH;
 
 pub struct Redis;
 
@@ -51,7 +51,7 @@ impl Redis {
 
         loop {
             let queue = queue.clone();
-            let popped = APP.redis_service().rpop(&queue.clone(), len).await;
+            let popped = MEDULLAH.redis_service().rpop(&queue.clone(), len).await;
             match popped {
                 Ok(Some(item)) => {
                     Handle::current().spawn(async move {
@@ -79,7 +79,7 @@ impl Redis {
         F: FnOnce(AppResult<String>) -> Fut + Copy + Send + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
-        let conn = APP.redis().get_tokio_connection().await?;
+        let conn = MEDULLAH.redis().get_tokio_connection().await?;
 
         info!("[subscriber] subscribing to: {}", channel.clone());
 

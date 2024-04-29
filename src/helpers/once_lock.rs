@@ -6,21 +6,17 @@ use diesel::r2d2::ConnectionManager;
 use diesel::PgConnection;
 use redis::Client;
 
-use crate::app_state::{AppRedisQueues, AppState, Frontend};
+use crate::app_state::{MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
 use crate::redis::RedisPool;
 use crate::services::cache_service::CacheService;
 use crate::services::redis_service::RedisService;
-use crate::APP;
+use crate::MEDULLAH;
 
 pub trait OnceLockHelper<'a> {
-    fn app(&self) -> &'a AppState {
-        APP.get().unwrap()
-    }
-
-    fn frontend(&self) -> &'a Frontend {
-        &self.app().frontend
+    fn app(&self) -> &'a MedullahState {
+        MEDULLAH.get().unwrap()
     }
 
     fn front_url(&self, url: &str) -> String {
@@ -29,7 +25,7 @@ pub trait OnceLockHelper<'a> {
 
     #[cfg(feature = "feat-database")]
     fn database(&self) -> &'a crate::database::DBPool {
-        APP.get().unwrap().database()
+        MEDULLAH.get().unwrap().database()
     }
 
     fn redis(&self) -> Arc<Client> {
@@ -41,15 +37,11 @@ pub trait OnceLockHelper<'a> {
     }
 
     fn cache(&self) -> &CacheService {
-        &APP.get().unwrap().services.cache
+        &MEDULLAH.get().unwrap().services.cache
     }
 
     fn redis_service(&self) -> &RedisService {
-        &APP.get().unwrap().services.redis
-    }
-
-    fn redis_queues(&self) -> &AppRedisQueues {
-        &APP.get().unwrap().redis_queues
+        &MEDULLAH.get().unwrap().services.redis
     }
 
     #[cfg(feature = "feat-database")]
@@ -60,4 +52,4 @@ pub trait OnceLockHelper<'a> {
     }
 }
 
-impl<'a> OnceLockHelper<'a> for OnceLock<AppState> {}
+impl<'a> OnceLockHelper<'a> for OnceLock<MedullahState> {}

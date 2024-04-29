@@ -12,48 +12,46 @@ use mobc::Pool;
 use redis::Client;
 use tera::Tera;
 
-use crate::app_state::{AppRedisChannels, AppRedisQueues, AppServices, AppState, Frontend};
+use crate::app_state::{AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 use crate::helpers::fs::get_cwd;
 use crate::redis::{RedisConnectionManager, RedisPool};
 use crate::services::cache_service::CacheService;
 use crate::services::redis_service::RedisService;
-use crate::APP;
+use crate::MEDULLAH;
 
 const CACHE_POOL_MAX_OPEN: u64 = 16;
 const CACHE_POOL_MAX_IDLE: u64 = 8;
 const CACHE_POOL_TIMEOUT_SECONDS: u64 = 1;
 const CACHE_POOL_EXPIRE_SECONDS: u64 = 60;
 
-pub async fn make_app_state() -> AppState {
-    let app = create_app_state().await;
-    APP.set(app.clone()).expect("failed to set up TSP");
+pub async fn make_app_state(env_prefix: String) -> MedullahState {
+    let app = create_app_state(env_prefix).await;
+    MEDULLAH.set(app.clone()).expect("failed to set up TSP");
     app
 }
 
-async fn create_app_state() -> AppState {
+async fn create_app_state(env_prefix: String) -> MedullahState {
     #[cfg(feature = "feat-database")]
-    let database_pool = establish_database_connection();
+    let database_pool = establish_database_connection(&env_prefix);
 
-    let redis = establish_redis_connection();
-    let redis_pool = establish_redis_connection_pool();
+    let redis = establish_redis_connection(&env_prefix);
+    let redis_pool = establish_redis_connection_pool(&env_prefix);
     let redis_service = Arc::new(RedisService::new(redis_pool.clone()));
 
     // templating
     let tpl_dir = get_cwd() + "/resources/templates/**/*.tera.html";
     let tera_templating = Tera::new(tpl_dir.as_str()).unwrap();
 
-    AppState {
-        app_id: env::var("SPACE_APP_ID").unwrap(),
-        app_domain: env::var("SPACE_APP_DOMAIN").unwrap(),
-        app_name: env::var("SPACE_APP_NAME").unwrap(),
-        app_desc: env::var("SPACE_APP_DESC").unwrap(),
-        app_key: env::var("SPACE_APP_KEY").unwrap(),
-        app_help_email: env::var("SPACE_APP_HELP_EMAIL").unwrap(),
-        app_frontend_url: env::var("SPACE_FRONTEND_ADDRESS").unwrap(),
-
-        frontend: load_frontend_config(),
+    MedullahState {
+        app_id: env::var(format!("{}_APP_ID", env_prefix)).unwrap(),
+        app_domain: env::var(format!("{}_APP_DOMAIN", env_prefix)).unwrap(),
+        app_name: env::var(format!("{}_APP_NAME", env_prefix)).unwrap(),
+        app_desc: env::var(format!("{}_APP_DESC", env_prefix)).unwrap(),
+        app_key: env::var(format!("{}_APP_KEY", env_prefix)).unwrap(),
+        app_help_email: env::var(format!("{}_APP_HELP_EMAIL", env_prefix)).unwrap(),
+        app_frontend_url: env::var(format!("{}_FRONTEND_ADDRESS", env_prefix)).unwrap(),
 
         redis: Arc::new(redis),
         redis_pool: Arc::new(redis_pool),
@@ -61,24 +59,25 @@ async fn create_app_state() -> AppState {
         database: database_pool,
         tera: tera_templating,
 
-        auth_pat_prefix: env::var("SPACE_AUTH_PAT_PREFIX").unwrap(),
+        auth_pat_prefix: env::var(format!("{}_AUTH_PAT_PREFIX", env_prefix)).unwrap(),
+        auth_token_lifetime: env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
+            .unwrap()
+            .parse()
+            .unwrap(),
 
-        allowed_origins: get_allowed_origins(),
+        allowed_origins: get_allowed_origins(&env_prefix),
 
         // mail
-        mailer_from_name: env::var("SPACE_MAIL_FROM_NAME").unwrap(),
-        mailer_from_email: env::var("SPACE_MAIL_FROM_EMAIL").unwrap(),
-        mailer_server_endpoint: env::var("SPACE_MAILER_SERVER_ENDPOINT").unwrap(),
-        mailer_server_auth_token: env::var("SPACE_MAILER_SERVER_AUTH_TOKEN").unwrap(),
-        mailer_server_application_id: env::var("SPACE_MAILER_SERVER_APPLICATION_ID").unwrap(),
+        mailer_from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
+        mailer_from_email: env::var(format!("{}_MAIL_FROM_EMAIL", env_prefix)).unwrap(),
+        mailer_server_endpoint: env::var(format!("{}_MAILER_SERVER_ENDPOINT", env_prefix)).unwrap(),
+        mailer_server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix)).unwrap(),
+        mailer_server_application_id: env::var(format!("{}_MAILER_SERVER_APPLICATION_ID", env_prefix)).unwrap(),
 
-        monnify_api_key: env::var("SPACE_MONNIFY_API_KEY").unwrap(),
-        monnify_secret_key: env::var("SPACE_MONNIFY_SECRET_KEY").unwrap(),
-        monnify_contract_code: env::var("SPACE_MONNIFY_CONTRACT_CODE").unwrap(),
-        monnify_server_endpoint: env::var("SPACE_MONNIFY_SERVER_ENDPOINT").unwrap(),
-
-        redis_queues: get_redis_queues(),
-        redis_channels: get_redis_channels(),
+        monnify_api_key: env::var(format!("{}_MONNIFY_API_KEY", env_prefix)).unwrap(),
+        monnify_secret_key: env::var(format!("{}_MONNIFY_SECRET_KEY", env_prefix)).unwrap(),
+        monnify_contract_code: env::var(format!("{}_MONNIFY_CONTRACT_CODE", env_prefix)).unwrap(),
+        monnify_server_endpoint: env::var(format!("{}_MONNIFY_SERVER_ENDPOINT", env_prefix)).unwrap(),
 
         services: AppServices {
             redis: redis_service.clone(),
@@ -87,20 +86,26 @@ async fn create_app_state() -> AppState {
     }
 }
 
-pub fn get_server_host_config() -> (String, u16, usize) {
-    let host: String = env::var("SPACE_SERVER_HOST").unwrap();
-    let port: u16 = env::var("SPACE_SERVER_PORT").unwrap().parse().unwrap();
-    let workers: usize = env::var("SPACE_SERVER_WORKERS").unwrap().parse().unwrap();
+pub fn get_server_host_config(env_prefix: &String) -> (String, u16, usize) {
+    let host: String = env::var(format!("{}_SERVER_HOST", env_prefix)).unwrap();
+    let port: u16 = env::var(format!("{}_SERVER_PORT", env_prefix)).unwrap().parse().unwrap();
+    let workers: usize = env::var(format!("{}_SERVER_WORKERS", env_prefix)).unwrap().parse().unwrap();
     (host, port, workers)
 }
 
-pub fn establish_redis_connection() -> Client {
-    let redis_url: String = env::var("SPACE_REDIS_DSN").unwrap();
+pub fn get_allowed_origins(env_prefix: &String) -> Vec<String> {
+    let url_str = env::var(format!("{}_ALLOWED_ORIGINS", env_prefix)).unwrap();
+    let origins: Vec<&str> = url_str.split(',').collect();
+    origins.iter().map(|o| o.trim().to_string()).collect()
+}
+
+pub fn establish_redis_connection(env_prefix: &String) -> Client {
+    let redis_url: String = env::var(format!("{}_REDIS_DSN", env_prefix)).unwrap();
     Client::open(redis_url).unwrap()
 }
 
-pub fn establish_redis_connection_pool() -> RedisPool {
-    let redis_url: String = env::var("SPACE_REDIS_DSN").unwrap();
+pub fn establish_redis_connection_pool(env_prefix: &String) -> RedisPool {
+    let redis_url: String = env::var(format!("{}_REDIS_DSN", env_prefix)).unwrap();
     let client = Client::open(redis_url).unwrap();
     let manager = RedisConnectionManager::new(client);
     Pool::builder()
@@ -112,36 +117,12 @@ pub fn establish_redis_connection_pool() -> RedisPool {
 }
 
 #[cfg(feature = "feat-database")]
-pub fn establish_database_connection() -> DBPool {
-    let db_url: String = env::var("SPACE_DATABASE_DSN").unwrap();
+pub fn establish_database_connection(env_prefix: &String) -> DBPool {
+    let db_url: String = env::var(format!("{}_DATABASE_DSN", env_prefix)).unwrap();
     let manager = ConnectionManager::<PgConnection>::new(db_url);
     r2d2::Pool::builder()
         .build(manager)
         .expect("Failed to create database pool.")
-}
-
-pub fn get_redis_queues() -> AppRedisQueues {
-    AppRedisQueues {
-        virtual_acc_num: env::var("SPACE_REDIS_QUEUE_VIRTUAL_ACC_NUM").unwrap(),
-        announcement_un_synced: env::var("GENESIS_REDIS_QUEUE_ANNOUNCEMENT_UN_SYNCED").unwrap(),
-    }
-}
-
-pub fn get_redis_channels() -> AppRedisChannels {
-    AppRedisChannels {
-        payment_received: env::var("SPACE_REDIS_CHANNEL_TRANSFER_RECEIVED").unwrap()
-    }
-}
-
-pub fn get_allowed_origins() -> Vec<String> {
-    let url_str = env::var("SPACE_ALLOWED_ORIGINS").unwrap();
-    let origins: Vec<&str> = url_str.split(',').collect();
-    origins.iter().map(|o| o.trim().to_string()).collect()
-}
-
-pub fn load_frontend_config() -> Frontend {
-    let file_contents = load_config_file("frontend.toml");
-    toml::from_str::<Frontend>(&file_contents).unwrap()
 }
 
 pub fn load_config_file(file: &str) -> String {

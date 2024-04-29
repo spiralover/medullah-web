@@ -1,6 +1,9 @@
+use crate::MEDULLAH;
+use crate::prelude::OnceLockHelper;
+
 #[cfg(feature = "feat-crypto")]
 pub fn password_hash(password: String) -> String {
-    let salt = std::env::var("SPACE_APP_KEY").unwrap();
+    let salt = MEDULLAH.app().app_key.clone();
     let config = argon2::Config::default();
 
     argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config).unwrap()
