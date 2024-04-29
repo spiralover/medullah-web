@@ -9,9 +9,9 @@ use crate::http::kernel::{ntex_default_service, register_routes, Route, setup_co
 use crate::prelude::{AppResult, MedullahState};
 
 pub struct ServerConfig {
-    app: String,
-    env_prefix: String,
-    routes: Vec<Route>,
+    pub app: String,
+    pub env_prefix: String,
+    pub routes: Vec<Route>,
 }
 
 pub async fn start_ntex_server<Callback, Fut>(
