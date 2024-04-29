@@ -37,11 +37,6 @@ pub struct MedullahState {
     pub mailer_server_auth_token: String,
     pub mailer_server_application_id: String,
 
-    pub monnify_contract_code: String,
-    pub monnify_api_key: String,
-    pub monnify_secret_key: String,
-    pub monnify_server_endpoint: String,
-
     pub services: AppServices,
 }
 

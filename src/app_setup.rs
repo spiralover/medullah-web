@@ -74,11 +74,6 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
         mailer_server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix)).unwrap(),
         mailer_server_application_id: env::var(format!("{}_MAILER_SERVER_APPLICATION_ID", env_prefix)).unwrap(),
 
-        monnify_api_key: env::var(format!("{}_MONNIFY_API_KEY", env_prefix)).unwrap(),
-        monnify_secret_key: env::var(format!("{}_MONNIFY_SECRET_KEY", env_prefix)).unwrap(),
-        monnify_contract_code: env::var(format!("{}_MONNIFY_CONTRACT_CODE", env_prefix)).unwrap(),
-        monnify_server_endpoint: env::var(format!("{}_MONNIFY_SERVER_ENDPOINT", env_prefix)).unwrap(),
-
         services: AppServices {
             redis: redis_service.clone(),
             cache: Arc::new(CacheService::new(redis_service)),
