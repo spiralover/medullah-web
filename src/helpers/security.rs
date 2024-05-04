@@ -2,8 +2,8 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 
-use crate::MEDULLAH;
 use crate::prelude::OnceLockHelper;
+use crate::MEDULLAH;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {

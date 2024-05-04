@@ -20,4 +20,4 @@ jobs:
     - name: Run Clippy
       run: cargo clippy --all-targets --all-features
     - name: Run Tests
-      run: cargo test --workspace --verbose --exclude cosmic
+      run: cargo test --workspace --verbose

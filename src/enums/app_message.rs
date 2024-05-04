@@ -42,6 +42,8 @@ pub enum AppMessage {
     Base64Error(base64::DecodeError),
     JoinError(tokio::task::JoinError),
     FromUtf8Error(std::string::FromUtf8Error),
+    #[cfg(feature = "feat-rabbitmq")]
+    RabbitmqError(lapin::Error),
     RedisError(redis::RedisError),
     RedisPoolError(mobc::Error<redis::RedisError>),
     #[cfg(feature = "feat-ntex")]
@@ -108,6 +110,8 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::IoError(error) => error.to_string(),
         AppMessage::SerdeError(error) => error.to_string(),
         AppMessage::SerdeError500(error) => error.to_string(),
+        #[cfg(feature = "feat-rabbitmq")]
+        AppMessage::RabbitmqError(error) => error.to_string(),
         AppMessage::RedisError(error) => error.to_string(),
         AppMessage::RedisPoolError(error) => error.to_string(),
         #[cfg(feature = "reqwest")]
@@ -171,6 +175,10 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
         }
         AppMessage::R2d2Error(message) => {
             log::error!("R2d2 Error: {}", message);
+            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+        }
+        AppMessage::RabbitmqError(message) => {
+            log::error!("Rabbitmq Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
         }
         AppMessage::RedisError(message) => {
@@ -261,6 +269,7 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::RedisError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::RabbitmqError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::BlockingError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::PayloadError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::ErrorMessage(_, status) => *status,
@@ -320,6 +329,13 @@ impl From<r2d2::Error> for AppMessage {
 impl From<tokio::task::JoinError> for AppMessage {
     fn from(value: tokio::task::JoinError) -> Self {
         AppMessage::JoinError(value)
+    }
+}
+
+#[cfg(feature = "feat-rabbitmq")]
+impl From<lapin::Error> for AppMessage {
+    fn from(value: lapin::Error) -> Self {
+        AppMessage::RabbitmqError(value)
     }
 }
 

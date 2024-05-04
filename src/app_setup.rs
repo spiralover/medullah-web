@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::sync::Arc;
-use std::time::Duration;
+
 use std::{env, fs};
 
 #[cfg(feature = "feat-database")]
@@ -8,23 +8,21 @@ use diesel::r2d2::ConnectionManager;
 #[cfg(feature = "feat-database")]
 use diesel::PgConnection;
 use log::info;
-use mobc::Pool;
-use redis::Client;
+
+
 use tera::Tera;
 
 use crate::app_state::{AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 use crate::helpers::fs::get_cwd;
-use crate::redis::{RedisConnectionManager, RedisPool};
+
 use crate::services::cache_service::CacheService;
 use crate::services::redis_service::RedisService;
 use crate::MEDULLAH;
-
-const CACHE_POOL_MAX_OPEN: u64 = 16;
-const CACHE_POOL_MAX_IDLE: u64 = 8;
-const CACHE_POOL_TIMEOUT_SECONDS: u64 = 1;
-const CACHE_POOL_EXPIRE_SECONDS: u64 = 60;
+#[cfg(feature = "feat-rabbitmq")]
+use crate::rabbitmq::conn::establish_rabbit_connection;
+use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
 
 pub async fn make_app_state(env_prefix: String) -> MedullahState {
     let app = create_app_state(env_prefix).await;
@@ -39,6 +37,10 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
     let redis = establish_redis_connection(&env_prefix);
     let redis_pool = establish_redis_connection_pool(&env_prefix);
     let redis_service = Arc::new(RedisService::new(redis_pool.clone()));
+
+    // RabbitMQ
+    #[cfg(feature = "feat-rabbitmq")]
+    let rabbit = establish_rabbit_connection(&env_prefix).await;
 
     // templating
     let tpl_dir = get_cwd() + "/resources/templates/**/*.tera.html";
@@ -55,6 +57,8 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
 
         redis: Arc::new(redis),
         redis_pool: Arc::new(redis_pool),
+        #[cfg(feature = "feat-rabbitmq")]
+        rabbit: Arc::new(rabbit),
         #[cfg(feature = "feat-database")]
         database: database_pool,
         tera: tera_templating,
@@ -71,10 +75,17 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
         mailer_from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
         mailer_from_email: env::var(format!("{}_MAIL_FROM_EMAIL", env_prefix)).unwrap(),
         mailer_server_endpoint: env::var(format!("{}_MAILER_SERVER_ENDPOINT", env_prefix)).unwrap(),
-        mailer_server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix)).unwrap(),
-        mailer_server_application_id: env::var(format!("{}_MAILER_SERVER_APPLICATION_ID", env_prefix)).unwrap(),
+        mailer_server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix))
+            .unwrap(),
+        mailer_server_application_id: env::var(format!(
+            "{}_MAILER_SERVER_APPLICATION_ID",
+            env_prefix
+        ))
+        .unwrap(),
 
         services: AppServices {
+            #[cfg(feature = "feat-rabbitmq")]
+            rabbitmq: rabbit.clone(),
             redis: redis_service.clone(),
             cache: Arc::new(CacheService::new(redis_service)),
         },
@@ -83,8 +94,14 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
 
 pub fn get_server_host_config(env_prefix: &String) -> (String, u16, usize) {
     let host: String = env::var(format!("{}_SERVER_HOST", env_prefix)).unwrap();
-    let port: u16 = env::var(format!("{}_SERVER_PORT", env_prefix)).unwrap().parse().unwrap();
-    let workers: usize = env::var(format!("{}_SERVER_WORKERS", env_prefix)).unwrap().parse().unwrap();
+    let port: u16 = env::var(format!("{}_SERVER_PORT", env_prefix))
+        .unwrap()
+        .parse()
+        .unwrap();
+    let workers: usize = env::var(format!("{}_SERVER_WORKERS", env_prefix))
+        .unwrap()
+        .parse()
+        .unwrap();
     (host, port, workers)
 }
 
@@ -92,23 +109,6 @@ pub fn get_allowed_origins(env_prefix: &String) -> Vec<String> {
     let url_str = env::var(format!("{}_ALLOWED_ORIGINS", env_prefix)).unwrap();
     let origins: Vec<&str> = url_str.split(',').collect();
     origins.iter().map(|o| o.trim().to_string()).collect()
-}
-
-pub fn establish_redis_connection(env_prefix: &String) -> Client {
-    let redis_url: String = env::var(format!("{}_REDIS_DSN", env_prefix)).unwrap();
-    Client::open(redis_url).unwrap()
-}
-
-pub fn establish_redis_connection_pool(env_prefix: &String) -> RedisPool {
-    let redis_url: String = env::var(format!("{}_REDIS_DSN", env_prefix)).unwrap();
-    let client = Client::open(redis_url).unwrap();
-    let manager = RedisConnectionManager::new(client);
-    Pool::builder()
-        .get_timeout(Some(Duration::from_secs(CACHE_POOL_TIMEOUT_SECONDS)))
-        .max_open(CACHE_POOL_MAX_OPEN)
-        .max_idle(CACHE_POOL_MAX_IDLE)
-        .max_lifetime(Some(Duration::from_secs(CACHE_POOL_EXPIRE_SECONDS)))
-        .build(manager)
 }
 
 #[cfg(feature = "feat-database")]

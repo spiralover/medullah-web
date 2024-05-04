@@ -19,6 +19,8 @@ pub mod env_logger;
 pub mod http;
 pub mod services;
 pub mod tokio;
+#[cfg(feature = "feat-rabbitmq")]
+pub mod rabbitmq;
 
 pub static MEDULLAH: OnceLock<MedullahState> = OnceLock::new();
 

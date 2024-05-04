@@ -1,9 +1,9 @@
-use std::future::Future;
-use std::time::Duration;
-use log::error;
-use tokio::{spawn, time};
 use crate::enums::app_message::AppMessage;
 use crate::results::AppResult;
+use log::error;
+use std::future::Future;
+use std::time::Duration;
+use tokio::{spawn, time};
 
 pub struct Tokio;
 
@@ -25,7 +25,7 @@ impl Tokio {
         Fun: FnOnce() -> Fut + Send + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
-        spawn( async move {
+        spawn(async move {
             let mut interval = time::interval(Duration::from_secs(interval));
 
             interval.tick().await;

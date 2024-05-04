@@ -23,6 +23,8 @@ pub struct MedullahState {
 
     pub(crate) redis: Arc<RedisClient>,
     pub(crate) redis_pool: Arc<RedisPool>,
+    #[cfg(feature = "feat-rabbitmq")]
+    pub rabbit: Arc<lapin::Connection>,
     #[cfg(feature = "feat-database")]
     pub(crate) database: crate::database::DBPool,
 
@@ -44,6 +46,8 @@ pub struct MedullahState {
 pub struct AppServices {
     pub redis: Arc<RedisService>,
     pub cache: Arc<CacheService>,
+    #[cfg(feature = "feat-rabbitmq")]
+    pub rabbitmq: Arc<lapin::Connection>,
 }
 
 impl MedullahState {

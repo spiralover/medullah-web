@@ -6,7 +6,7 @@ use diesel::r2d2::ConnectionManager;
 use diesel::PgConnection;
 use redis::Client;
 
-use crate::app_state::{MedullahState};
+use crate::app_state::MedullahState;
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
 use crate::redis::RedisPool;
