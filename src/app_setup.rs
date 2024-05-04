@@ -23,6 +23,7 @@ use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection;
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
+use crate::services::rabbit_service::RabbitService;
 
 pub async fn make_app_state(env_prefix: String) -> MedullahState {
     let app = create_app_state(env_prefix).await;
@@ -40,7 +41,7 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
 
     // RabbitMQ
     #[cfg(feature = "feat-rabbitmq")]
-    let rabbit = establish_rabbit_connection(&env_prefix).await;
+    let rabbit = Arc::new(establish_rabbit_connection(&env_prefix).await);
 
     // templating
     let tpl_dir = get_cwd() + "/resources/templates/**/*.tera.html";
@@ -58,7 +59,7 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
         redis: Arc::new(redis),
         redis_pool: Arc::new(redis_pool),
         #[cfg(feature = "feat-rabbitmq")]
-        rabbit: Arc::new(rabbit),
+        rabbit: rabbit.clone(),
         #[cfg(feature = "feat-database")]
         database: database_pool,
         tera: tera_templating,
@@ -85,7 +86,7 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
 
         services: AppServices {
             #[cfg(feature = "feat-rabbitmq")]
-            rabbitmq: rabbit.clone(),
+            rabbitmq: RabbitService::new(rabbit.clone()),
             redis: redis_service.clone(),
             cache: Arc::new(CacheService::new(redis_service)),
         },

@@ -1,6 +1,6 @@
 [package]
-name = "medullah_web"
-version = "0.1.4"
+name = "medullah-web"
+version = "0.1.5"
 edition = "2021"
 
 [features]
