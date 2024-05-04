@@ -177,6 +177,7 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("R2d2 Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
         }
+        #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RabbitmqError(message) => {
             log::error!("Rabbitmq Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
@@ -269,6 +270,7 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::RedisError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
+        #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RabbitmqError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::BlockingError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::PayloadError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
