@@ -85,10 +85,10 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
         .unwrap(),
 
         services: AppServices {
-            #[cfg(feature = "feat-rabbitmq")]
-            rabbitmq: RabbitService::new(rabbit.clone()),
             redis: redis_service.clone(),
             cache: Arc::new(CacheService::new(redis_service)),
+            #[cfg(feature = "feat-rabbitmq")]
+            rabbitmq: Arc::from(RabbitService::new(rabbit.clone()).await),
         },
     }
 }
