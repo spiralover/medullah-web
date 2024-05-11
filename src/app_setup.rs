@@ -1,29 +1,26 @@
+use std::{env, fs};
 use std::path::Path;
 use std::sync::Arc;
 
-use std::{env, fs};
-
-#[cfg(feature = "feat-database")]
-use diesel::r2d2::ConnectionManager;
 #[cfg(feature = "feat-database")]
 use diesel::PgConnection;
+#[cfg(feature = "feat-database")]
+use diesel::r2d2::ConnectionManager;
 use log::info;
-
-
 use tera::Tera;
 
 use crate::app_state::{AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 use crate::helpers::fs::get_cwd;
-
-use crate::services::cache_service::CacheService;
-use crate::services::redis_service::RedisService;
 use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection;
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
+use crate::services::cache_service::CacheService;
+#[cfg(feature = "feat-rabbitmq")]
 use crate::services::rabbit_service::RabbitService;
+use crate::services::redis_service::RedisService;
 
 pub async fn make_app_state(env_prefix: String) -> MedullahState {
     let app = create_app_state(env_prefix).await;
@@ -33,7 +30,7 @@ pub async fn make_app_state(env_prefix: String) -> MedullahState {
 
 async fn create_app_state(env_prefix: String) -> MedullahState {
     #[cfg(feature = "feat-database")]
-    let database_pool = establish_database_connection(&env_prefix);
+        let database_pool = establish_database_connection(&env_prefix);
 
     let redis = establish_redis_connection(&env_prefix);
     let redis_pool = establish_redis_connection_pool(&env_prefix);
@@ -41,7 +38,7 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
 
     // RabbitMQ
     #[cfg(feature = "feat-rabbitmq")]
-    let rabbit = Arc::new(establish_rabbit_connection(&env_prefix).await);
+        let rabbit = Arc::new(establish_rabbit_connection(&env_prefix).await);
 
     // templating
     let tpl_dir = get_cwd() + "/resources/templates/**/*.tera.html";
@@ -82,7 +79,7 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
             "{}_MAILER_SERVER_APPLICATION_ID",
             env_prefix
         ))
-        .unwrap(),
+            .unwrap(),
 
         services: AppServices {
             redis: redis_service.clone(),
