@@ -18,6 +18,7 @@ pub enum AppMessage {
     InvalidUUID,
     UnAuthorized,
     InternalServerError,
+    InternalServerErrorMessage(&'static str),
     IoError(io::Error),
     Redirect(&'static str),
     SuccessMessage(&'static str),
@@ -137,6 +138,7 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::DatabaseError(message) => message.to_string(),
         AppMessage::UnAuthorizedMessage(message) => message.to_string(),
         AppMessage::UnAuthorizedMessageString(message) => message.to_string(),
+        AppMessage::InternalServerErrorMessage(message) => message.to_string(),
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(e) => String::from(e.to_string().as_str()),
         _ => String::from("Internal Server Error"),
@@ -151,6 +153,7 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
         AppMessage::SuccessMessageString(message) => message.to_owned(),
         AppMessage::UnAuthorizedMessage(message) => message.to_string(),
         AppMessage::UnAuthorizedMessageString(message) => message.to_owned(),
+        AppMessage::InternalServerErrorMessage(message) => message.to_string(),
         _ => {
             error!("[middleware-level-error] {:?}", app);
             String::from("Something isn't right, our engineers are on it")
@@ -227,6 +230,10 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("Payload Extraction Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
         }
+        AppMessage::InternalServerErrorMessage(message) => {
+            log::error!("Internal Server Error: {}", message);
+            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+        }
         AppMessage::SuccessMessage(message) => json_success_message(message),
         AppMessage::SuccessMessageString(message) => json_success_message(message),
         AppMessage::ErrorMessage(message, status) => json_error_message_status(message, *status),
@@ -279,6 +286,7 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::UnAuthorizedMessage(_) => StatusCode::UNAUTHORIZED,
         AppMessage::UnAuthorizedMessageString(_) => StatusCode::UNAUTHORIZED,
         AppMessage::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::InternalServerErrorMessage(_) => StatusCode::INTERNAL_SERVER_ERROR,
         _ => StatusCode::INTERNAL_SERVER_ERROR, // all database-related errors are 500
     }
 }
