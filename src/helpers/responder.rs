@@ -2,19 +2,19 @@ use std::fmt::{Display, Formatter};
 
 use ntex::http::StatusCode;
 use ntex::web::HttpResponse;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::helpers::json::{json_empty, JsonEmpty};
 use crate::helpers::time::current_timestamp;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct JsonResponse<T: Serialize> {
-    pub(crate) code: u16,
-    pub(crate) success: bool,
-    pub(crate) status: String,
-    pub(crate) timestamp: u64,
-    pub(crate) message: Option<String>,
-    pub(crate) data: T,
+    pub code: u16,
+    pub success: bool,
+    pub status: String,
+    pub timestamp: u64,
+    pub message: Option<String>,
+    pub data: T,
 }
 
 impl<T: Serialize> Display for JsonResponse<T> {
