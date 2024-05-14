@@ -42,6 +42,8 @@ pub enum AppMessage {
     #[cfg(feature = "feat-base64")]
     Base64Error(base64::DecodeError),
     JoinError(tokio::task::JoinError),
+    #[cfg(feature = "feat-crypto")]
+    JwtError(jsonwebtoken::errors::Error),
     FromUtf8Error(std::string::FromUtf8Error),
     #[cfg(feature = "feat-rabbitmq")]
     RabbitmqError(lapin::Error),
@@ -107,6 +109,8 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::DatabaseEntityNotFound => String::from("Such entity does not exits"),
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseErrorMessage(err) => err.to_owned(),
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::JwtError(err) => err.to_string(),
         AppMessage::HttpClientError(msg, _) => msg.to_owned(),
         AppMessage::IoError(error) => error.to_string(),
         AppMessage::SerdeError(error) => error.to_string(),
@@ -115,6 +119,7 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::RabbitmqError(error) => error.to_string(),
         AppMessage::RedisError(error) => error.to_string(),
         AppMessage::RedisPoolError(error) => error.to_string(),
+        AppMessage::JoinError(error) => error.to_string(),
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestError(error) => error.to_string(),
         #[cfg(feature = "feat-mailer")]
@@ -178,6 +183,11 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
         }
         AppMessage::R2d2Error(message) => {
             log::error!("R2d2 Error: {}", message);
+            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+        }
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::JwtError(message) => {
+            log::error!("Jwt Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
         }
         #[cfg(feature = "feat-rabbitmq")]
@@ -268,6 +278,8 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
         AppMessage::DatabaseEntityNotFound => StatusCode::NOT_FOUND,
         AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::R2d2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::IoError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::SerdeError(_msg) => StatusCode::BAD_REQUEST,
@@ -313,6 +325,13 @@ impl Display for AppMessage {
 impl From<io::Error> for AppMessage {
     fn from(value: io::Error) -> Self {
         AppMessage::IoError(value)
+    }
+}
+
+#[cfg(feature = "feat-crypto")]
+impl From<jsonwebtoken::errors::Error> for AppMessage {
+    fn from(value: jsonwebtoken::errors::Error) -> Self {
+        AppMessage::JwtError(value)
     }
 }
 

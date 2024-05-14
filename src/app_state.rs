@@ -19,6 +19,8 @@ pub struct MedullahState {
     pub app_help_email: String,
     pub app_frontend_url: String,
     pub app_key: String,
+    pub app_private_key: String,
+    pub app_public_key: String,
 
     #[cfg(feature = "feat-templating")]
     pub(crate) tera: Tera,
@@ -32,6 +34,7 @@ pub struct MedullahState {
 
     pub auth_pat_prefix: String,
     pub auth_token_lifetime: i64,
+    pub auth_iss_public_key: String,
 
     pub allowed_origins: Vec<String>,
 

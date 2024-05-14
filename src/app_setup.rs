@@ -22,13 +22,22 @@ use crate::services::cache_service::CacheService;
 use crate::services::rabbit_service::RabbitService;
 use crate::services::redis_service::RedisService;
 
-pub async fn make_app_state(env_prefix: String) -> MedullahState {
-    let app = create_app_state(env_prefix).await;
+pub struct MedullahSetup {
+    pub env_prefix: String,
+    pub private_key: String,
+    pub public_key: String,
+    pub auth_iss_public_key: String,
+}
+
+pub async fn make_app_state(setup: MedullahSetup) -> MedullahState {
+    let app = create_app_state(setup).await;
     MEDULLAH.set(app.clone()).expect("failed to set up TSP");
     app
 }
 
-async fn create_app_state(env_prefix: String) -> MedullahState {
+async fn create_app_state(setup: MedullahSetup) -> MedullahState {
+    let env_prefix = setup.env_prefix;
+
     #[cfg(feature = "feat-database")]
         let database_pool = establish_database_connection(&env_prefix);
 
@@ -49,9 +58,12 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
         app_domain: env::var(format!("{}_APP_DOMAIN", env_prefix)).unwrap(),
         app_name: env::var(format!("{}_APP_NAME", env_prefix)).unwrap(),
         app_desc: env::var(format!("{}_APP_DESC", env_prefix)).unwrap(),
-        app_key: env::var(format!("{}_APP_KEY", env_prefix)).unwrap(),
         app_help_email: env::var(format!("{}_APP_HELP_EMAIL", env_prefix)).unwrap(),
         app_frontend_url: env::var(format!("{}_FRONTEND_ADDRESS", env_prefix)).unwrap(),
+
+        app_private_key: setup.private_key,
+        app_public_key: setup.public_key,
+        app_key: env::var(format!("{}_APP_KEY", env_prefix)).unwrap(),
 
         redis: Arc::new(redis),
         redis_pool: Arc::new(redis_pool),
@@ -61,6 +73,7 @@ async fn create_app_state(env_prefix: String) -> MedullahState {
         database: database_pool,
         tera: tera_templating,
 
+        auth_iss_public_key: setup.auth_iss_public_key,
         auth_pat_prefix: env::var(format!("{}_AUTH_PAT_PREFIX", env_prefix)).unwrap(),
         auth_token_lifetime: env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
             .unwrap()
