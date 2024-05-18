@@ -2,6 +2,7 @@ use log::debug;
 use ntex::util::Bytes;
 use ntex::web::HttpRequest;
 use serde::de::DeserializeOwned;
+use serde_json::{json, Map, Value};
 
 use crate::app_state::MedullahState;
 use crate::database::DBPool;
@@ -16,6 +17,8 @@ pub trait RequestHelper {
     fn db_pool(&self) -> &DBPool;
 
     fn client_info(&self) -> ClientInfo;
+
+    fn get_headers(&self) -> Map<String, Value>;
 
     fn json<T: DeserializeOwned>(bytes: Bytes) -> AppResult<T>;
 }
@@ -36,6 +39,16 @@ impl RequestHelper for HttpRequest {
             ip: ip_address,
             ua: user_agent,
         }
+    }
+
+    fn get_headers(&self) -> Map<String, Value> {
+        let mut headers_json_object = Map::new();
+
+        for (name, value) in self.headers().iter() {
+            headers_json_object.insert(name.to_string(), json!(value.to_str().unwrap()));
+        }
+
+        headers_json_object
     }
 
     fn json<T: DeserializeOwned>(bytes: Bytes) -> AppResult<T> {
