@@ -2,6 +2,9 @@
 name = "medullah-web"
 version = "0.2.0"
 edition = "2021"
+repository = "https://github.com/spiralover/medullah-web"
+
+publish = ["spiralindex"]
 
 [features]
 default = ["feat-mailer", "r2d2"]
