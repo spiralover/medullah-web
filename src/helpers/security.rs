@@ -54,7 +54,7 @@ impl Jwt {
         })
     }
 
-    pub fn decode(token: &String) -> AppResult<TokenData<TokenClaims>> {
+    pub fn decode(token: &str) -> AppResult<TokenData<TokenClaims>> {
         Ok(decode::<TokenClaims>(
             token,
             &DecodingKey::from_rsa_pem(MEDULLAH.app().auth_iss_public_key.as_ref())?,
