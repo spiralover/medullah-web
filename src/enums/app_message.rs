@@ -45,6 +45,7 @@ pub enum AppMessage {
     #[cfg(feature = "feat-crypto")]
     JwtError(jsonwebtoken::errors::Error),
     FromUtf8Error(std::string::FromUtf8Error),
+    ChronoParseError(chrono::ParseError),
     #[cfg(feature = "feat-rabbitmq")]
     RabbitmqError(lapin::Error),
     RedisError(redis::RedisError),
@@ -129,6 +130,7 @@ fn get_message(status: &AppMessage) -> String {
         #[cfg(feature = "feat-base64")]
         AppMessage::Base64Error(error) => error.to_string(),
         AppMessage::FromUtf8Error(error) => error.to_string(),
+        AppMessage::ChronoParseError(error) => error.to_string(),
         #[cfg(feature = "feat-ntex")]
         AppMessage::BlockingError(error) => error.to_string(),
         #[cfg(feature = "feat-ntex")]
@@ -253,6 +255,11 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
         AppMessage::UnAuthorizedMessageString(message) => {
             json_error_message_status(message, StatusCode::UNAUTHORIZED)
         }
+        AppMessage::ChronoParseError(error) => {
+            let message = error.to_string();
+            log::error!("Failed To Parse DateTime: {}", message);
+            json_error_message_status(&message, StatusCode::BAD_REQUEST)
+        }
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(e) => crate::helpers::responder::json_error(
             e,
@@ -282,6 +289,7 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::R2d2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::IoError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::ChronoParseError(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::SerdeError(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::SerdeError500(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "reqwest")]
@@ -377,6 +385,12 @@ impl From<redis::RedisError> for AppMessage {
 impl From<serde_json::Error> for AppMessage {
     fn from(value: serde_json::Error) -> Self {
         AppMessage::SerdeError(value)
+    }
+}
+
+impl From<chrono::ParseError> for AppMessage {
+    fn from(value: chrono::ParseError) -> Self {
+        AppMessage::ChronoParseError(value)
     }
 }
 
