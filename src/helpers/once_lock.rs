@@ -32,6 +32,11 @@ pub trait OnceLockHelper<'a> {
         Arc::clone(&self.app().redis)
     }
 
+    #[cfg(feature = "feat-rabbitmq")]
+    fn rabbitmq(&self) -> Arc<lapin::Connection> {
+        Arc::clone(&self.app().rabbit)
+    }
+
     fn redis_pool(&self) -> Arc<RedisPool> {
         Arc::clone(&self.app().redis_pool)
     }
@@ -42,6 +47,11 @@ pub trait OnceLockHelper<'a> {
 
     fn redis_service(&self) -> &RedisService {
         &MEDULLAH.get().unwrap().services.redis
+    }
+
+    #[cfg(feature = "feat-rabbitmq")]
+    fn rabbitmq_service(&self) -> Arc<crate::services::rabbit_service::RabbitService> {
+        Arc::clone(&MEDULLAH.get().unwrap().services.rabbitmq)
     }
 
     #[cfg(feature = "feat-database")]
