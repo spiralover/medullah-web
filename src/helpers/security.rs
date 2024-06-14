@@ -11,7 +11,7 @@ pub struct Jwt;
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TokenClaims {
+pub struct JwtTokenClaims {
     pub sub: String,
     // The time this claim is generated (timestamp)
     pub iat: usize,
