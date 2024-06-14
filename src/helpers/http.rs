@@ -11,10 +11,10 @@ pub type TheQueryParams = Query<QueryParams>;
 
 #[derive(Deserialize, Clone, Default)]
 pub struct QueryParams {
-    pub(super) search: Option<String>,
-    pub(super) limit: Option<i64>,
-    pub(super) page: Option<i64>,
-    pub(super) per_page: Option<i64>,
+    pub search: Option<String>,
+    pub limit: Option<i64>,
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
     pub status: Option<String>,
     pub stage: Option<String>,
     pub network_id: Option<Uuid>,
