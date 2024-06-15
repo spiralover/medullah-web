@@ -19,3 +19,4 @@ pub mod responder;
 pub mod security;
 pub mod string;
 pub mod time;
+pub mod reqwest;

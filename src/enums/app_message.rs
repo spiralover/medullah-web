@@ -6,6 +6,7 @@ use log::error;
 use ntex::http::StatusCode;
 #[cfg(feature = "feat-ntex")]
 use ntex::web::{HttpRequest, WebResponseError};
+use crate::helpers::reqwest::ReqwestResponseError;
 
 #[cfg(feature = "feat-ntex")]
 use crate::helpers::responder::json_error_message;
@@ -33,6 +34,8 @@ pub enum AppMessage {
     EntityNotFound(String),
     #[cfg(feature = "reqwest")]
     ReqwestError(reqwest::Error),
+    #[cfg(feature = "reqwest")]
+    ReqwestResponseError(ReqwestResponseError),
     #[cfg(feature = "feat-mailer")]
     MailerError(reqwest::Error),
     #[cfg(feature = "feat-nerve")]
@@ -123,6 +126,8 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::JoinError(error) => error.to_string(),
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestError(error) => error.to_string(),
+        #[cfg(feature = "reqwest")]
+        AppMessage::ReqwestResponseError(error) => error.body().to_owned(),
         #[cfg(feature = "feat-mailer")]
         AppMessage::MailerError(error) => error.to_string(),
         #[cfg(feature = "feat-nerve")]
@@ -210,6 +215,11 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("Http Client(Reqwest) Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
         }
+        #[cfg(feature = "reqwest")]
+        AppMessage::ReqwestResponseError(err) => {
+            log::error!("Http Client(Reqwest) Error[{}]: {}", err.code(), err.body());
+            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+        }
         AppMessage::FromUtf8Error(message) => {
             log::error!("Utf8 Conversion Error: {:?}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
@@ -294,6 +304,8 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::SerdeError500(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
+        #[cfg(feature = "reqwest")]
+        AppMessage::ReqwestResponseError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::RedisError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
