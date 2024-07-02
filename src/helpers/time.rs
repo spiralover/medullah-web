@@ -23,7 +23,7 @@ pub fn current_timestamp() -> u64 {
 }
 
 #[allow(dead_code)]
-fn parse_naive_datetime<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+pub fn parse_naive_datetime<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
 where
     D: Deserializer<'de>,
 {
