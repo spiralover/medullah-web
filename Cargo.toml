@@ -29,7 +29,7 @@ toml = { version = "0.8.14" }
 uuid = { version = "1.8.0", features = ["v4", "serde"] }
 log = { version = "0.4.21" }
 mobc = { version = "0.8.4", features = ["tokio"] }
-redis = { version = "0.24.0", default-features = false, features = ["tokio-comp", "connection-manager"] }
+redis = { version = "0.25.4", default-features = false, features = ["tokio-native-tls-comp", "connection-manager"] }
 serde = { version = "1.0.203", features = ["derive"] }
 tokio = { version = "1.34.0", features = ["rt-multi-thread", "macros"] }
 chrono = { version = "0.4.38", features = ["serde"] }

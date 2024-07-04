@@ -79,11 +79,10 @@ impl Redis {
         F: FnOnce(AppResult<String>) -> Fut + Copy + Send + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
-        let conn = MEDULLAH.redis().get_tokio_connection().await?;
+        let mut pubsub = MEDULLAH.redis().get_async_pubsub().await?;
 
         info!("[subscriber] subscribing to: {}", channel.clone());
 
-        let mut pubsub = conn.into_pubsub();
         pubsub.subscribe(&[channel.clone()]).await?;
 
         let mut stream = pubsub.into_on_message();
