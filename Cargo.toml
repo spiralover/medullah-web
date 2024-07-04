@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.3.10"
+version = "0.3.11"
 edition = "2021"
 repository = "https://github.com/spiralover/medullah-web"
 
@@ -47,7 +47,7 @@ fancy-regex = { version = "0.13.0", optional = true }
 rust-argon2 = { version = "2.1.0", optional = true }
 tera = { version = "1.20.0", optional = true }
 nanoid = { version = "0.4.0", optional = true }
-ntex = { version = "2.0.1", features = ["tokio"], optional = true }
+ntex = { version = "2.0.3", features = ["tokio"], optional = true }
 ntex-multipart = { version = "2.0.0", optional = true }
 r2d2 = { version = "0.8.10", optional = true }
 ntex-cors = { version = "2.0.0", optional = true }
