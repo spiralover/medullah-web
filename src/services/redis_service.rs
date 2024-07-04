@@ -7,8 +7,8 @@ use serde::Serialize;
 
 use crate::enums::app_message::AppMessage;
 use crate::redis::{RedisConnectionManager, RedisPool};
-use crate::results::redis_result::RedisResultToAppResult;
 use crate::results::AppResult;
+use crate::results::redis_result::RedisResultToAppResult;
 
 #[derive(Clone)]
 pub struct RedisService {
@@ -104,6 +104,26 @@ impl RedisService {
         match self.pool.get().await {
             Ok(mut conn) => conn
                 .rpop::<&str, Option<String>>(key, count)
+                .await
+                .into_app_result(),
+            Err(err) => Err(AppMessage::RedisPoolError(err)),
+        }
+    }
+
+    pub async fn flush_all(&self) -> AppResult<()> {
+        match self.pool.get().await {
+            Ok(mut conn) => redis::cmd("FLUSHALL")
+                .query_async(&mut *conn)
+                .await
+                .into_app_result(),
+            Err(err) => Err(AppMessage::RedisPoolError(err)),
+        }
+    }
+
+    pub async fn flush_db(&self) -> AppResult<()> {
+        match self.pool.get().await {
+            Ok(mut conn) => redis::cmd("FLUSHDB")
+                .query_async(&mut *conn)
                 .await
                 .into_app_result(),
             Err(err) => Err(AppMessage::RedisPoolError(err)),
