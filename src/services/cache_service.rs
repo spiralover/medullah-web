@@ -42,7 +42,7 @@ impl CacheService {
         }
     }
 
-    pub async fn delete(&self, key: &str) -> AppResult<String> {
+    pub async fn delete(&self, key: &str) -> AppResult<i32> {
         self.redis.delete(key.to_string()).await
     }
 

@@ -1,7 +1,8 @@
 use std::env;
 use std::time::Duration;
+
 use mobc::{async_trait, Manager, Pool};
-use redis::aio::Connection;
+use redis::aio::MultiplexedConnection;
 use redis::Client;
 
 use crate::redis::{RedisConnectionManager, RedisPool};
@@ -19,11 +20,11 @@ impl RedisConnectionManager {
 
 #[async_trait]
 impl Manager for RedisConnectionManager {
-    type Connection = Connection;
+    type Connection = MultiplexedConnection;
     type Error = redis::RedisError;
 
     async fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let c = self.client.get_tokio_connection().await?;
+        let c = self.client.get_multiplexed_tokio_connection().await?;
         Ok(c)
     }
 
