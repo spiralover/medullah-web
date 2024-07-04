@@ -81,9 +81,9 @@ impl RedisService {
         }
     }
 
-    pub async fn delete(&self, key: String) -> AppResult<String> {
+    pub async fn delete(&self, key: String) -> AppResult<i32> {
         match self.pool.get().await {
-            Ok(mut conn) => conn.del::<String, String>(key).await.into_app_result(),
+            Ok(mut conn) => conn.del::<String, i32>(key).await.into_app_result(),
             Err(err) => Err(AppMessage::RedisPoolError(err)),
         }
     }
