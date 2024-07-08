@@ -140,6 +140,7 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::ChronoParseError(error) => error.to_string(),
         #[cfg(feature = "feat-ntex")]
         AppMessage::BlockingNtexErrorInnerBoxed(error) => error.to_string(),
+        #[cfg(feature = "feat-ntex")]
         AppMessage::BlockingNtexErrorOuterBoxed(error) => error.to_string(),
         #[cfg(feature = "feat-ntex")]
         AppMessage::PayloadError(error) => error.to_string(),
