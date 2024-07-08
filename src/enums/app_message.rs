@@ -58,7 +58,9 @@ pub enum AppMessage {
     #[cfg(feature = "feat-ntex")]
     PayloadError(ntex::http::error::PayloadError),
     #[cfg(feature = "feat-ntex")]
-    BlockingError(ntex::http::error::BlockingError<Box<Self>>),
+    BlockingNtexErrorInnerBoxed(ntex::http::error::BlockingError<Box<Self>>),
+    #[cfg(feature = "feat-ntex")]
+    BlockingNtexErrorOuterBoxed(Box<ntex::http::error::BlockingError<Self>>),
     #[cfg(feature = "feat-ntex")]
     BlockingErrorCanceled,
     R2d2Error(r2d2::Error),
@@ -137,7 +139,8 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::FromUtf8Error(error) => error.to_string(),
         AppMessage::ChronoParseError(error) => error.to_string(),
         #[cfg(feature = "feat-ntex")]
-        AppMessage::BlockingError(error) => error.to_string(),
+        AppMessage::BlockingNtexErrorInnerBoxed(error) => error.to_string(),
+        AppMessage::BlockingNtexErrorOuterBoxed(error) => error.to_string(),
         #[cfg(feature = "feat-ntex")]
         AppMessage::PayloadError(error) => error.to_string(),
         AppMessage::WarningMessage(message) => message.to_string(),
@@ -244,7 +247,11 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("DB Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
         }
-        AppMessage::BlockingError(message) => {
+        AppMessage::BlockingNtexErrorInnerBoxed(message) => {
+            log::error!("Blocking Error: {}", message);
+            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+        }
+        AppMessage::BlockingNtexErrorOuterBoxed(message) => {
             log::error!("Blocking Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
         }
@@ -311,7 +318,8 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::RedisError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RabbitmqError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::BlockingError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::BlockingNtexErrorInnerBoxed(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::BlockingNtexErrorOuterBoxed(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::PayloadError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::ErrorMessage(_, status) => *status,
         AppMessage::UnAuthorized => StatusCode::UNAUTHORIZED,
@@ -378,6 +386,20 @@ impl From<r2d2::Error> for AppMessage {
 impl From<tokio::task::JoinError> for AppMessage {
     fn from(value: tokio::task::JoinError) -> Self {
         AppMessage::JoinError(value)
+    }
+}
+
+#[cfg(feature = "feat-ntex")]
+impl From<ntex::http::error::BlockingError<AppMessage>> for AppMessage {
+    fn from(value: ntex::http::error::BlockingError<AppMessage>) -> Self {
+        AppMessage::BlockingNtexErrorOuterBoxed(Box::new(value))
+    }
+}
+
+#[cfg(feature = "feat-ntex")]
+impl From<ntex::http::error::BlockingError<Box<AppMessage>>> for AppMessage {
+    fn from(value: ntex::http::error::BlockingError<Box<AppMessage>>) -> Self {
+        AppMessage::BlockingNtexErrorInnerBoxed(value)
     }
 }
 
