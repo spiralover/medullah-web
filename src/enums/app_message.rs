@@ -2,6 +2,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::io;
 
 use log::error;
+#[cfg(feature = "feat-ntex")]
 use ntex::http::error::BlockingError;
 #[cfg(feature = "feat-ntex")]
 use ntex::http::StatusCode;
