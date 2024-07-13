@@ -67,10 +67,13 @@ where
             .default_service(ntex_default_service());
 
         if cfg!(feature = "feat-static") {
-            return app.service(ntex_files::Files::new(
-                &config.static_config.path,
-                &config.static_config.dir,
-            ));
+            #[cfg(feature = "feat-static")]
+            {
+                return app.service(ntex_files::Files::new(
+                    &config.static_config.path,
+                    &config.static_config.dir,
+                ));
+            }
         }
 
         app
