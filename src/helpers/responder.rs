@@ -23,15 +23,6 @@ impl<T: Serialize> Display for JsonResponse<T> {
     }
 }
 
-#[derive(Serialize)]
-pub struct PaginationResponse<T: Serialize> {
-    pub(crate) success: bool,
-    pub(crate) total_pages: i64,
-    pub(crate) total_records: i64,
-    pub(crate) status: u16,
-    pub(crate) data: Vec<T>,
-}
-
 pub fn map_empty_json<F: Serialize>(_f: F) -> JsonEmpty {
     json_empty()
 }
