@@ -1749,6 +1749,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "language-tags"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d4345964bb142484797b161f473a503a434de77149dd8c7427788c6e13379388"
+
+[[package]]
 name = "lapin"
 version = "2.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1795,7 +1801,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e310b3a6b5907f99202fcdb4960ff45b93735d7c7d96b760fcff8db2dc0e103d"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.5",
 ]
 
 [[package]]
@@ -1857,7 +1863,7 @@ dependencies = [
 
 [[package]]
 name = "medullah-web"
-version = "0.3.15"
+version = "0.3.16"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -1876,6 +1882,7 @@ dependencies = [
  "nanoid",
  "ntex",
  "ntex-cors",
+ "ntex-files",
  "ntex-multipart",
  "r2d2",
  "redis",
@@ -1912,6 +1919,16 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
+
+[[package]]
+name = "mime_guess"
+version = "2.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7c44f8e672c00fe5308fa235f821cb4198414e1c77935c1ab6948d3fd78550e"
+dependencies = [
+ "mime",
+ "unicase",
+]
 
 [[package]]
 name = "minimal-lexical"
@@ -2086,6 +2103,28 @@ dependencies = [
  "derive_more",
  "futures",
  "ntex",
+]
+
+[[package]]
+name = "ntex-files"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c37d129e1b93c30c12fe7f7ce3e1770ce7a9d11c5a7dcf1264a8ade8e254db41"
+dependencies = [
+ "bitflags 2.5.0",
+ "derive_more",
+ "futures",
+ "http",
+ "httpdate",
+ "language-tags",
+ "log",
+ "mime",
+ "mime_guess",
+ "ntex",
+ "ntex-http",
+ "percent-encoding",
+ "unicase",
+ "v_htmlescape",
 ]
 
 [[package]]
@@ -3905,6 +3944,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "unicase"
+version = "2.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7d2d4dafb69621809a81864c9c1b864479e1235c0dd4e199924b9742439ed89"
+dependencies = [
+ "version_check",
+]
+
+[[package]]
 name = "unicode-bidi"
 version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3957,6 +4005,12 @@ dependencies = [
  "getrandom",
  "serde",
 ]
+
+[[package]]
+name = "v_htmlescape"
+version = "0.15.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e8257fbc510f0a46eb602c10215901938b5c2a7d5e70fc11483b1d3c9b5b18c"
 
 [[package]]
 name = "validator"

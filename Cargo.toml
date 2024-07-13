@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.3.15"
+version = "0.3.16"
 edition = "2021"
 repository = "https://github.com/spiralover/medullah-web"
 
@@ -20,6 +20,7 @@ feat-validator = ["validator"]
 feat-templating = ["tera"]
 feat-id-generator = ["nanoid"]
 feat-ntex = ["feat-database", "ntex", "ntex-cors"]
+feat-static = ["ntex-files"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -47,6 +48,7 @@ rust-argon2 = { version = "2.1.0", optional = true }
 tera = { version = "1.20.0", optional = true }
 nanoid = { version = "0.4.0", optional = true }
 ntex = { version = "2.0.3", features = ["tokio"], optional = true }
+ntex-files = { version = "2.0.0", optional = true }
 ntex-multipart = { version = "2.0.0", optional = true }
 r2d2 = { version = "0.8.10", optional = true }
 ntex-cors = { version = "2.0.0", optional = true }
