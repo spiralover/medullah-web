@@ -15,6 +15,6 @@ pub fn password_verify(hash: &str, password: &str) -> bool {
 
 #[cfg(feature = "feat-regex")]
 pub fn is_username_valid(name: String) -> Box<fancy_regex::Result<bool>> {
-    let regex = fancy_regex::Regex::new(r"^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$").unwrap();
+    let regex = fancy_regex::Regex::new(r"^[a-z][a-z\d\.]{0,37}$").unwrap();
     Box::new(regex.is_match(name.as_str()))
 }
