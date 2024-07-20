@@ -1,8 +1,6 @@
 use crate::enums::app_message::AppMessage;
 
 pub mod app_result;
-#[cfg(feature = "feat-ntex")]
-pub mod http_result;
 pub mod redis_result;
 
 pub type AppResult<T> = Result<T, AppMessage>;

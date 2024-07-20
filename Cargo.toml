@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.3.18"
+version = "0.4.0"
 edition = "2021"
 repository = "https://github.com/spiralover/medullah-web"
 
