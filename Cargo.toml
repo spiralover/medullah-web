@@ -1,10 +1,12 @@
 [package]
 name = "medullah-web"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
+license = "MIT"
+description = "Micro-Framework Base on Ntex"
 repository = "https://github.com/spiralover/medullah-web"
 
-publish = ["spiralindex"]
+publish = ["spiral", "crates-io"]
 
 [features]
 default = ["feat-mailer", "r2d2"]

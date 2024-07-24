@@ -7,6 +7,7 @@ use diesel::PgConnection;
 #[cfg(feature = "feat-database")]
 use diesel::r2d2::ConnectionManager;
 use log::info;
+#[cfg(feature = "feat-templating")]
 use tera::Tera;
 
 use crate::app_state::{AppServices, MedullahState};
@@ -50,8 +51,11 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         let rabbit = Arc::new(establish_rabbit_connection(&env_prefix).await);
 
     // templating
-    let tpl_dir = get_cwd() + "/resources/templates/**/*.tera.html";
-    let tera_templating = Tera::new(tpl_dir.as_str()).unwrap();
+    #[cfg(feature = "feat-templating")]
+    let tera_templating = {
+        let tpl_dir = get_cwd() + "/resources/templates/**/*.tera.html";
+        Tera::new(tpl_dir.as_str()).unwrap()
+    };
 
     MedullahState {
         app_id: env::var(format!("{}_APP_ID", env_prefix)).unwrap(),
@@ -71,6 +75,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         rabbit: rabbit.clone(),
         #[cfg(feature = "feat-database")]
         database: database_pool,
+        #[cfg(feature = "feat-templating")]
         tera: tera_templating,
 
         auth_iss_public_key: setup.auth_iss_public_key,
