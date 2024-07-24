@@ -2,6 +2,7 @@ use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 
 use redis::Client as RedisClient;
+#[cfg(feature = "feat-templating")]
 use tera::{Context, Tera};
 
 use crate::redis::RedisPool;
