@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
-
 use log::error;
 #[cfg(feature = "feat-ntex")]
 use ntex::http::error::BlockingError;
@@ -20,6 +19,7 @@ use crate::helpers::responder::{
 pub enum AppMessage {
     InvalidUUID,
     UnAuthorized,
+    Forbidden,
     InternalServerError,
     InternalServerErrorMessage(&'static str),
     IoError(io::Error),
@@ -31,6 +31,8 @@ pub enum AppMessage {
     HttpClientError(String, String),
     UnAuthorizedMessage(&'static str),
     UnAuthorizedMessageString(String),
+    ForbiddenMessage(&'static str),
+    ForbiddenMessageString(String),
     #[cfg(feature = "feat-validator")]
     FormValidationError(validator::ValidationErrors),
     EntityNotFound(String),
@@ -72,34 +74,6 @@ pub enum AppMessage {
     DatabaseEntityNotFound,
     #[cfg(feature = "feat-database")]
     DatabaseError(diesel::result::Error),
-    #[cfg(feature = "feat-database")]
-    DatabaseErrorKind(
-        diesel::result::DatabaseErrorKind,
-        Box<dyn diesel::result::DatabaseErrorInformation + Send + Sync>,
-    ),
-    #[cfg(feature = "feat-database")]
-    DatabaseRollbackErrorOnCommit {
-        rollback_error: Box<diesel::result::Error>,
-        commit_error: Box<diesel::result::Error>,
-    },
-    #[cfg(feature = "feat-database")]
-    DatabaseErrorMessage(String),
-    #[cfg(feature = "feat-database")]
-    DatabaseInvalidCString(std::ffi::NulError),
-    #[cfg(feature = "feat-database")]
-    DatabaseQueryBuilderError(Box<dyn serde::de::StdError + Send + Sync>),
-    #[cfg(feature = "feat-database")]
-    DatabaseDeserializationError(Box<dyn serde::de::StdError + Send + Sync>),
-    #[cfg(feature = "feat-database")]
-    DatabaseSerializationError(Box<dyn serde::de::StdError + Send + Sync>),
-    #[cfg(feature = "feat-database")]
-    DatabaseRollbackTransaction,
-    #[cfg(feature = "feat-database")]
-    DatabaseAlreadyInTransaction,
-    #[cfg(feature = "feat-database")]
-    DatabaseNotInTransaction,
-    #[cfg(feature = "feat-database")]
-    DatabaseBrokenTransactionManager,
 }
 
 fn format_message(status: &AppMessage, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -112,13 +86,14 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::UnAuthorized => {
             String::from("You are not authorized to access requested resource(s)")
         }
+        AppMessage::Forbidden => {
+            String::from("You don't have sufficient permissions to access requested resource(s)")
+        }
         AppMessage::Redirect(url) => format!("Redirecting to '{}'...", url),
         AppMessage::EntityNotFound(entity) => format!("Such {} does not exits", entity),
         AppMessage::R2d2Error(error) => error.to_string(),
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseEntityNotFound => String::from("Such entity does not exits"),
-        #[cfg(feature = "feat-database")]
-        AppMessage::DatabaseErrorMessage(err) => err.to_owned(),
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(err) => err.to_string(),
         AppMessage::HttpClientError(msg, _) => msg.to_owned(),
@@ -160,6 +135,8 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::DatabaseError(message) => message.to_string(),
         AppMessage::UnAuthorizedMessage(message) => message.to_string(),
         AppMessage::UnAuthorizedMessageString(message) => message.to_string(),
+        AppMessage::ForbiddenMessage(message) => message.to_string(),
+        AppMessage::ForbiddenMessageString(message) => message.to_string(),
         AppMessage::InternalServerErrorMessage(message) => message.to_string(),
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(e) => String::from(e.to_string().as_str()),
@@ -175,6 +152,8 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
         AppMessage::SuccessMessageString(message) => message.to_owned(),
         AppMessage::UnAuthorizedMessage(message) => message.to_string(),
         AppMessage::UnAuthorizedMessageString(message) => message.to_owned(),
+        AppMessage::ForbiddenMessage(message) => message.to_string(),
+        AppMessage::ForbiddenMessageString(message) => message.to_owned(),
         AppMessage::InternalServerErrorMessage(message) => message.to_string(),
         _ => {
             error!("[middleware-level-error] {:?}", app);
@@ -250,10 +229,6 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
                 StatusCode::INTERNAL_SERVER_ERROR,
             )
         }
-        AppMessage::DatabaseErrorMessage(message) => {
-            log::error!("DB Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
-        }
         AppMessage::BlockingNtexErrorInnerBoxed(message) => {
             log::error!("Blocking Error: {}", message);
             json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
@@ -282,6 +257,12 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
         }
         AppMessage::UnAuthorizedMessageString(message) => {
             json_error_message_status(message, StatusCode::UNAUTHORIZED)
+        }
+        AppMessage::ForbiddenMessage(message) => {
+            json_error_message_status(message, StatusCode::FORBIDDEN)
+        }
+        AppMessage::ForbiddenMessageString(message) => {
+            json_error_message_status(message, StatusCode::FORBIDDEN)
         }
         AppMessage::ChronoParseError(error) => {
             let message = error.to_string();
@@ -337,6 +318,9 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::UnAuthorized => StatusCode::UNAUTHORIZED,
         AppMessage::UnAuthorizedMessage(_) => StatusCode::UNAUTHORIZED,
         AppMessage::UnAuthorizedMessageString(_) => StatusCode::UNAUTHORIZED,
+        AppMessage::Forbidden => StatusCode::FORBIDDEN,
+        AppMessage::ForbiddenMessage(_) => StatusCode::FORBIDDEN,
+        AppMessage::ForbiddenMessageString(_) => StatusCode::FORBIDDEN,
         AppMessage::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::InternalServerErrorMessage(_) => StatusCode::INTERNAL_SERVER_ERROR,
         _ => StatusCode::INTERNAL_SERVER_ERROR, // all database-related errors are 500
@@ -460,6 +444,26 @@ impl From<base64::DecodeError> for AppMessage {
     }
 }
 
+#[cfg(feature = "feat-database")]
+impl From<diesel::result::Error> for AppMessage {
+    fn from(value: diesel::result::Error) -> Self {
+        match value {
+            diesel::result::Error::NotFound => AppMessage::DatabaseEntityNotFound,
+            _ => AppMessage::DatabaseError(value),
+        }
+    }
+}
+
+#[cfg(feature = "feat-database")]
+impl From<AppMessage> for diesel::result::Error {
+    fn from(value: AppMessage) -> Self {
+        match value {
+            AppMessage::DatabaseEntityNotFound => diesel::result::Error::NotFound,
+            AppMessage::DatabaseError(err) => err,
+            _ => panic!("unhandled app message: {:?}", value),
+        }
+    }
+}
 #[cfg(feature = "feat-ntex")]
 impl AppMessage {
     pub fn into_http_result(self) -> crate::results::HttpResult {
