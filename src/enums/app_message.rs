@@ -19,6 +19,7 @@ use crate::helpers::responder::{
 pub enum AppMessage {
     InvalidUUID,
     UnAuthorized,
+    Forbidden,
     InternalServerError,
     InternalServerErrorMessage(&'static str),
     IoError(io::Error),
@@ -84,6 +85,9 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::InvalidUUID => String::from("Invalid unique identifier"),
         AppMessage::UnAuthorized => {
             String::from("You are not authorized to access requested resource(s)")
+        }
+        AppMessage::Forbidden => {
+            String::from("You don't have sufficient permissions to access requested resource(s)")
         }
         AppMessage::Redirect(url) => format!("Redirecting to '{}'...", url),
         AppMessage::EntityNotFound(entity) => format!("Such {} does not exits", entity),
@@ -314,6 +318,7 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::UnAuthorized => StatusCode::UNAUTHORIZED,
         AppMessage::UnAuthorizedMessage(_) => StatusCode::UNAUTHORIZED,
         AppMessage::UnAuthorizedMessageString(_) => StatusCode::UNAUTHORIZED,
+        AppMessage::Forbidden => StatusCode::FORBIDDEN,
         AppMessage::ForbiddenMessage(_) => StatusCode::FORBIDDEN,
         AppMessage::ForbiddenMessageString(_) => StatusCode::FORBIDDEN,
         AppMessage::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
