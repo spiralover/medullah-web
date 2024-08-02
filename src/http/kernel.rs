@@ -3,7 +3,6 @@ use ntex::web::middleware::Logger;
 use ntex::web::ServiceConfig;
 use ntex::{web, web::Route as NtexRoute};
 use ntex_cors::Cors;
-use std::rc::Rc;
 
 use crate::helpers::responder::json_error_message_status;
 use crate::http::middlewares::base_middleware::BaseMiddleware;
@@ -27,13 +26,6 @@ pub fn register_routes(config: &mut ServiceConfig, routes: Vec<Route>) {
     log::debug!("discovering routes...");
 
     for route in routes.clone() {
-        let middlewares: Vec<Rc<Middleware>> = route
-            .middlewares
-            .clone()
-            .iter()
-            .map(|m| Rc::new(m.to_owned()))
-            .collect();
-
         for controller in &route.controllers {
             let path = route.prefix.as_str().to_owned() + controller.path.as_str();
             log::debug!(
@@ -48,20 +40,20 @@ pub fn register_routes(config: &mut ServiceConfig, routes: Vec<Route>) {
 
                 if total == 1 {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(middlewares.first().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(route.middlewares.first().unwrap().clone()))
                         .configure(controller.handler);
                     config.service(scope);
                 } else if total == 2 {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(middlewares.first().unwrap().clone()))
-                        .wrap(BaseMiddleware::new(middlewares.last().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(route.middlewares.first().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(route.middlewares.last().unwrap().clone()))
                         .configure(controller.handler);
                     config.service(scope);
                 } else {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(middlewares.first().unwrap().clone()))
-                        .wrap(BaseMiddleware::new(middlewares.get(1).unwrap().clone()))
-                        .wrap(BaseMiddleware::new(middlewares.last().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(route.middlewares.first().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(route.middlewares.get(1).unwrap().clone()))
+                        .wrap(BaseMiddleware::new(route.middlewares.last().unwrap().clone()))
                         .configure(controller.handler);
                     config.service(scope);
                 }
