@@ -60,28 +60,3 @@ impl<'a, T> OptionalResult<'a, T> for QueryResult<T> {
         }
     }
 }
-
-impl From<Error> for AppMessage {
-    fn from(value: Error) -> Self {
-        match value {
-            Error::InvalidCString(err) => AppMessage::DatabaseErrorMessage(err.to_string()),
-            Error::DatabaseError(x, y) => AppMessage::DatabaseErrorKind(x, y),
-            Error::NotFound => AppMessage::DatabaseEntityNotFound,
-            Error::QueryBuilderError(err) => AppMessage::DatabaseQueryBuilderError(err),
-            Error::DeserializationError(err) => AppMessage::DatabaseDeserializationError(err),
-            Error::SerializationError(err) => AppMessage::DatabaseDeserializationError(err),
-            Error::RollbackErrorOnCommit {
-                commit_error,
-                rollback_error,
-            } => AppMessage::DatabaseRollbackErrorOnCommit {
-                commit_error,
-                rollback_error,
-            },
-            Error::RollbackTransaction => AppMessage::DatabaseRollbackTransaction,
-            Error::AlreadyInTransaction => AppMessage::DatabaseAlreadyInTransaction,
-            Error::NotInTransaction => AppMessage::DatabaseNotInTransaction,
-            Error::BrokenTransactionManager => AppMessage::DatabaseBrokenTransactionManager,
-            _ => AppMessage::InternalServerError,
-        }
-    }
-}
