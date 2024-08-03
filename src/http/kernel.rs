@@ -9,13 +9,11 @@ use crate::http::middlewares::base_middleware::BaseMiddleware;
 
 use crate::http::middlewares::Middleware;
 
-#[derive(Clone)]
 pub struct Controller {
     pub path: String,
     pub handler: fn(cfg: &mut ServiceConfig),
 }
 
-#[derive(Clone)]
 pub struct Route {
     pub prefix: String,
     pub middlewares: Vec<Middleware>,
@@ -25,7 +23,7 @@ pub struct Route {
 pub fn register_routes(config: &mut ServiceConfig, routes: Vec<Route>) {
     log::debug!("discovering routes...");
 
-    for route in routes.clone() {
+    for route in routes {
         for controller in &route.controllers {
             let path = route.prefix.as_str().to_owned() + controller.path.as_str();
             log::debug!(
