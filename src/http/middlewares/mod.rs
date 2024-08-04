@@ -8,15 +8,15 @@ use crate::results::AppResult;
 
 pub mod base_middleware;
 
-pub type BeforeMiddlewareReturn<'a> = Pin<Box<dyn Future<Output = AppResult<HttpRequest>> + 'a>>;
-pub type AfterMiddlewareReturn<'a> = Pin<Box<dyn Future<Output = AppResult<WebResponse>> + 'a>>;
+pub type BeforeMiddlewareReturn<'a> = Pin<Box<dyn Future<Output = AppResult<()>> + 'a>>;
+pub type AfterMiddlewareReturn<'a> = Pin<Box<dyn Future<Output = AppResult<()>> + 'a>>;
 
 pub trait BeforeMiddleware: DynClone {
-    fn call(&self, req: HttpRequest) -> BeforeMiddlewareReturn;
+    fn call<'a>(&'a self, request: &'a HttpRequest) -> BeforeMiddlewareReturn<'a>;
 }
 
 pub trait AfterMiddleware: DynClone {
-    fn call(&self, resp: WebResponse) -> AfterMiddlewareReturn;
+    fn call<'a>(&'a self, resp: &'a WebResponse) -> AfterMiddlewareReturn<'a>;
 }
 
 #[derive(Clone)]
