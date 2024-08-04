@@ -1,8 +1,11 @@
 use log::{debug, error};
 use ntex::service::{Middleware as NtexMiddleware, Service, ServiceCtx};
-use ntex::web::{Error, ErrorRenderer, WebRequest, WebResponse};
+use ntex::web::{Error, ErrorRenderer, HttpRequest, WebRequest, WebResponse};
 
+use crate::enums::app_message::{get_middleware_level_message, get_status_code};
+use crate::helpers::responder::Responder;
 use crate::http::middlewares::Middleware;
+use crate::prelude::AppMessage;
 
 pub struct BaseMiddleware {
     pub middleware: Middleware,
@@ -50,25 +53,26 @@ where
 
         match self.middleware {
             // execute before calling handler
-            Middleware::Before(ref mid) => match mid.call(req).await {
-                Ok(req) => {
+            Middleware::Before(ref mid) => match mid.call(&req).await {
+                Ok(_) => {
                     let request = WebRequest::from_parts(req, payload).unwrap();
                     debug!("calling http controller -> method...");
                     ctx.call(&self.service, request).await
                 }
-                Err(err) => {
-                    error!("[middleware-level-error][pre-exec] {:?}", err);
-                    Err(Error::from(err))
-                },
+                Err(err) => error_from_app_message(err, req),
             },
 
             // execute after executing handler
             Middleware::After(ref mid) => {
                 let request = WebRequest::from_parts(req, payload).unwrap();
                 match ctx.call(&self.service, request).await {
-                    Ok(resp) => match mid.call(resp).await {
-                        Ok(resp) => Ok(resp),
-                        Err(err) => Err(Error::from(err)),
+                    Ok(resp) => match mid.call(&resp).await {
+                        Ok(_) => Ok(resp),
+                        // log error and return response generated from controller
+                        Err(err) => {
+                            error!("[middleware-level-error][post-exec] {:?}", err);
+                            Ok(resp)
+                        }
                     },
                     Err(err) => {
                         error!("[middleware-level-error][post-exec] {:?}", err);
@@ -78,4 +82,11 @@ where
             }
         }
     }
+}
+
+fn error_from_app_message(message: AppMessage, req: HttpRequest) -> Result<WebResponse, Error> {
+    let msg = get_middleware_level_message(&message);
+    let resp = Responder::message(&msg, get_status_code(&message));
+    error!("[middleware-level-error][pre-exec] {:?}", message);
+    Ok(WebResponse::new(resp, req))
 }

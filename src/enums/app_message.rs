@@ -389,7 +389,7 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
 }
 
 #[cfg(feature = "feat-ntex")]
-fn get_status_code(status: &AppMessage) -> StatusCode {
+pub fn get_status_code(status: &AppMessage) -> StatusCode {
     match status {
         AppMessage::InvalidUUID => StatusCode::BAD_REQUEST,
         AppMessage::SuccessMessage(_msg) => StatusCode::OK,

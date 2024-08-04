@@ -1,6 +1,10 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.8.0 (2024-08-05)
+* feat(pre-exec-middleware): handle and return proper response
+* refactor(middleware): pass request & response as borrowed instances
+
 ## 0.7.0 (2024-08-04)
 * refactor(responder): replaced funcs with associated funcs
 
