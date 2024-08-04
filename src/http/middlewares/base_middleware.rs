@@ -1,16 +1,15 @@
 use log::debug;
 use ntex::service::{Middleware as NtexMiddleware, Service, ServiceCtx};
 use ntex::web::{Error, ErrorRenderer, WebRequest, WebResponse};
-use std::rc::Rc;
 
 use crate::http::middlewares::Middleware;
 
 pub struct BaseMiddleware {
-    pub middleware: Rc<Middleware>,
+    pub middleware: Middleware,
 }
 
 impl BaseMiddleware {
-    pub fn new(middleware: Rc<Middleware>) -> BaseMiddleware {
+    pub fn new(middleware: Middleware) -> BaseMiddleware {
         Self { middleware }
     }
 }
@@ -28,7 +27,7 @@ impl<S> NtexMiddleware<S> for BaseMiddleware {
 
 pub struct BaseMiddlewareInternal<S> {
     service: S,
-    middleware: Rc<Middleware>,
+    middleware: Middleware,
 }
 
 impl<S, Err> Service<WebRequest<Err>> for BaseMiddlewareInternal<S>
@@ -49,7 +48,7 @@ where
     ) -> Result<Self::Response, Self::Error> {
         let (req, payload) = request.into_parts();
 
-        match *self.middleware {
+        match self.middleware {
             // execute before calling handler
             Middleware::Before(ref mid) => match mid.call(req).await {
                 Ok(req) => {

@@ -10,15 +10,18 @@ use crate::env_logger::init_env_logger;
 use crate::http::kernel::{ntex_default_service, register_routes, Route, setup_cors, setup_logger};
 use crate::prelude::{AppResult, MedullahState};
 
-pub struct ServerConfig {
+pub struct ServerConfig<TB>
+where
+    TB: FnOnce() -> Vec<Route> + Send + Copy + 'static,
+{
     pub app: String,
-    pub routes: Vec<Route>,
     pub env_prefix: String,
     pub private_key: String,
     pub public_key: String,
     pub auth_iss_public_key: String,
     #[cfg(feature = "feat-static")]
     pub static_config: StaticFileConfig,
+    pub boot_thread: TB,
 }
 
 #[cfg(feature = "feat-static")]
@@ -27,13 +30,14 @@ pub struct StaticFileConfig {
     pub dir: String,
 }
 
-pub async fn start_ntex_server<Callback, Fut>(
-    config: ServerConfig,
+pub async fn start_ntex_server<Callback, Fut, TB>(
+    config: ServerConfig<TB>,
     callback: Callback,
 ) -> std::io::Result<()>
 where
     Callback: FnOnce(MedullahState) -> Fut + Copy + Send + 'static,
     Fut: Future<Output = AppResult<()>> + Send + 'static,
+    TB: FnOnce() -> Vec<Route> + Send + Copy + 'static,
 {
     load_environment_variables(&config.app);
 
@@ -57,8 +61,9 @@ where
         }
     }
 
+    let boot = config.boot_thread;
     web::HttpServer::new(move || {
-        let routes = config.routes.clone();
+        let routes = boot();
         let app = web::App::new()
             .state(app_state.clone())
             .configure(|cfg| register_routes(cfg, routes))
