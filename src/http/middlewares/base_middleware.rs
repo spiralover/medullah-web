@@ -1,4 +1,4 @@
-use log::debug;
+use log::{debug, error};
 use ntex::service::{Middleware as NtexMiddleware, Service, ServiceCtx};
 use ntex::web::{Error, ErrorRenderer, WebRequest, WebResponse};
 
@@ -56,7 +56,10 @@ where
                     debug!("calling http controller -> method...");
                     ctx.call(&self.service, request).await
                 }
-                Err(err) => Err(Error::from(err)),
+                Err(err) => {
+                    error!("[middleware-level-error][pre-exec] {:?}", err);
+                    Err(Error::from(err))
+                },
             },
 
             // execute after executing handler
@@ -67,7 +70,10 @@ where
                         Ok(resp) => Ok(resp),
                         Err(err) => Err(Error::from(err)),
                     },
-                    Err(err) => Err(err),
+                    Err(err) => {
+                        error!("[middleware-level-error][post-exec] {:?}", err);
+                        Err(err)
+                    }
                 }
             }
         }

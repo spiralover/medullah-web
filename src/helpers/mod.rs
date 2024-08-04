@@ -20,3 +20,4 @@ pub mod security;
 pub mod string;
 pub mod time;
 pub mod reqwest;
+pub mod json_message;
