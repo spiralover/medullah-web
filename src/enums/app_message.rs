@@ -10,11 +10,7 @@ use ntex::web::{HttpRequest, WebResponseError};
 use crate::helpers::reqwest::ReqwestResponseError;
 
 #[cfg(feature = "feat-ntex")]
-use crate::helpers::responder::json_error_message;
-#[cfg(feature = "feat-ntex")]
-use crate::helpers::responder::{
-    json_entity_not_found_response, json_error_message_status, json_success_message,
-};
+use crate::helpers::responder::Responder;
 
 pub enum AppMessage {
     InvalidUUID,
@@ -163,9 +159,9 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
 }
 
 #[cfg(feature = "feat-ntex")]
-pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
+pub fn make_response(status: &AppMessage) -> ntex::web::HttpResponse {
     match status {
-        AppMessage::EntityNotFound(entity) => json_entity_not_found_response(entity),
+        AppMessage::EntityNotFound(entity) => Responder::entity_not_found_message(entity),
         AppMessage::Redirect(url) => ntex::web::HttpResponse::Found()
             .header(
                 ntex::http::header::HeaderName::from_static("Location"),
@@ -175,111 +171,220 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
             .into_body(),
         AppMessage::IoError(message) => {
             log::error!("IO Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::R2d2Error(message) => {
             log::error!("R2d2 Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(message) => {
             log::error!("Jwt Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RabbitmqError(message) => {
             log::error!("Rabbitmq Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::RedisError(message) => {
             log::error!("Redis Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::RedisPoolError(message) => {
             log::error!("Redis Pool Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestError(message) => {
             log::error!("Http Client(Reqwest) Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestResponseError(err) => {
             log::error!("Http Client(Reqwest) Error[{}]: {}", err.code(), err.body());
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::FromUtf8Error(message) => {
             log::error!("Utf8 Conversion Error: {:?}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         #[cfg(feature = "feat-base64")]
         AppMessage::Base64Error(message) => {
             log::error!("Base64 Error: {:?}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::SerdeError(message) => {
             log::error!("Serde Error: {:?}", message);
-            json_error_message_status(&message.to_string(), StatusCode::BAD_REQUEST)
+            Responder::message(&message.to_string(), StatusCode::BAD_REQUEST)
         }
         AppMessage::SerdeError500(message) => {
             log::error!("Serde Error: {}", message);
-            json_error_message_status(
-                "This is strange, something went wrong",
-                StatusCode::INTERNAL_SERVER_ERROR,
-            )
+            Responder::internal_server_error()
         }
         AppMessage::BlockingNtexErrorInnerBoxed(message) => {
             log::error!("Blocking Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::BlockingNtexErrorOuterBoxed(message) => {
             log::error!("Blocking Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::BlockingNtexIoError(message) => {
             log::error!("Blocking IO Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::PayloadError(message) => {
             log::error!("Payload Extraction Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
         AppMessage::InternalServerErrorMessage(message) => {
             log::error!("Internal Server Error: {}", message);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
-        AppMessage::SuccessMessage(message) => json_success_message(message),
-        AppMessage::SuccessMessageString(message) => json_success_message(message),
-        AppMessage::ErrorMessage(message, status) => json_error_message_status(message, *status),
+        AppMessage::SuccessMessage(message) => Responder::ok_message(message),
+        AppMessage::SuccessMessageString(message) => Responder::ok_message(message),
+        AppMessage::ErrorMessage(message, status) => Responder::message(message, *status),
         AppMessage::UnAuthorizedMessage(message) => {
-            json_error_message_status(message, StatusCode::UNAUTHORIZED)
+            Responder::message(message, StatusCode::UNAUTHORIZED)
         }
         AppMessage::UnAuthorizedMessageString(message) => {
-            json_error_message_status(message, StatusCode::UNAUTHORIZED)
+            Responder::message(message, StatusCode::UNAUTHORIZED)
         }
         AppMessage::ForbiddenMessage(message) => {
-            json_error_message_status(message, StatusCode::FORBIDDEN)
+            Responder::message(message, StatusCode::FORBIDDEN)
         }
         AppMessage::ForbiddenMessageString(message) => {
-            json_error_message_status(message, StatusCode::FORBIDDEN)
+            Responder::message(message, StatusCode::FORBIDDEN)
         }
         AppMessage::ChronoParseError(error) => {
             let message = error.to_string();
             log::error!("Failed To Parse DateTime: {}", message);
-            json_error_message_status(&message, StatusCode::BAD_REQUEST)
+            Responder::message(&message, StatusCode::BAD_REQUEST)
         }
         #[cfg(feature = "feat-validator")]
-        AppMessage::FormValidationError(e) => crate::helpers::responder::json_error(
+        AppMessage::FormValidationError(e) => Responder::failure(
             e,
-            StatusCode::BAD_REQUEST,
             Some(String::from("Validation Error")),
+            StatusCode::BAD_REQUEST,
         ),
         AppMessage::DatabaseError(err) => {
             error!("{:?}", err);
-            json_error_message_status("Internal Server Error", StatusCode::INTERNAL_SERVER_ERROR)
+            Responder::internal_server_error()
         }
-        _ => json_error_message(get_message(status).as_str()),
+        _ => Responder::bad_req_message(get_message(status).as_str()),
+    }
+}
+
+#[cfg(feature = "feat-ntex")]
+pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
+    match status {
+        AppMessage::EntityNotFound(entity) => Responder::entity_not_found_message(entity),
+        AppMessage::Redirect(url) => Responder::redirect(url),
+        AppMessage::IoError(message) => {
+            log::error!("IO Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::R2d2Error(message) => {
+            log::error!("R2d2 Error: {}", message);
+            Responder::internal_server_error()
+        }
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::JwtError(message) => {
+            log::error!("Jwt Error: {}", message);
+            Responder::internal_server_error()
+        }
+        #[cfg(feature = "feat-rabbitmq")]
+        AppMessage::RabbitmqError(message) => {
+            log::error!("Rabbitmq Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::RedisError(message) => {
+            log::error!("Redis Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::RedisPoolError(message) => {
+            log::error!("Redis Pool Error: {}", message);
+            Responder::internal_server_error()
+        }
+        #[cfg(feature = "reqwest")]
+        AppMessage::ReqwestError(message) => {
+            log::error!("Http Client(Reqwest) Error: {}", message);
+            Responder::internal_server_error()
+        }
+        #[cfg(feature = "reqwest")]
+        AppMessage::ReqwestResponseError(err) => {
+            log::error!("Http Client(Reqwest) Error[{}]: {}", err.code(), err.body());
+            Responder::internal_server_error()
+        }
+        AppMessage::FromUtf8Error(message) => {
+            log::error!("Utf8 Conversion Error: {:?}", message);
+            Responder::internal_server_error()
+        }
+        #[cfg(feature = "feat-base64")]
+        AppMessage::Base64Error(message) => {
+            log::error!("Base64 Error: {:?}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::SerdeError(message) => {
+            log::error!("Serde Error: {:?}", message);
+            Responder::bad_req_message(&message.to_string())
+        }
+        AppMessage::SerdeError500(message) => {
+            log::error!("Serde Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::BlockingNtexErrorInnerBoxed(message) => {
+            log::error!("Blocking Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::BlockingNtexErrorOuterBoxed(message) => {
+            log::error!("Blocking Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::BlockingNtexIoError(message) => {
+            log::error!("Blocking IO Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::PayloadError(message) => {
+            log::error!("Payload Extraction Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::InternalServerErrorMessage(message) => {
+            log::error!("Internal Server Error: {}", message);
+            Responder::internal_server_error()
+        }
+        AppMessage::SuccessMessage(message) => Responder::ok_message(message),
+        AppMessage::SuccessMessageString(message) => Responder::ok_message(message),
+        AppMessage::ErrorMessage(message, status) => Responder::message(message, *status),
+        AppMessage::UnAuthorizedMessage(message) => {
+            Responder::message(message, StatusCode::UNAUTHORIZED)
+        }
+        AppMessage::UnAuthorizedMessageString(message) => {
+            Responder::message(message, StatusCode::UNAUTHORIZED)
+        }
+        AppMessage::ForbiddenMessage(message) => {
+            Responder::message(message, StatusCode::FORBIDDEN)
+        }
+        AppMessage::ForbiddenMessageString(message) => {
+            Responder::message(message, StatusCode::FORBIDDEN)
+        }
+        AppMessage::ChronoParseError(error) => {
+            let message = error.to_string();
+            log::error!("Failed To Parse DateTime: {}", message);
+            Responder::message(&message, StatusCode::BAD_REQUEST)
+        }
+        #[cfg(feature = "feat-validator")]
+        AppMessage::FormValidationError(e) => Responder::failure(
+            e,
+            Some(String::from("Validation Error")),
+            StatusCode::BAD_REQUEST,
+        ),
+        AppMessage::DatabaseError(err) => {
+            error!("{:?}", err);
+            Responder::internal_server_error()
+        }
+        _ => Responder::bad_req_message(get_message(status).as_str()),
     }
 }
 

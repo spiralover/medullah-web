@@ -1,5 +1,7 @@
+use ntex::http::StatusCode;
 use serde::Serialize;
-use crate::helpers::responder::json_success;
+
+use crate::helpers::responder::Responder;
 use crate::http::response::defs::{OptionResultResponse, ResultResponse};
 use crate::prelude::{AppMessage, AppResult, HttpResult};
 
@@ -47,7 +49,7 @@ impl<T: Serialize> OptionResultResponse<T> for AppResult<T> {
     }
 
     fn send_entity(self) -> HttpResult {
-        Ok(json_success(self.unwrap(), None))
+        Ok(Responder::success(self.unwrap(), None, StatusCode::OK))
     }
 
     fn send_response(self) -> HttpResult {
@@ -61,14 +63,18 @@ impl<T: Serialize> OptionResultResponse<T> for AppResult<T> {
 impl<T: Serialize> ResultResponse for AppResult<T> {
     fn send_result(self) -> HttpResult {
         match self {
-            Ok(data) => Ok(json_success(data, None)),
+            Ok(data) => Ok(Responder::success(data, None, StatusCode::OK)),
             Err(err) => Err(err),
         }
     }
 
     fn send_result_msg(self, msg: &str) -> HttpResult {
         match self {
-            Ok(data) => Ok(json_success(data, Some(msg.to_string()))),
+            Ok(data) => Ok(Responder::success(
+                data,
+                Some(msg.to_string()),
+                StatusCode::OK,
+            )),
             Err(err) => Err(err),
         }
     }

@@ -20,3 +20,5 @@ pub mod security;
 pub mod string;
 pub mod time;
 pub mod reqwest;
+#[cfg(feature = "feat-ntex")]
+pub mod json_message;
