@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.7.0 (2024-08-04)
+* refactor(responder): replaced funcs with associated funcs
+
 ## 0.6.0 (2024-08-04)
 * refactor(bootstrap): remove unnecessary usage of "Rc" and also usages of clones
 * feat(thread-boot): closure to be called during thread boot-up, this closure will return vector of app routes
