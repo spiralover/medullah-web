@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
+
 use log::error;
 #[cfg(feature = "feat-ntex")]
 use ntex::http::error::BlockingError;
@@ -7,8 +8,8 @@ use ntex::http::error::BlockingError;
 use ntex::http::StatusCode;
 #[cfg(feature = "feat-ntex")]
 use ntex::web::{HttpRequest, WebResponseError};
-use crate::helpers::reqwest::ReqwestResponseError;
 
+use crate::helpers::reqwest::ReqwestResponseError;
 #[cfg(feature = "feat-ntex")]
 use crate::helpers::responder::Responder;
 
@@ -159,8 +160,8 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
 }
 
 #[cfg(feature = "feat-ntex")]
-pub fn make_response(status: &AppMessage) -> ntex::web::HttpResponse {
-    match status {
+pub fn make_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
+    match app_message {
         AppMessage::EntityNotFound(entity) => Responder::entity_not_found_message(entity),
         AppMessage::Redirect(url) => ntex::web::HttpResponse::Found()
             .header(
@@ -245,15 +246,19 @@ pub fn make_response(status: &AppMessage) -> ntex::web::HttpResponse {
         AppMessage::SuccessMessage(message) => Responder::ok_message(message),
         AppMessage::SuccessMessageString(message) => Responder::ok_message(message),
         AppMessage::ErrorMessage(message, status) => Responder::message(message, *status),
+        AppMessage::UnAuthorized => {
+            Responder::message(&get_message(app_message), StatusCode::UNAUTHORIZED)
+        }
         AppMessage::UnAuthorizedMessage(message) => {
             Responder::message(message, StatusCode::UNAUTHORIZED)
         }
         AppMessage::UnAuthorizedMessageString(message) => {
             Responder::message(message, StatusCode::UNAUTHORIZED)
         }
-        AppMessage::ForbiddenMessage(message) => {
-            Responder::message(message, StatusCode::FORBIDDEN)
+        AppMessage::Forbidden => {
+            Responder::message(&get_message(app_message), StatusCode::FORBIDDEN)
         }
+        AppMessage::ForbiddenMessage(message) => Responder::message(message, StatusCode::FORBIDDEN),
         AppMessage::ForbiddenMessageString(message) => {
             Responder::message(message, StatusCode::FORBIDDEN)
         }
@@ -272,7 +277,7 @@ pub fn make_response(status: &AppMessage) -> ntex::web::HttpResponse {
             error!("{:?}", err);
             Responder::internal_server_error()
         }
-        _ => Responder::bad_req_message(get_message(status).as_str()),
+        _ => Responder::bad_req_message(get_message(app_message).as_str()),
     }
 }
 
@@ -363,9 +368,7 @@ pub fn send_response(status: &AppMessage) -> ntex::web::HttpResponse {
         AppMessage::UnAuthorizedMessageString(message) => {
             Responder::message(message, StatusCode::UNAUTHORIZED)
         }
-        AppMessage::ForbiddenMessage(message) => {
-            Responder::message(message, StatusCode::FORBIDDEN)
-        }
+        AppMessage::ForbiddenMessage(message) => Responder::message(message, StatusCode::FORBIDDEN),
         AppMessage::ForbiddenMessageString(message) => {
             Responder::message(message, StatusCode::FORBIDDEN)
         }
