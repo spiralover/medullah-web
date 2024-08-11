@@ -46,7 +46,7 @@ impl RabbitMQ {
     }
 
     pub async fn new_opt(opt: RabbitMQOptions) -> AppResult<Self> {
-        let connection = MEDULLAH.rabbitmq();
+        let connection = MEDULLAH.rabbitmq_client();
         let publish_channel = connection.create_channel().await?;
         let consume_channel = connection.create_channel().await?;
         Ok(Self {

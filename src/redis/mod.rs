@@ -1,16 +1,16 @@
-use std::future::Future;
-use std::num::NonZeroUsize;
-use std::time::Duration;
+use crate::prelude::{AppMessage, AppResult, OnceLockHelper};
+use crate::results::redis_result::RedisResultToAppResult;
+use crate::MEDULLAH;
 use futures_util::StreamExt;
 use log::{error, info};
 use mobc::{Connection, Pool};
 use redis::{AsyncCommands, Client, FromRedisValue, Msg};
 use serde::Serialize;
+use std::future::Future;
+use std::num::NonZeroUsize;
+use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio::time;
-use crate::MEDULLAH;
-use crate::prelude::{AppMessage, AppResult, OnceLockHelper};
-use crate::results::redis_result::RedisResultToAppResult;
 
 pub mod conn;
 
@@ -19,7 +19,6 @@ pub struct RedisConnectionManager {
 }
 
 pub type RedisPool = Pool<RedisConnectionManager>;
-
 
 #[derive(Clone)]
 pub struct Redis {
@@ -206,4 +205,3 @@ impl Redis {
         }
     }
 }
-

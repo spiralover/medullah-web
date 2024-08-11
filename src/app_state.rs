@@ -1,12 +1,12 @@
 use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 
+use crate::rabbitmq::RabbitMQ;
+use crate::redis::{Redis, RedisPool};
+use crate::services::cache_service::CacheService;
 use redis::Client as RedisClient;
 #[cfg(feature = "feat-templating")]
 use tera::{Context, Tera};
-use crate::redis::Redis;
-use crate::redis::RedisPool;
-use crate::services::cache_service::CacheService;
 
 #[derive(Clone)]
 pub struct MedullahState {
@@ -27,7 +27,9 @@ pub struct MedullahState {
     pub(crate) redis_pool: Arc<RedisPool>,
     pub(crate) redis: Arc<Redis>,
     #[cfg(feature = "feat-rabbitmq")]
-    pub rabbit: Arc<lapin::Connection>,
+    pub rabbitmq_client: Arc<lapin::Connection>,
+    #[cfg(feature = "feat-rabbitmq")]
+    pub rabbitmq: Arc<RabbitMQ>,
     #[cfg(feature = "feat-database")]
     pub(crate) database: crate::database::DBPool,
 
@@ -57,8 +59,12 @@ impl MedullahState {
         &self.database
     }
 
-    pub fn redis(&self) -> &RedisPool {
-        &self.redis_pool
+    pub fn redis(&self) -> Arc<Redis> {
+        self.redis.clone()
+    }
+
+    pub fn rabbitmq(&self) -> Arc<RabbitMQ> {
+        self.rabbitmq.clone()
     }
 
     pub fn title(&self, text: &str) -> String {
