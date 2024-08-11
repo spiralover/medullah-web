@@ -28,7 +28,9 @@ pub mod prelude {
     pub use crate::app_state::MedullahState;
     pub use crate::enums::app_message::AppMessage;
     pub use crate::helpers::once_lock::OnceLockHelper;
-    pub use crate::redis::client::Redis;
+    #[cfg(feature = "feat-rabbitmq")]
+    pub use crate::rabbitmq::RabbitMQ;
+    pub use crate::redis::Redis;
     #[cfg(feature = "feat-ntex")]
     pub use crate::results::HttpResult;
     pub use crate::results::{app_result::IntoAppResult, AppResult};

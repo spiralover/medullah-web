@@ -1,18 +1,17 @@
 use std::sync::{Arc, OnceLock};
 
 #[cfg(feature = "feat-database")]
-use diesel::r2d2::ConnectionManager;
-#[cfg(feature = "feat-database")]
 use diesel::PgConnection;
+#[cfg(feature = "feat-database")]
+use diesel::r2d2::ConnectionManager;
 use redis::Client;
 
 use crate::app_state::MedullahState;
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
-use crate::redis::RedisPool;
-use crate::services::cache_service::CacheService;
-use crate::services::redis_service::RedisService;
 use crate::MEDULLAH;
+use crate::redis::Redis;
+use crate::services::cache_service::CacheService;
 
 pub trait OnceLockHelper<'a> {
     fn app(&self) -> &'a MedullahState {
@@ -28,30 +27,35 @@ pub trait OnceLockHelper<'a> {
         MEDULLAH.get().unwrap().database()
     }
 
-    fn redis(&self) -> Arc<Client> {
-        Arc::clone(&self.app().redis)
+    fn redis_client(&self) -> Arc<Client> {
+        Arc::clone(&self.app().redis_client)
+    }
+
+    fn redis_pool(&self) -> deadpool_redis::Pool {
+        self.app().redis_pool.clone()
+    }
+
+    fn redis(&self) -> &Redis {
+        &MEDULLAH.get().unwrap().redis
     }
 
     #[cfg(feature = "feat-rabbitmq")]
-    fn rabbitmq(&self) -> Arc<lapin::Connection> {
-        Arc::clone(&self.app().rabbit)
+    fn rabbitmq_client(&self) -> Arc<lapin::Connection> {
+        Arc::clone(&self.app().rabbitmq_client)
     }
 
-    fn redis_pool(&self) -> Arc<RedisPool> {
-        Arc::clone(&self.app().redis_pool)
+    #[cfg(feature = "feat-rabbitmq")]
+    fn rabbitmq_pool(&self) -> deadpool_lapin::Pool {
+        self.app().rabbitmq_pool.clone()
+    }
+
+    #[cfg(feature = "feat-rabbitmq")]
+    fn rabbitmq(&self) -> Arc<crate::rabbitmq::RabbitMQ> {
+        Arc::clone(&self.app().rabbitmq)
     }
 
     fn cache(&self) -> &CacheService {
         &MEDULLAH.get().unwrap().services.cache
-    }
-
-    fn redis_service(&self) -> &RedisService {
-        &MEDULLAH.get().unwrap().services.redis
-    }
-
-    #[cfg(feature = "feat-rabbitmq")]
-    fn rabbitmq_service(&self) -> Arc<crate::services::rabbit_service::RabbitService> {
-        Arc::clone(&MEDULLAH.get().unwrap().services.rabbitmq)
     }
 
     #[cfg(feature = "feat-database")]
