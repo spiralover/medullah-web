@@ -9,9 +9,8 @@ use redis::Client;
 use crate::app_state::MedullahState;
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
-use crate::redis::RedisPool;
+use crate::redis::{Redis, RedisPool};
 use crate::services::cache_service::CacheService;
-use crate::services::redis_service::RedisService;
 use crate::MEDULLAH;
 
 pub trait OnceLockHelper<'a> {
@@ -28,8 +27,12 @@ pub trait OnceLockHelper<'a> {
         MEDULLAH.get().unwrap().database()
     }
 
-    fn redis(&self) -> Arc<Client> {
-        Arc::clone(&self.app().redis)
+    fn redis_client(&self) -> Arc<Client> {
+        Arc::clone(&self.app().redis_client)
+    }
+
+    fn redis_pool(&self) -> Arc<RedisPool> {
+        Arc::clone(&self.app().redis_pool)
     }
 
     #[cfg(feature = "feat-rabbitmq")]
@@ -37,16 +40,12 @@ pub trait OnceLockHelper<'a> {
         Arc::clone(&self.app().rabbit)
     }
 
-    fn redis_pool(&self) -> Arc<RedisPool> {
-        Arc::clone(&self.app().redis_pool)
+    fn redis(&self) -> &Redis {
+        &MEDULLAH.get().unwrap().redis
     }
 
     fn cache(&self) -> &CacheService {
         &MEDULLAH.get().unwrap().services.cache
-    }
-
-    fn redis_service(&self) -> &RedisService {
-        &MEDULLAH.get().unwrap().services.redis
     }
 
     #[cfg(feature = "feat-database")]

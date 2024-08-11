@@ -6,21 +6,20 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::enums::app_message::AppMessage;
-use crate::prelude::IntoAppResult;
+use crate::prelude::{IntoAppResult, Redis};
 use crate::results::AppResult;
-use crate::services::redis_service::RedisService;
 
 #[derive(Clone)]
 pub struct CacheService {
-    redis: Arc<RedisService>,
+    redis: Arc<Redis>,
 }
 
 impl CacheService {
-    pub fn new(r: Arc<RedisService>) -> CacheService {
+    pub fn new(r: Arc<Redis>) -> CacheService {
         CacheService { redis: r }
     }
 
-    pub fn redis(&self) -> &RedisService {
+    pub fn redis(&self) -> &Redis {
         &self.redis
     }
 

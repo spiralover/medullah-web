@@ -4,10 +4,9 @@ use std::sync::Arc;
 use redis::Client as RedisClient;
 #[cfg(feature = "feat-templating")]
 use tera::{Context, Tera};
-
+use crate::redis::Redis;
 use crate::redis::RedisPool;
 use crate::services::cache_service::CacheService;
-use crate::services::redis_service::RedisService;
 
 #[derive(Clone)]
 pub struct MedullahState {
@@ -24,8 +23,9 @@ pub struct MedullahState {
     #[cfg(feature = "feat-templating")]
     pub(crate) tera: Tera,
 
-    pub(crate) redis: Arc<RedisClient>,
+    pub(crate) redis_client: Arc<RedisClient>,
     pub(crate) redis_pool: Arc<RedisPool>,
+    pub(crate) redis: Arc<Redis>,
     #[cfg(feature = "feat-rabbitmq")]
     pub rabbit: Arc<lapin::Connection>,
     #[cfg(feature = "feat-database")]
@@ -48,7 +48,6 @@ pub struct MedullahState {
 
 #[derive(Clone)]
 pub struct AppServices {
-    pub redis: Arc<RedisService>,
     pub cache: Arc<CacheService>,
 }
 
