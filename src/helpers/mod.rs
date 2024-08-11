@@ -19,6 +19,8 @@ pub mod reqwest;
 #[cfg(feature = "feat-ntex")]
 pub mod responder;
 #[cfg(feature = "feat-crypto")]
-pub mod security;
+pub mod jwt;
 pub mod string;
 pub mod time;
+#[cfg(feature = "feat-crypto")]
+pub mod password;
