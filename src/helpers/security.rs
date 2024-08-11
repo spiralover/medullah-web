@@ -1,11 +1,11 @@
 use jsonwebtoken::{
-    Algorithm, decode, DecodingKey, encode, EncodingKey, Header, TokenData, Validation,
+    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
 };
-use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
-use crate::MEDULLAH;
 use crate::prelude::{AppResult, OnceLockHelper};
+use crate::MEDULLAH;
 
 pub struct Jwt;
 

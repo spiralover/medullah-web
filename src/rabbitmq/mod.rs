@@ -2,17 +2,18 @@ use std::future::Future;
 use std::sync::Arc;
 
 use futures_util::StreamExt;
-use lapin::{BasicProperties, Channel, options::*, types::FieldTable};
+use lapin::{options::*, types::FieldTable, BasicProperties, Channel};
 use log::{error, info};
 use tokio::runtime::Handle;
+use tokio::task::JoinHandle;
 
 pub use {
-    lapin::ExchangeKind,
     lapin::message::{Delivery, DeliveryResult},
+    lapin::ExchangeKind,
 };
 
-use crate::MEDULLAH;
 use crate::prelude::{AppResult, OnceLockHelper};
+use crate::MEDULLAH;
 
 pub mod conn;
 
@@ -124,8 +125,8 @@ impl RabbitMQ {
         Ok(())
     }
 
-    // Consume messages from a specified queue and execute an async function on each message
-    pub async fn consume<F, Fut>(&'static self, queue: &str, tag: &str, func: F) -> AppResult<()>
+    /// Consume messages from a specified queue and execute an async function on each message
+    pub async fn consume<F, Fut>(&self, queue: &str, tag: &str, func: F) -> AppResult<()>
     where
         F: FnOnce(Arc<Self>, Delivery) -> Fut + Copy + Send + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
@@ -142,38 +143,50 @@ impl RabbitMQ {
             )
             .await?;
 
-        let instance = Arc::new(self.clone());
+        while let Some(result) = consumer.next().await {
+            if let Ok(delivery) = result {
+                let instance = Arc::new(self.clone());
 
-        Handle::current().spawn(async move {
-            while let Some(result) = consumer.next().await {
-                if let Ok(delivery) = result {
-                    let instance = instance.clone();
-
-                    let handler = async move {
-                        let delivery_tag = delivery.delivery_tag;
-                        match func(instance, delivery).await {
-                            Ok(_) => {}
-                            Err(err) => {
-                                if self.nack_on_failure {
-                                    let _ = self.nack(delivery_tag, true).await;
-                                }
-
-                                error!("[consume-executor] returned error: {:?}", err);
+                let handler = async move {
+                    let delivery_tag = delivery.delivery_tag;
+                    match func(instance.clone(), delivery).await {
+                        Ok(_) => {}
+                        Err(err) => {
+                            if instance.nack_on_failure {
+                                let _ = instance.nack(delivery_tag, true).await;
                             }
-                        }
-                    };
 
-                    match self.execute_handler_asynchronously {
-                        true => {
-                            Handle::current().spawn(handler);
+                            error!("[consume-executor] returned error: {:?}", err);
                         }
-                        false => handler.await,
-                    };
-                }
+                    }
+                };
+
+                match self.execute_handler_asynchronously {
+                    true => {
+                        Handle::current().spawn(handler);
+                    }
+                    false => handler.await,
+                };
             }
-        });
+        }
 
         Ok(())
+    }
+
+    /// Consume messages from a specified queue and execute an async function on each message
+    /// This method will run in detached mode
+    pub async fn consume_detached<F, Fut>(
+        &self,
+        queue: &'static str,
+        tag: &'static str,
+        func: F,
+    ) -> JoinHandle<AppResult<()>>
+    where
+        F: FnOnce(Arc<Self>, Delivery) -> Fut + Copy + Send + Sync + 'static,
+        Fut: Future<Output = AppResult<()>> + Send + 'static,
+    {
+        let instance = Arc::new(self.clone());
+        Handle::current().spawn(async move { instance.consume(queue, tag, func).await })
     }
 
     // Acknowledge a message

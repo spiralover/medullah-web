@@ -7,8 +7,8 @@ use serde::Serialize;
 
 use crate::enums::app_message::AppMessage;
 use crate::redis::{RedisConnectionManager, RedisPool};
-use crate::results::AppResult;
 use crate::results::redis_result::RedisResultToAppResult;
+use crate::results::AppResult;
 
 #[derive(Clone)]
 pub struct RedisService {

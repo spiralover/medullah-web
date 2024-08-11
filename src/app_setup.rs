@@ -1,11 +1,11 @@
-use std::{env, fs};
 use std::path::Path;
 use std::sync::Arc;
+use std::{env, fs};
 
 #[cfg(feature = "feat-database")]
-use diesel::PgConnection;
-#[cfg(feature = "feat-database")]
 use diesel::r2d2::ConnectionManager;
+#[cfg(feature = "feat-database")]
+use diesel::PgConnection;
 use log::info;
 #[cfg(feature = "feat-templating")]
 use tera::Tera;
@@ -14,7 +14,6 @@ use crate::app_state::{AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 use crate::helpers::fs::get_cwd;
-use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection;
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
@@ -22,6 +21,7 @@ use crate::services::cache_service::CacheService;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::services::rabbit_service::RabbitService;
 use crate::services::redis_service::RedisService;
+use crate::MEDULLAH;
 
 pub struct MedullahSetup {
     pub env_prefix: String,
@@ -40,7 +40,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
     let env_prefix = setup.env_prefix;
 
     #[cfg(feature = "feat-database")]
-        let database_pool = establish_database_connection(&env_prefix);
+    let database_pool = establish_database_connection(&env_prefix);
 
     let redis = establish_redis_connection(&env_prefix);
     let redis_pool = establish_redis_connection_pool(&env_prefix);
@@ -48,7 +48,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
 
     // RabbitMQ
     #[cfg(feature = "feat-rabbitmq")]
-        let rabbit = Arc::new(establish_rabbit_connection(&env_prefix).await);
+    let rabbit = Arc::new(establish_rabbit_connection(&env_prefix).await);
 
     // templating
     #[cfg(feature = "feat-templating")]
@@ -97,7 +97,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
             "{}_MAILER_SERVER_APPLICATION_ID",
             env_prefix
         ))
-            .unwrap(),
+        .unwrap(),
 
         services: AppServices {
             redis: redis_service.clone(),
