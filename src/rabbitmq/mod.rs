@@ -28,7 +28,10 @@ pub struct RabbitMQ {
 
 #[derive(Default)]
 pub struct RabbitMQOptions {
+    /// automatically nack a message if the handler returns an error.
     pub nack_on_failure: bool,
+    /// whether the handler should be executed in the background (asynchronously) or not.
+    pub execute_handler_asynchronously: bool,
 }
 
 impl RabbitMQ {
@@ -36,6 +39,7 @@ impl RabbitMQ {
     pub async fn new() -> AppResult<Self> {
         Self::new_opt(RabbitMQOptions {
             nack_on_failure: true,
+            execute_handler_asynchronously: true,
         })
         .await
     }
