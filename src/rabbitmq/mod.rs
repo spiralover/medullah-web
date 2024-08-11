@@ -158,9 +158,10 @@ impl RabbitMQ {
             )
             .await?;
 
+        let instance = Arc::new(self.clone());
         while let Some(result) = consumer.next().await {
             if let Ok(delivery) = result {
-                let instance = Arc::new(self.clone());
+                let instance = instance.clone();
 
                 let handler = async move {
                     let delivery_tag = delivery.delivery_tag;
