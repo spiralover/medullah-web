@@ -49,11 +49,6 @@ pub trait OnceLockHelper<'a> {
         &MEDULLAH.get().unwrap().services.redis
     }
 
-    #[cfg(feature = "feat-rabbitmq")]
-    fn rabbitmq_service(&self) -> Arc<crate::services::rabbit_service::RabbitService> {
-        Arc::clone(&MEDULLAH.get().unwrap().services.rabbitmq)
-    }
-
     #[cfg(feature = "feat-database")]
     fn db(
         &self,

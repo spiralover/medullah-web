@@ -18,8 +18,6 @@ use crate::helpers::fs::get_cwd;
 use crate::rabbitmq::conn::establish_rabbit_connection;
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
 use crate::services::cache_service::CacheService;
-#[cfg(feature = "feat-rabbitmq")]
-use crate::services::rabbit_service::RabbitService;
 use crate::services::redis_service::RedisService;
 use crate::MEDULLAH;
 
@@ -102,8 +100,6 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         services: AppServices {
             redis: redis_service.clone(),
             cache: Arc::new(CacheService::new(redis_service)),
-            #[cfg(feature = "feat-rabbitmq")]
-            rabbitmq: Arc::from(RabbitService::new(rabbit.clone()).await),
         },
     }
 }

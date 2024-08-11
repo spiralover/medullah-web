@@ -7,8 +7,6 @@ use tera::{Context, Tera};
 
 use crate::redis::RedisPool;
 use crate::services::cache_service::CacheService;
-#[cfg(feature = "feat-rabbitmq")]
-use crate::services::rabbit_service::RabbitService;
 use crate::services::redis_service::RedisService;
 
 #[derive(Clone)]
@@ -52,8 +50,6 @@ pub struct MedullahState {
 pub struct AppServices {
     pub redis: Arc<RedisService>,
     pub cache: Arc<CacheService>,
-    #[cfg(feature = "feat-rabbitmq")]
-    pub rabbitmq: Arc<RabbitService>,
 }
 
 impl MedullahState {
