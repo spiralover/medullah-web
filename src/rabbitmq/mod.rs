@@ -2,19 +2,18 @@ use std::future::Future;
 use std::sync::Arc;
 
 use futures_util::StreamExt;
-use lapin::{options::*, types::FieldTable, BasicProperties, Channel};
+use lapin::{BasicProperties, Channel, options::*, types::FieldTable};
 use log::{error, info};
 use tokio::runtime::Handle;
 use tokio::task::JoinHandle;
 
 pub use {
-    lapin::message::{Delivery, DeliveryResult},
     lapin::ExchangeKind,
+    lapin::message::{Delivery, DeliveryResult},
 };
 
-use crate::prelude::{AppResult, OnceLockHelper};
-use crate::rabbitmq::conn::RmqPool;
 use crate::MEDULLAH;
+use crate::prelude::{AppResult, OnceLockHelper};
 
 pub mod conn;
 
@@ -38,7 +37,7 @@ pub struct RabbitMQOptions {
 
 impl RabbitMQ {
     /// Create a new instance and connect to the RabbitMQ server
-    pub async fn new(pool: RmqPool) -> AppResult<Self> {
+    pub async fn new(pool: deadpool_lapin::Pool) -> AppResult<Self> {
         Self::new_opt(
             pool,
             RabbitMQOptions {
@@ -61,7 +60,7 @@ impl RabbitMQ {
         .await
     }
 
-    pub async fn new_opt(pool: RmqPool, opt: RabbitMQOptions) -> AppResult<Self> {
+    pub async fn new_opt(pool: deadpool_lapin::Pool, opt: RabbitMQOptions) -> AppResult<Self> {
         let connection = pool.get().await?;
         let publish_channel = connection.create_channel().await?;
         let consume_channel = connection.create_channel().await?;
@@ -144,7 +143,7 @@ impl RabbitMQ {
     /// Consume messages from a specified queue and execute an async function on each message
     pub async fn consume<F, Fut>(&self, queue: &str, tag: &str, func: F) -> AppResult<()>
     where
-        F: FnOnce(Arc<Self>, Delivery) -> Fut + Copy + Send + 'static,
+        F: Fn(Arc<Self>, Delivery) -> Fut + Send + Copy + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
         info!("subscribing to {}...", queue);
@@ -198,7 +197,7 @@ impl RabbitMQ {
         func: F,
     ) -> JoinHandle<AppResult<()>>
     where
-        F: FnOnce(Arc<Self>, Delivery) -> Fut + Copy + Send + Sync + 'static,
+        F: Fn(Arc<Self>, Delivery) -> Fut + Copy + Send + Sync + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
         let instance = Arc::new(self.clone());

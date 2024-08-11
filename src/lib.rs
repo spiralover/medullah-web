@@ -28,6 +28,7 @@ pub mod prelude {
     pub use crate::app_state::MedullahState;
     pub use crate::enums::app_message::AppMessage;
     pub use crate::helpers::once_lock::OnceLockHelper;
+    #[cfg(feature = "feat-rabbitmq")]
     pub use crate::rabbitmq::RabbitMQ;
     pub use crate::redis::Redis;
     #[cfg(feature = "feat-ntex")]

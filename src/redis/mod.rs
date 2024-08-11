@@ -3,7 +3,6 @@ use crate::results::redis_result::RedisResultToAppResult;
 use crate::MEDULLAH;
 use futures_util::StreamExt;
 use log::{error, info};
-use mobc::{Connection, Pool};
 use redis::{AsyncCommands, Client, FromRedisValue, Msg};
 use serde::Serialize;
 use std::future::Future;
@@ -18,11 +17,9 @@ pub struct RedisConnectionManager {
     pub client: Client,
 }
 
-pub type RedisPool = Pool<RedisConnectionManager>;
-
 #[derive(Clone)]
 pub struct Redis {
-    pool: RedisPool,
+    pool: deadpool_redis::Pool,
 }
 
 impl Redis {
@@ -117,11 +114,11 @@ impl Redis {
         Ok(())
     }
 
-    pub fn new(pool: RedisPool) -> Self {
+    pub fn new(pool: deadpool_redis::Pool) -> Self {
         Redis { pool }
     }
 
-    pub async fn redis(&self) -> AppResult<Connection<RedisConnectionManager>> {
+    pub async fn redis(&self) -> AppResult<deadpool_redis::Connection> {
         self.pool.get().await.map_err(AppMessage::RedisPoolError)
     }
 

@@ -5,9 +5,9 @@ use redis::Client as RedisClient;
 #[cfg(feature = "feat-templating")]
 use tera::{Context, Tera};
 
-use crate::rabbitmq::conn::RmqPool;
+#[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::RabbitMQ;
-use crate::redis::{Redis, RedisPool};
+use crate::redis::Redis;
 use crate::services::cache_service::CacheService;
 
 #[derive(Clone)]
@@ -26,12 +26,12 @@ pub struct MedullahState {
     pub(crate) tera: Tera,
 
     pub(crate) redis_client: Arc<RedisClient>,
-    pub(crate) redis_pool: Arc<RedisPool>,
+    pub(crate) redis_pool: deadpool_redis::Pool,
     pub(crate) redis: Arc<Redis>,
     #[cfg(feature = "feat-rabbitmq")]
     pub rabbitmq_client: Arc<lapin::Connection>,
     #[cfg(feature = "feat-rabbitmq")]
-    pub rabbitmq_pool: RmqPool,
+    pub rabbitmq_pool: deadpool_lapin::Pool,
     #[cfg(feature = "feat-rabbitmq")]
     pub rabbitmq: Arc<RabbitMQ>,
     #[cfg(feature = "feat-database")]
@@ -67,6 +67,7 @@ impl MedullahState {
         self.redis.clone()
     }
 
+    #[cfg(feature = "feat-rabbitmq")]
     pub fn rabbitmq(&self) -> Arc<RabbitMQ> {
         self.rabbitmq.clone()
     }

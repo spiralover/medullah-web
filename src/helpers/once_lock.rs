@@ -1,18 +1,17 @@
-use deadpool::managed::{Object, Pool};
-use deadpool_lapin::Manager;
-#[cfg(feature = "feat-database")]
-use diesel::r2d2::ConnectionManager;
+use std::sync::{Arc, OnceLock};
+
 #[cfg(feature = "feat-database")]
 use diesel::PgConnection;
+#[cfg(feature = "feat-database")]
+use diesel::r2d2::ConnectionManager;
 use redis::Client;
-use std::sync::{Arc, OnceLock};
 
 use crate::app_state::MedullahState;
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
-use crate::redis::{Redis, RedisPool};
-use crate::services::cache_service::CacheService;
 use crate::MEDULLAH;
+use crate::redis::Redis;
+use crate::services::cache_service::CacheService;
 
 pub trait OnceLockHelper<'a> {
     fn app(&self) -> &'a MedullahState {
@@ -32,8 +31,8 @@ pub trait OnceLockHelper<'a> {
         Arc::clone(&self.app().redis_client)
     }
 
-    fn redis_pool(&self) -> Arc<RedisPool> {
-        Arc::clone(&self.app().redis_pool)
+    fn redis_pool(&self) -> deadpool_redis::Pool {
+        self.app().redis_pool.clone()
     }
 
     fn redis(&self) -> &Redis {
@@ -46,13 +45,13 @@ pub trait OnceLockHelper<'a> {
     }
 
     #[cfg(feature = "feat-rabbitmq")]
-    fn rabbitmq_pool(&self) -> Pool<Manager, Object<Manager>> {
+    fn rabbitmq_pool(&self) -> deadpool_lapin::Pool {
         self.app().rabbitmq_pool.clone()
     }
 
     #[cfg(feature = "feat-rabbitmq")]
-    fn rabbitmq(&self) -> Arc<lapin::Connection> {
-        Arc::clone(&self.app().rabbitmq_client)
+    fn rabbitmq(&self) -> Arc<crate::rabbitmq::RabbitMQ> {
+        Arc::clone(&self.app().rabbitmq)
     }
 
     fn cache(&self) -> &CacheService {
