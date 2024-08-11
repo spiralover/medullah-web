@@ -20,7 +20,10 @@ pub mod conn;
 pub struct RabbitMQ {
     pub publish_channel: Channel,
     pub consume_channel: Channel,
+    /// automatically nack a message if the handler returns an error.
     pub nack_on_failure: bool,
+    /// whether the handler should be executed in the background (asynchronously) or not.
+    pub execute_handler_asynchronously: bool,
 }
 
 #[derive(Default)]
@@ -45,6 +48,7 @@ impl RabbitMQ {
             publish_channel,
             consume_channel,
             nack_on_failure: opt.nack_on_failure,
+            execute_handler_asynchronously: opt.nack_on_failure,
         })
     }
 
@@ -141,7 +145,7 @@ impl RabbitMQ {
                 if let Ok(delivery) = result {
                     let instance = instance.clone();
 
-                    Handle::current().spawn(async move {
+                    let handler = async move {
                         let delivery_tag = delivery.delivery_tag;
                         match func(instance, delivery).await {
                             Ok(_) => {}
@@ -153,7 +157,14 @@ impl RabbitMQ {
                                 error!("[consume-executor] returned error: {:?}", err);
                             }
                         }
-                    });
+                    };
+
+                    match self.execute_handler_asynchronously {
+                        true => {
+                            Handle::current().spawn(handler);
+                        }
+                        false => handler.await,
+                    };
                 }
             }
         });
