@@ -23,6 +23,8 @@ pub struct RabbitMQ {
     pub consume_channel: Channel,
     /// automatically nack a message if the handler returns an error.
     pub nack_on_failure: bool,
+    /// whether to requeue a message if the handler returns an error.
+    pub requeue_on_failure: bool,
     /// whether the handler should be executed in the background (asynchronously) or not.
     pub execute_handler_asynchronously: bool,
 }
@@ -31,6 +33,8 @@ pub struct RabbitMQ {
 pub struct RabbitMQOptions {
     /// automatically nack a message if the handler returns an error.
     pub nack_on_failure: bool,
+    /// whether to requeue a message if the handler returns an error.
+    pub requeue_on_failure: bool,
     /// whether the handler should be executed in the background (asynchronously) or not.
     pub execute_handler_asynchronously: bool,
 }
@@ -42,6 +46,7 @@ impl RabbitMQ {
             pool,
             RabbitMQOptions {
                 nack_on_failure: true,
+                requeue_on_failure: true,
                 execute_handler_asynchronously: true,
             },
         )
@@ -54,6 +59,7 @@ impl RabbitMQ {
             MEDULLAH.rabbitmq_pool(),
             RabbitMQOptions {
                 nack_on_failure: true,
+                requeue_on_failure: true,
                 execute_handler_asynchronously: true,
             },
         )
@@ -68,6 +74,7 @@ impl RabbitMQ {
             publish_channel,
             consume_channel,
             nack_on_failure: opt.nack_on_failure,
+            requeue_on_failure: opt.requeue_on_failure,
             execute_handler_asynchronously: opt.nack_on_failure,
         })
     }
@@ -77,11 +84,7 @@ impl RabbitMQ {
     }
 
     // Declare an exchange
-    pub async fn declare_exchange(
-        &self,
-        exchange: &str,
-        kind: lapin::ExchangeKind,
-    ) -> AppResult<()> {
+    pub async fn declare_exchange(&self, exchange: &str, kind: ExchangeKind) -> AppResult<()> {
         self.publish_channel
             .exchange_declare(
                 exchange,
@@ -169,7 +172,9 @@ impl RabbitMQ {
                         Ok(_) => {}
                         Err(err) => {
                             if instance.nack_on_failure {
-                                let _ = instance.nack(delivery_tag, true).await;
+                                let _ = instance
+                                    .nack(delivery_tag, instance.requeue_on_failure)
+                                    .await;
                             }
 
                             error!("[consume-executor] returned error: {:?}", err);
