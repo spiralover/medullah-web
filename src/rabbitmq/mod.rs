@@ -198,16 +198,18 @@ impl RabbitMQ {
     /// This method will run in detached mode
     pub async fn consume_detached<F, Fut>(
         &self,
-        queue: &'static str,
-        tag: &'static str,
+        queue: &str,
+        tag: &str,
         func: F,
     ) -> JoinHandle<AppResult<()>>
     where
         F: Fn(Arc<Self>, Delivery) -> Fut + Copy + Send + Sync + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
+        let tag = tag.to_owned();
+        let queue = queue.to_owned();
         let instance = Arc::new(self.clone());
-        Handle::current().spawn(async move { instance.consume(queue, tag, func).await })
+        Handle::current().spawn(async move { instance.consume(&queue, &tag, func).await })
     }
 
     // Acknowledge a message
