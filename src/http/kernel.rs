@@ -38,20 +38,32 @@ pub fn register_routes(config: &mut ServiceConfig, routes: Vec<Route>) {
 
                 if total == 1 {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(route.middlewares.first().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(
+                            route.middlewares.first().unwrap().clone(),
+                        ))
                         .configure(controller.handler);
                     config.service(scope);
                 } else if total == 2 {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(route.middlewares.first().unwrap().clone()))
-                        .wrap(BaseMiddleware::new(route.middlewares.last().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(
+                            route.middlewares.first().unwrap().clone(),
+                        ))
+                        .wrap(BaseMiddleware::new(
+                            route.middlewares.last().unwrap().clone(),
+                        ))
                         .configure(controller.handler);
                     config.service(scope);
                 } else {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(route.middlewares.first().unwrap().clone()))
-                        .wrap(BaseMiddleware::new(route.middlewares.get(1).unwrap().clone()))
-                        .wrap(BaseMiddleware::new(route.middlewares.last().unwrap().clone()))
+                        .wrap(BaseMiddleware::new(
+                            route.middlewares.first().unwrap().clone(),
+                        ))
+                        .wrap(BaseMiddleware::new(
+                            route.middlewares.get(1).unwrap().clone(),
+                        ))
+                        .wrap(BaseMiddleware::new(
+                            route.middlewares.last().unwrap().clone(),
+                        ))
                         .configure(controller.handler);
                     config.service(scope);
                 }

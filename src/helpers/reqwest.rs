@@ -1,5 +1,5 @@
-use std::fmt::Display;
 use reqwest::StatusCode;
+use std::fmt::Display;
 
 use crate::prelude::AppMessage;
 

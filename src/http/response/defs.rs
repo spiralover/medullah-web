@@ -1,5 +1,5 @@
-use ntex::web::HttpResponse;
 use crate::prelude::{AppMessage, AppResult, HttpResult};
+use ntex::web::HttpResponse;
 
 pub enum Return<T> {
     Success(T, &'static str),

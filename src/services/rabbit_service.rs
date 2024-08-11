@@ -12,8 +12,8 @@ use lapin::{Channel, Connection, ExchangeKind};
 use lapin::types::FieldTable;
 use log::{error, info};
 
-use tokio::runtime::Handle;
 use crate::prelude::AppMessage;
+use tokio::runtime::Handle;
 
 use crate::results::AppResult;
 
@@ -94,7 +94,7 @@ impl RabbitService {
         }
     }
 
-    pub async fn nack(d: Delivery, ctx: String) ->AppResult<()> {
+    pub async fn nack(d: Delivery, ctx: String) -> AppResult<()> {
         match d.nack(BasicNackOptions::default()).await {
             Ok(_) => Ok(()),
             Err(err) => {

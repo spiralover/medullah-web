@@ -7,7 +7,7 @@ use crate::app_setup::{
     get_server_host_config, load_environment_variables, make_app_state, MedullahSetup,
 };
 use crate::env_logger::init_env_logger;
-use crate::http::kernel::{ntex_default_service, register_routes, Route, setup_cors, setup_logger};
+use crate::http::kernel::{ntex_default_service, register_routes, setup_cors, setup_logger, Route};
 use crate::prelude::{AppResult, MedullahState};
 
 pub struct ServerConfig<TB>

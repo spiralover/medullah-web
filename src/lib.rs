@@ -17,10 +17,10 @@ pub mod app_setup;
 pub mod env_logger;
 #[cfg(feature = "feat-ntex")]
 pub mod http;
-pub mod services;
-pub mod tokio;
 #[cfg(feature = "feat-rabbitmq")]
 pub mod rabbitmq;
+pub mod services;
+pub mod tokio;
 
 pub static MEDULLAH: OnceLock<MedullahState> = OnceLock::new();
 
