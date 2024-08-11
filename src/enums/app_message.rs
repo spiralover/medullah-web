@@ -54,6 +54,7 @@ pub enum AppMessage {
     RabbitmqError(lapin::Error),
     RedisError(redis::RedisError),
     RedisPoolError(mobc::Error<redis::RedisError>),
+    RmqPoolError(deadpool::managed::PoolError<lapin::Error>),
     #[cfg(feature = "feat-ntex")]
     ErrorMessage(String, StatusCode),
     #[cfg(feature = "feat-ntex")]
@@ -89,6 +90,7 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::Redirect(url) => format!("Redirecting to '{}'...", url),
         AppMessage::EntityNotFound(entity) => format!("Such {} does not exits", entity),
         AppMessage::R2d2Error(error) => error.to_string(),
+        AppMessage::RmqPoolError(error) => error.to_string(),
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseEntityNotFound => String::from("Such entity does not exits"),
         #[cfg(feature = "feat-crypto")]
@@ -196,6 +198,10 @@ pub fn send_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("Redis Pool Error: {}", message);
             Responder::internal_server_error()
         }
+        AppMessage::RmqPoolError(message) => {
+            log::error!("RabbitMQ Pool Error: {}", message);
+            Responder::internal_server_error()
+        }
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestError(message) => {
             log::error!("Http Client(Reqwest) Error: {}", message);
@@ -295,6 +301,7 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::R2d2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::RmqPoolError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::IoError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::ChronoParseError(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::SerdeError(_msg) => StatusCode::BAD_REQUEST,
@@ -414,6 +421,12 @@ impl From<lapin::Error> for AppMessage {
 impl From<redis::RedisError> for AppMessage {
     fn from(value: redis::RedisError) -> Self {
         AppMessage::RedisError(value)
+    }
+}
+
+impl From<deadpool::managed::PoolError<lapin::Error>> for AppMessage {
+    fn from(value: deadpool::managed::PoolError<lapin::Error>) -> Self {
+        AppMessage::RmqPoolError(value)
     }
 }
 

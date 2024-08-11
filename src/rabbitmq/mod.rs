@@ -13,6 +13,7 @@ pub use {
 };
 
 use crate::prelude::{AppResult, OnceLockHelper};
+use crate::rabbitmq::conn::RmqPool;
 use crate::MEDULLAH;
 
 pub mod conn;
@@ -36,17 +37,32 @@ pub struct RabbitMQOptions {
 }
 
 impl RabbitMQ {
-    // Create a new instance and connect to the RabbitMQ server
-    pub async fn new() -> AppResult<Self> {
-        Self::new_opt(RabbitMQOptions {
-            nack_on_failure: true,
-            execute_handler_asynchronously: true,
-        })
+    /// Create a new instance and connect to the RabbitMQ server
+    pub async fn new(pool: RmqPool) -> AppResult<Self> {
+        Self::new_opt(
+            pool,
+            RabbitMQOptions {
+                nack_on_failure: true,
+                execute_handler_asynchronously: true,
+            },
+        )
         .await
     }
 
-    pub async fn new_opt(opt: RabbitMQOptions) -> AppResult<Self> {
-        let connection = MEDULLAH.rabbitmq_client();
+    /// Create a new instance with connection from medullah static context
+    pub async fn new_from_medullah() -> AppResult<Self> {
+        Self::new_opt(
+            MEDULLAH.rabbitmq_pool(),
+            RabbitMQOptions {
+                nack_on_failure: true,
+                execute_handler_asynchronously: true,
+            },
+        )
+        .await
+    }
+
+    pub async fn new_opt(pool: RmqPool, opt: RabbitMQOptions) -> AppResult<Self> {
+        let connection = pool.get().await?;
         let publish_channel = connection.create_channel().await?;
         let consume_channel = connection.create_channel().await?;
         Ok(Self {

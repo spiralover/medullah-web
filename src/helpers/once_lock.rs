@@ -1,10 +1,11 @@
-use std::sync::{Arc, OnceLock};
-
+use deadpool::managed::{Object, Pool};
+use deadpool_lapin::Manager;
 #[cfg(feature = "feat-database")]
 use diesel::r2d2::ConnectionManager;
 #[cfg(feature = "feat-database")]
 use diesel::PgConnection;
 use redis::Client;
+use std::sync::{Arc, OnceLock};
 
 use crate::app_state::MedullahState;
 #[cfg(feature = "feat-database")]
@@ -42,6 +43,11 @@ pub trait OnceLockHelper<'a> {
     #[cfg(feature = "feat-rabbitmq")]
     fn rabbitmq_client(&self) -> Arc<lapin::Connection> {
         Arc::clone(&self.app().rabbitmq_client)
+    }
+
+    #[cfg(feature = "feat-rabbitmq")]
+    fn rabbitmq_pool(&self) -> Pool<Manager, Object<Manager>> {
+        self.app().rabbitmq_pool.clone()
     }
 
     #[cfg(feature = "feat-rabbitmq")]
