@@ -72,7 +72,7 @@ pub struct AppMailerConfig {
 #[derive(Clone)]
 pub struct AppHelpers {
     #[cfg(feature = "feat-crypto")]
-    pub jwt: Jwt,
+    pub jwt: Arc<Jwt>,
     #[cfg(feature = "feat-crypto")]
     pub password: Arc<Password>,
 }

@@ -148,11 +148,11 @@ fn make_helpers(env_prefix: &str, setup: &MedullahSetup) -> AppHelpers {
 
     AppHelpers {
         #[cfg(feature = "feat-crypto")]
-        jwt: Jwt::new(
+        jwt: Arc::new(Jwt::new(
             setup.public_key.clone(),
             setup.private_key.clone(),
             token_lifetime,
-        ),
+        )),
         #[cfg(feature = "feat-crypto")]
         password: Arc::new(Password::new(app_key)),
     }
