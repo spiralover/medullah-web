@@ -1,29 +1,29 @@
+use std::{env, fs};
 use std::path::Path;
 use std::sync::Arc;
-use std::{env, fs};
 
 #[cfg(feature = "feat-database")]
-use diesel::r2d2::ConnectionManager;
-#[cfg(feature = "feat-database")]
 use diesel::PgConnection;
+#[cfg(feature = "feat-database")]
+use diesel::r2d2::ConnectionManager;
 use log::info;
 #[cfg(feature = "feat-templating")]
 use tera::Tera;
 
-use crate::app_state::{AppServices, MedullahState};
+use crate::app_state::{AppMailerConfig, AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 use crate::helpers::fs::get_cwd;
-use crate::prelude::Redis;
+use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::prelude::RabbitMQ;
+use crate::prelude::Redis;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection_pool;
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
 use crate::services::cache_service::CacheService;
-use crate::MEDULLAH;
 
 pub struct MedullahSetup {
     pub env_prefix: String,
@@ -100,17 +100,16 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
 
         allowed_origins: get_allowed_origins(&env_prefix),
 
-        // mail
-        mailer_from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
-        mailer_from_email: env::var(format!("{}_MAIL_FROM_EMAIL", env_prefix)).unwrap(),
-        mailer_server_endpoint: env::var(format!("{}_MAILER_SERVER_ENDPOINT", env_prefix)).unwrap(),
-        mailer_server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix))
-            .unwrap(),
-        mailer_server_application_id: env::var(format!(
-            "{}_MAILER_SERVER_APPLICATION_ID",
-            env_prefix
-        ))
-        .unwrap(),
+        #[cfg(feature = "feat-mailer")]
+        mailer_config: AppMailerConfig {
+            from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
+            from_email: env::var(format!("{}_MAIL_FROM_EMAIL", env_prefix)).unwrap(),
+            server_endpoint: env::var(format!("{}_MAILER_SERVER_ENDPOINT", env_prefix)).unwrap(),
+            server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix))
+                .unwrap(),
+            server_application_id: env::var(format!("{}_MAILER_SERVER_APPLICATION_ID", env_prefix))
+                .unwrap(),
+        },
 
         services: AppServices {
             cache: Arc::new(CacheService::new(redis)),

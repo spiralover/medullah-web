@@ -37,19 +37,31 @@ pub struct MedullahState {
     #[cfg(feature = "feat-database")]
     pub(crate) database: crate::database::DBPool,
 
+    /// personal access token prefix
     pub auth_pat_prefix: String,
+
+    /// authentication token lifetime (in minutes)
     pub auth_token_lifetime: i64,
+
+    /// authentication issuer public key
     pub auth_iss_public_key: String,
 
+    /// list of comma-separated allowed origins
     pub allowed_origins: Vec<String>,
 
-    pub mailer_from_name: String,
-    pub mailer_from_email: String,
-    pub mailer_server_endpoint: String,
-    pub mailer_server_auth_token: String,
-    pub mailer_server_application_id: String,
+    #[cfg(feature = "feat-mailer")]
+    pub mailer_config: AppMailerConfig,
 
     pub services: AppServices,
+}
+
+#[derive(Clone)]
+pub struct AppMailerConfig {
+    pub from_name: String,
+    pub from_email: String,
+    pub server_endpoint: String,
+    pub server_auth_token: String,
+    pub server_application_id: String,
 }
 
 #[derive(Clone)]

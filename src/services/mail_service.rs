@@ -75,8 +75,8 @@ impl Default for MailerService {
             message: String::from(""),
             subject: String::from(""),
             from: Mailbox {
-                name: MEDULLAH.app().mailer_from_name.clone(),
-                email: MEDULLAH.app().mailer_from_email.clone(),
+                name: MEDULLAH.app().mailer_config.from_name.clone(),
+                email: MEDULLAH.app().mailer_config.from_email.clone(),
             },
         }
     }
@@ -170,8 +170,8 @@ impl MailerService {
         let client = reqwest::Client::new();
         let address = format!(
             "{}/api/v1/applications/{}/mails",
-            MEDULLAH.app().mailer_server_endpoint,
-            MEDULLAH.app().mailer_server_application_id,
+            MEDULLAH.app().mailer_config.server_endpoint,
+            MEDULLAH.app().mailer_config.server_application_id,
         );
 
         let payload = match self.for_each_recv {
@@ -197,7 +197,7 @@ impl MailerService {
         let resp = client
             .post(address)
             .json(&payload)
-            .bearer_auth(MEDULLAH.app().mailer_server_auth_token.clone())
+            .bearer_auth(MEDULLAH.app().mailer_config.server_auth_token.clone())
             .send()
             .map_err(AppMessage::MailerError)
             .await?

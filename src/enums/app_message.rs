@@ -26,6 +26,8 @@ pub enum AppMessage {
     WarningMessage(&'static str),
     WarningMessageString(String),
     HttpClientError(String, String),
+    #[cfg(feature = "feat-hmac")]
+    HmacError(hmac::digest::InvalidLength),
     UnAuthorizedMessage(&'static str),
     UnAuthorizedMessageString(String),
     ForbiddenMessage(&'static str),
@@ -139,6 +141,8 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::ForbiddenMessage(message) => message.to_string(),
         AppMessage::ForbiddenMessageString(message) => message.to_string(),
         AppMessage::InternalServerErrorMessage(message) => message.to_string(),
+        #[cfg(feature = "feat-hmac")]
+        AppMessage::HmacError(message) => message.to_string(),
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(e) => String::from(e.to_string().as_str()),
         _ => String::from("Internal Server Error"),
@@ -286,6 +290,11 @@ pub fn send_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
             error!("{:?}", err);
             Responder::internal_server_error()
         }
+        #[cfg(feature = "feat-hmac")]
+        AppMessage::HmacError(err) => {
+            error!("{:?}", err);
+            Responder::internal_server_error()
+        }
         _ => Responder::bad_req_message(get_message(app_message).as_str()),
     }
 }
@@ -332,6 +341,8 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::ForbiddenMessageString(_) => StatusCode::FORBIDDEN,
         AppMessage::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::InternalServerErrorMessage(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        #[cfg(feature = "feat-hmac")]
+        AppMessage::HmacError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         _ => StatusCode::INTERNAL_SERVER_ERROR, // all database-related errors are 500
     }
 }
@@ -432,6 +443,13 @@ impl From<redis::RedisError> for AppMessage {
 impl From<deadpool::managed::PoolError<lapin::Error>> for AppMessage {
     fn from(value: deadpool::managed::PoolError<lapin::Error>) -> Self {
         AppMessage::RmqPoolError(value)
+    }
+}
+
+#[cfg(feature = "feat-hmac")]
+impl From<hmac::digest::InvalidLength> for AppMessage {
+    fn from(value: hmac::digest::InvalidLength) -> Self {
+        AppMessage::HmacError(value)
     }
 }
 
