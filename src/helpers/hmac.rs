@@ -3,6 +3,7 @@ use hmac::{Hmac as HHmac, Mac};
 use sha2::Sha256;
 use crate::results::AppResult;
 
+#[derive(Clone)]
 pub struct Hmac {
     secret: String,
 }

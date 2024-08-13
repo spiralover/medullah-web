@@ -50,6 +50,8 @@ pub enum AppMessage {
     JoinError(tokio::task::JoinError),
     #[cfg(feature = "feat-crypto")]
     JwtError(jsonwebtoken::errors::Error),
+    #[cfg(feature = "feat-crypto")]
+    ArgonError(argon2::Error),
     FromUtf8Error(std::string::FromUtf8Error),
     ChronoParseError(chrono::ParseError),
     #[cfg(feature = "feat-rabbitmq")]
@@ -99,6 +101,8 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::DatabaseEntityNotFound => String::from("Such entity does not exits"),
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(err) => err.to_string(),
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::ArgonError(err) => err.to_string(),
         AppMessage::HttpClientError(msg, _) => msg.to_owned(),
         AppMessage::IoError(error) => error.to_string(),
         AppMessage::SerdeError(error) => error.to_string(),
@@ -189,6 +193,11 @@ pub fn send_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(message) => {
             log::error!("Jwt Error: {}", message);
+            Responder::internal_server_error()
+        }
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::ArgonError(message) => {
+            log::error!("Argon Error: {}", message);
             Responder::internal_server_error()
         }
         #[cfg(feature = "feat-rabbitmq")]
@@ -312,6 +321,8 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::ArgonError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         AppMessage::R2d2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RmqPoolError(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -376,6 +387,13 @@ impl From<io::Error> for AppMessage {
 impl From<jsonwebtoken::errors::Error> for AppMessage {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
         AppMessage::JwtError(value)
+    }
+}
+
+#[cfg(feature = "feat-crypto")]
+impl From<argon2::Error> for AppMessage {
+    fn from(value: argon2::Error) -> Self {
+        AppMessage::ArgonError(value)
     }
 }
 

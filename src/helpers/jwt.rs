@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::prelude::AppResult;
 
+#[derive(Clone)]
 pub struct Jwt {
     /// public key - will be used to verify the token
     public_key: String,

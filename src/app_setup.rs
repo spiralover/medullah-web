@@ -10,10 +10,14 @@ use log::info;
 #[cfg(feature = "feat-templating")]
 use tera::Tera;
 
-use crate::app_state::{AppMailerConfig, AppServices, MedullahState};
+use crate::app_state::{AppHelpers, AppMailerConfig, AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 use crate::helpers::fs::get_cwd;
+#[cfg(feature = "feat-crypto")]
+use crate::helpers::jwt::Jwt;
+#[cfg(feature = "feat-crypto")]
+use crate::helpers::password::Password;
 use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::prelude::RabbitMQ;
@@ -39,6 +43,7 @@ pub async fn make_app_state(setup: MedullahSetup) -> MedullahState {
 }
 
 async fn create_app_state(setup: MedullahSetup) -> MedullahState {
+    let helpers = make_helpers(&setup.env_prefix, &setup);
     let env_prefix = setup.env_prefix;
 
     #[cfg(feature = "feat-database")]
@@ -66,6 +71,8 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
     };
 
     MedullahState {
+        helpers,
+
         app_id: env::var(format!("{}_APP_ID", env_prefix)).unwrap(),
         app_domain: env::var(format!("{}_APP_DOMAIN", env_prefix)).unwrap(),
         app_name: env::var(format!("{}_APP_NAME", env_prefix)).unwrap(),
@@ -101,15 +108,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         allowed_origins: get_allowed_origins(&env_prefix),
 
         #[cfg(feature = "feat-mailer")]
-        mailer_config: AppMailerConfig {
-            from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
-            from_email: env::var(format!("{}_MAIL_FROM_EMAIL", env_prefix)).unwrap(),
-            server_endpoint: env::var(format!("{}_MAILER_SERVER_ENDPOINT", env_prefix)).unwrap(),
-            server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix))
-                .unwrap(),
-            server_application_id: env::var(format!("{}_MAILER_SERVER_APPLICATION_ID", env_prefix))
-                .unwrap(),
-        },
+        mailer_config: make_mailer_config(&env_prefix),
 
         services: AppServices {
             cache: Arc::new(CacheService::new(redis)),
@@ -134,6 +133,40 @@ pub fn get_allowed_origins(env_prefix: &String) -> Vec<String> {
     let url_str = env::var(format!("{}_ALLOWED_ORIGINS", env_prefix)).unwrap();
     let origins: Vec<&str> = url_str.split(',').collect();
     origins.iter().map(|o| o.trim().to_string()).collect()
+}
+
+#[allow(unused_variables)]
+fn make_helpers(env_prefix: &str, setup: &MedullahSetup) -> AppHelpers {
+    #[cfg(feature = "feat-crypto")]
+    let app_key = env::var(format!("{}_APP_KEY", env_prefix)).unwrap();
+
+    #[cfg(feature = "feat-crypto")]
+    let token_lifetime: i64 = env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
+        .unwrap()
+        .parse()
+        .unwrap();
+
+    AppHelpers {
+        #[cfg(feature = "feat-crypto")]
+        jwt: Arc::new(Jwt::new(
+            setup.public_key.clone(),
+            setup.private_key.clone(),
+            token_lifetime,
+        )),
+        #[cfg(feature = "feat-crypto")]
+        password: Arc::new(Password::new(app_key)),
+    }
+}
+
+fn make_mailer_config(env_prefix: &str) -> AppMailerConfig {
+    AppMailerConfig {
+        from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
+        from_email: env::var(format!("{}_MAIL_FROM_EMAIL", env_prefix)).unwrap(),
+        server_endpoint: env::var(format!("{}_MAILER_SERVER_ENDPOINT", env_prefix)).unwrap(),
+        server_auth_token: env::var(format!("{}_MAILER_SERVER_AUTH_TOKEN", env_prefix)).unwrap(),
+        server_application_id: env::var(format!("{}_MAILER_SERVER_APPLICATION_ID", env_prefix))
+            .unwrap(),
+    }
 }
 
 #[cfg(feature = "feat-database")]
