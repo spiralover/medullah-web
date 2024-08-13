@@ -4,7 +4,8 @@ use std::sync::Arc;
 use redis::Client as RedisClient;
 #[cfg(feature = "feat-templating")]
 use tera::{Context, Tera};
-
+use crate::helpers::hmac::Hmac;
+use crate::helpers::jwt::Jwt;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::RabbitMQ;
 use crate::redis::Redis;
@@ -53,6 +54,8 @@ pub struct MedullahState {
     pub mailer_config: AppMailerConfig,
 
     pub services: AppServices,
+
+    pub helpers: AppHelpers,
 }
 
 #[derive(Clone)]
@@ -62,6 +65,11 @@ pub struct AppMailerConfig {
     pub server_endpoint: String,
     pub server_auth_token: String,
     pub server_application_id: String,
+}
+
+#[derive(Clone)]
+pub struct AppHelpers {
+    pub jwt: Jwt,
 }
 
 #[derive(Clone)]
