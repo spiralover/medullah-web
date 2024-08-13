@@ -1,6 +1,30 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.9.10 (2024-08-13)
+* refactor(helpers): renamed "security" to "jwt"
+* refactor(hmac): convert funcs to associate funcs
+* refactor(hmac): return error instead of unwrapping result
+* test: added test for hmac & currency
+* refactor(helpers): separate password & string helper
+* feat(string): str-based uuid generation helper
+
+## 0.9.0 (2024-08-11)
+* refactor(services): convert rabbitmq & redis to normal classes
+* refactor(helpers): separate password & string helper
+* fix(rabbitmq): 'consume_detached' params no longer have 'static lifetime
+* feat(rabbitmq): ability to specify whether to auto-requeue on failure
+* fix(rabbitmq): avoid expensive clone in iteration
+
+## 0.8.4 (2024-08-11)
+* feat(rabbitmq): auto-execute handler in the background (asynchronously).
+* fix(rabbitmq): lifetime issues related to "creates a temporary value which is freed while still in use"
+
+## 0.8.2 (2024-08-11)
+* refactor(app-message): remove unused "make_response" func which is clearly a duplicate of "send_response"
+* chore(deps): bump openssl from 0.10.64 to 0.10.66
+* feat(rabbitmq): ability to auto-nack on failure
+
 ## 0.8.0 (2024-08-05)
 * feat(pre-exec-middleware): handle and return proper response
 * refactor(middleware): pass request & response as borrowed instances
