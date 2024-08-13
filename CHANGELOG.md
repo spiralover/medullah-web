@@ -5,9 +5,11 @@ medullah-web changelog file
 * refactor(helpers): renamed "security" to "jwt"
 * refactor(hmac): convert funcs to associate funcs
 * refactor(hmac): return error instead of unwrapping result
-* test: added test for hmac & currency
+* test(test): unit test for hmac & currency
 * refactor(helpers): separate password & string helper
 * feat(string): str-based uuid generation helper
+* refactor(mailer): scope feature to "feat-mailer"
+* test(jwt): added unit test
 
 ## 0.9.0 (2024-08-11)
 * refactor(services): convert rabbitmq & redis to normal classes
