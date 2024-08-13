@@ -1,6 +1,13 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.9.11 (2024-08-13)
+* feat(helpers): added "jwt" to global accessor
+* refactor(base64): converted to assoc members and added tests
+* refactor(password): now collect salt in constructor
+* refactor(password): avoid unwrapping and return error
+* feat(app-message): support argon error
+
 ## 0.9.10 (2024-08-13)
 * refactor(helpers): renamed "security" to "jwt"
 * refactor(hmac): convert funcs to associate funcs

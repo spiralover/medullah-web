@@ -4,8 +4,10 @@ use std::sync::Arc;
 use redis::Client as RedisClient;
 #[cfg(feature = "feat-templating")]
 use tera::{Context, Tera};
-use crate::helpers::hmac::Hmac;
+#[cfg(feature = "feat-crypto")]
 use crate::helpers::jwt::Jwt;
+#[cfg(feature = "feat-crypto")]
+use crate::helpers::password::Password;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::RabbitMQ;
 use crate::redis::Redis;
@@ -69,7 +71,10 @@ pub struct AppMailerConfig {
 
 #[derive(Clone)]
 pub struct AppHelpers {
+    #[cfg(feature = "feat-crypto")]
     pub jwt: Jwt,
+    #[cfg(feature = "feat-crypto")]
+    pub password: Arc<Password>,
 }
 
 #[derive(Clone)]

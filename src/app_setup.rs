@@ -14,8 +14,10 @@ use crate::app_state::{AppHelpers, AppMailerConfig, AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 use crate::helpers::fs::get_cwd;
-use crate::helpers::hmac::Hmac;
+#[cfg(feature = "feat-crypto")]
 use crate::helpers::jwt::Jwt;
+#[cfg(feature = "feat-crypto")]
+use crate::helpers::password::Password;
 use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::prelude::RabbitMQ;
@@ -133,18 +135,26 @@ pub fn get_allowed_origins(env_prefix: &String) -> Vec<String> {
     origins.iter().map(|o| o.trim().to_string()).collect()
 }
 
+#[allow(unused_variables)]
 fn make_helpers(env_prefix: &str, setup: &MedullahSetup) -> AppHelpers {
-    let token_lifetime = env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
+    #[cfg(feature = "feat-crypto")]
+    let app_key = env::var(format!("{}_APP_KEY", env_prefix)).unwrap();
+
+    #[cfg(feature = "feat-crypto")]
+    let token_lifetime: i64 = env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
         .unwrap()
         .parse()
         .unwrap();
 
     AppHelpers {
+        #[cfg(feature = "feat-crypto")]
         jwt: Jwt::new(
             setup.public_key.clone(),
             setup.private_key.clone(),
             token_lifetime,
         ),
+        #[cfg(feature = "feat-crypto")]
+        password: Arc::new(Password::new(app_key)),
     }
 }
 
