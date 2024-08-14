@@ -73,6 +73,7 @@ pub enum AppMessage {
     BlockingNtexIoError(BlockingError<io::Error>),
     #[cfg(feature = "feat-ntex")]
     BlockingErrorCanceled,
+    #[cfg(feature = "feat-database")]
     R2d2Error(r2d2::Error),
     #[cfg(feature = "feat-database")]
     DatabaseError(diesel::result::Error),
@@ -93,6 +94,7 @@ fn get_message(status: &AppMessage) -> String {
         }
         AppMessage::Redirect(url) => format!("Redirecting to '{}'...", url),
         AppMessage::EntityNotFound(entity) => format!("Such {} does not exits", entity),
+        #[cfg(feature = "feat-database")]
         AppMessage::R2d2Error(error) => error.to_string(),
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RmqPoolError(error) => error.to_string(),
@@ -189,6 +191,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("IO Error: {}", message);
             Responder::internal_server_error()
         }
+        #[cfg(feature = "feat-database")]
         AppMessage::R2d2Error(message) => {
             log::error!("R2d2 Error: {}", message);
             Responder::internal_server_error()
@@ -296,6 +299,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             Some(String::from("Validation Error")),
             StatusCode::BAD_REQUEST,
         ),
+        #[cfg(feature = "feat-database")]
         AppMessage::DatabaseError(err) => match err {
             diesel::result::Error::NotFound => {
                 Responder::not_found_message("Such entity not found")
@@ -323,12 +327,14 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::WarningMessage(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::WarningMessageString(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
+        #[cfg(feature = "feat-database")]
         AppMessage::DatabaseError(diesel::result::Error::NotFound) => StatusCode::NOT_FOUND,
         AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-crypto")]
         AppMessage::ArgonError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        #[cfg(feature = "feat-database")]
         AppMessage::R2d2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RmqPoolError(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -417,6 +423,7 @@ impl From<ntex::http::error::PayloadError> for AppMessage {
     }
 }
 
+#[cfg(feature = "feat-database")]
 impl From<r2d2::Error> for AppMessage {
     fn from(value: r2d2::Error) -> Self {
         AppMessage::R2d2Error(value)

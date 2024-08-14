@@ -5,7 +5,6 @@ use serde::de::DeserializeOwned;
 use serde_json::{json, Map, Value};
 
 use crate::app_state::MedullahState;
-use crate::database::DBPool;
 use crate::helpers::http::get_ip_and_ua;
 use crate::http::extractors::client_info::ClientInfo;
 use crate::results::app_result::IntoAppResult;
@@ -14,7 +13,8 @@ use crate::results::AppResult;
 pub trait RequestHelper {
     fn app(&self) -> &MedullahState;
 
-    fn db_pool(&self) -> &DBPool;
+    #[cfg(feature = "feat-database")]
+    fn db_pool(&self) -> &crate::database::DBPool;
 
     fn client_info(&self) -> ClientInfo;
 
@@ -28,7 +28,8 @@ impl RequestHelper for HttpRequest {
         self.app_state::<MedullahState>().unwrap()
     }
 
-    fn db_pool(&self) -> &DBPool {
+    #[cfg(feature = "feat-database")]
+    fn db_pool(&self) -> &crate::database::DBPool {
         self.app().database()
     }
 

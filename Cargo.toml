@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.12.0"
+version = "0.13.0"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
@@ -9,7 +9,7 @@ repository = "https://github.com/spiralover/medullah-web"
 publish = ["spiral", "crates-io"]
 
 [features]
-default = ["r2d2"]
+default = ["feat-ntex"]
 feat-database = ["diesel", "r2d2", 'sha2']
 feat-rabbitmq = ["lapin", 'deadpool-lapin']
 feat-base64 = ["base64"]
@@ -22,7 +22,7 @@ feat-regex = ["fancy-regex"]
 feat-validator = ["validator"]
 feat-templating = ["tera"]
 feat-id-generator = ["nanoid"]
-feat-ntex = ["feat-database", "ntex", "ntex-cors"]
+feat-ntex = ["ntex", "ntex-cors"]
 feat-static = ["ntex-files"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
