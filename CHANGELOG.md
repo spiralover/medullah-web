@@ -5,6 +5,7 @@ medullah-web changelog file
 * fix(reqwest): scope feature to "feat-reqwest"
 * refactor(responder): 'respond_map' now has http status-like names
 * test(responder): unit test mappable
+* test(responder): unit test .respond() & .respond_msg()
 
 ## 0.11.0 (2024-08-13)
 * feat(helpers): added "jwt" to global accessor
