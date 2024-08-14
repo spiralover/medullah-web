@@ -10,10 +10,11 @@ use log::info;
 #[cfg(feature = "feat-templating")]
 use tera::Tera;
 
-use crate::app_state::{AppHelpers, AppMailerConfig, AppServices, MedullahState};
+use crate::app_state::{AppHelpers, AppServices, MedullahState};
+#[cfg(feature = "feat-reqwest")]
+use crate::app_state::AppMailerConfig;
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
-use crate::helpers::fs::get_cwd;
 #[cfg(feature = "feat-crypto")]
 use crate::helpers::jwt::Jwt;
 #[cfg(feature = "feat-crypto")]
@@ -66,7 +67,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
     // templating
     #[cfg(feature = "feat-templating")]
     let tera_templating = {
-        let tpl_dir = get_cwd() + "/resources/templates/**/*.tera.html";
+        let tpl_dir = crate::helpers::fs::get_cwd() + "/resources/templates/**/*.tera.html";
         Tera::new(tpl_dir.as_str()).unwrap()
     };
 
@@ -158,6 +159,7 @@ fn make_helpers(env_prefix: &str, setup: &MedullahSetup) -> AppHelpers {
     }
 }
 
+#[cfg(feature = "feat-reqwest")]
 fn make_mailer_config(env_prefix: &str) -> AppMailerConfig {
     AppMailerConfig {
         from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),

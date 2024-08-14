@@ -9,6 +9,7 @@ use ntex::http::StatusCode;
 #[cfg(feature = "feat-ntex")]
 use ntex::web::{HttpRequest, WebResponseError};
 
+#[cfg(feature = "feat-reqwest")]
 use crate::helpers::reqwest::ReqwestResponseError;
 #[cfg(feature = "feat-ntex")]
 use crate::helpers::responder::Responder;
