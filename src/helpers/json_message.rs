@@ -57,7 +57,7 @@ mod tests {
 
         let response = JsonMessage::ok(data.clone(), message.clone());
 
-        assert_eq!(response.success, true);
+        assert!(response.success);
         assert_eq!(response.code, StatusCode::OK.as_u16());
         assert_eq!(response.status, StatusCode::OK.to_string());
         assert!(response.timestamp > 0); // Check if timestamp is a positive value
@@ -73,7 +73,7 @@ mod tests {
 
         let response = JsonMessage::success(data.clone(), message.clone(), status);
 
-        assert_eq!(response.success, true);
+        assert!(response.success);
         assert_eq!(response.code, status.as_u16());
         assert_eq!(response.status, status.to_string());
         assert!(response.timestamp > 0); // Check if timestamp is a positive value
@@ -89,7 +89,7 @@ mod tests {
 
         let response = JsonMessage::failure(data.clone(), message.clone(), status);
 
-        assert_eq!(response.success, false);
+        assert!(!response.success);
         assert_eq!(response.code, status.as_u16());
         assert_eq!(response.status, status.to_string());
         assert!(response.timestamp > 0); // Check if timestamp is a positive value

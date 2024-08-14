@@ -99,7 +99,7 @@ mod tests {
     use futures_util::StreamExt;
     use super::*;
     use ntex::http::StatusCode;
-    use ntex::util::{Bytes, BytesMut};
+    use ntex::util::BytesMut;
     use serde_json::json;
 
     async fn collect_raw_body(mut response: Response) -> String {
@@ -117,7 +117,7 @@ mod tests {
         }
 
         // Convert buffer to Bytes for further use
-        String::from_utf8_lossy(Bytes::from(buffer.freeze()).as_ref()).to_string()
+        String::from_utf8_lossy(buffer.freeze().as_ref()).to_string()
     }
     #[tokio::test]
     async fn test_ok() {
@@ -175,7 +175,7 @@ mod tests {
         assert_eq!(body["success"], false);
         assert_eq!(body["status"], "404 Not Found");
         assert_eq!(body["message"], "Error Message");
-        assert_eq!(body["data"], serde_json::to_value(&json_empty()).unwrap());  // assuming `json_empty()` returns an empty object
+        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap());  // assuming `json_empty()` returns an empty object
     }
 
     #[tokio::test]
@@ -201,6 +201,6 @@ mod tests {
         assert_eq!(body["success"], false);
         assert_eq!(body["status"], "500 Internal Server Error");
         assert_eq!(body["message"], "Internal Server Error");
-        assert_eq!(body["data"], serde_json::to_value(&json_empty()).unwrap());  // assuming `json_empty()` returns an empty object
+        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap());  // assuming `json_empty()` returns an empty object
     }
 }

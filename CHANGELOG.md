@@ -1,8 +1,10 @@
 # Medullah Changelog
 medullah-web changelog file 
 
-## 0.11.1 (2024-08-14)
+## 0.12.0 (2024-08-14)
 * fix(reqwest): scope feature to "feat-reqwest"
+* refactor(responder): 'respond_map' now has http status-like names
+* test(responder): unit test mappable
 
 ## 0.11.0 (2024-08-13)
 * feat(helpers): added "jwt" to global accessor

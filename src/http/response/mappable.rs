@@ -31,12 +31,72 @@ impl<T: Serialize> MappableResponse<T> for Result<T, BlockingError<AppMessage>> 
 
 fn format_return<T: Serialize>(ret: Return<T>) -> HttpResult {
     match ret {
-        Return::Success(item, msg) => Ok(Responder::ok(item, msg)),
+        Return::Ok(item, msg) => Ok(Responder::ok(item, msg)),
         Return::Message(msg) => msg.into_http_result(),
-        Return::Failure(item, msg) => Ok(Responder::failure(
+        Return::Response(data, msg, status) => {
+            let code = status.as_u16();
+            Ok(match (200..300).contains(&code) {
+                true => Responder::success(data, Some(msg.to_string()), status),
+                false => Responder::failure(data, Some(msg.to_string()), status),
+            })
+        }
+        Return::BadRequest(item, msg) => Ok(Responder::failure(
             item,
             Some(msg.to_string()),
             StatusCode::BAD_REQUEST,
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use ntex::http::StatusCode;
+    use crate::helpers::json::JsonEmpty;
+
+    #[test]
+    fn test_respond_map_ok() {
+        let data = json!({"key": "value"});
+        let result: Result<_, BlockingError<AppMessage>> = Ok(data.clone());
+
+        let response = result.respond_map(|data| Return::Ok(data, "Success"));
+
+        match response {
+            Ok(responder) => {
+                assert_eq!(responder.status(), StatusCode::OK);
+            }
+            Err(e) => panic!("Expected Ok, but got Err: {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_respond_map_err() {
+        let error = BlockingError::Canceled;
+        let result: Result<JsonEmpty, BlockingError<AppMessage>> = Err(error);
+
+        let response = result.respond_map(|data| Return::Ok(data, "Success"));
+
+        match response {
+            Ok(responder) => {
+                assert_eq!(responder.status(), StatusCode::INTERNAL_SERVER_ERROR);
+            }
+            Err(e) => panic!("Expected Ok, but got Err: {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_respond_map_any() {
+        let data = json!({"key": "value"});
+        let result: Result<_, BlockingError<AppMessage>> = Ok(data.clone());
+
+        let response = result.respond_map_any(|res| Return::Ok(res.unwrap(), "Success"));
+
+        match response {
+            Ok(responder) => {
+                assert_eq!(responder.status(), StatusCode::OK);
+            }
+            Err(e) => panic!("Expected Ok, but got Err: {:?}", e),
+        }
     }
 }
