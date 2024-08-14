@@ -47,7 +47,6 @@ mod tests {
     use super::*;
     use ntex::http::error::BlockingError;
     use ntex::http::StatusCode;
-    use ntex::web::WebResponseError;
     use serde_json::json;
     use crate::helpers::json::JsonEmpty;
 

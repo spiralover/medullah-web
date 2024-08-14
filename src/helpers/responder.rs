@@ -67,6 +67,10 @@ impl Responder {
         Self::message(msg, StatusCode::INTERNAL_SERVER_ERROR)
     }
 
+    pub fn not_found() -> Response {
+        Self::not_found_message("Not Found")
+    }
+
     pub fn internal_server_error() -> Response {
         Self::internal_server_error_message("Internal Server Error")
     }

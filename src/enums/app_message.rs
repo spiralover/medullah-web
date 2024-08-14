@@ -75,8 +75,6 @@ pub enum AppMessage {
     BlockingErrorCanceled,
     R2d2Error(r2d2::Error),
     #[cfg(feature = "feat-database")]
-    DatabaseEntityNotFound,
-    #[cfg(feature = "feat-database")]
     DatabaseError(diesel::result::Error),
 }
 
@@ -98,8 +96,6 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::R2d2Error(error) => error.to_string(),
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RmqPoolError(error) => error.to_string(),
-        #[cfg(feature = "feat-database")]
-        AppMessage::DatabaseEntityNotFound => String::from("Such entity does not exits"),
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(err) => err.to_string(),
         #[cfg(feature = "feat-crypto")]
@@ -140,7 +136,13 @@ fn get_message(status: &AppMessage) -> String {
         #[cfg(feature = "feat-ntex")]
         AppMessage::ErrorMessage(message, _) => message.clone(),
         #[cfg(feature = "feat-database")]
-        AppMessage::DatabaseError(message) => message.to_string(),
+        AppMessage::DatabaseError(err) => match err {
+            diesel::result::Error::NotFound => String::from("Such entity not found"),
+            _ => {
+                error!("database error: {:?}", err);
+                String::from("Something went wrong")
+            }
+        },
         AppMessage::UnAuthorizedMessage(message) => message.to_string(),
         AppMessage::UnAuthorizedMessageString(message) => message.to_string(),
         AppMessage::ForbiddenMessage(message) => message.to_string(),
@@ -173,8 +175,8 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
 }
 
 #[cfg(feature = "feat-ntex")]
-pub fn send_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
-    match app_message {
+fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
+    match message {
         AppMessage::EntityNotFound(entity) => Responder::entity_not_found_message(entity),
         AppMessage::Redirect(url) => ntex::web::HttpResponse::Found()
             .header(
@@ -270,7 +272,7 @@ pub fn send_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
         AppMessage::SuccessMessageString(message) => Responder::ok_message(message),
         AppMessage::ErrorMessage(message, status) => Responder::message(message, *status),
         AppMessage::UnAuthorized => {
-            Responder::message(&get_message(app_message), StatusCode::UNAUTHORIZED)
+            Responder::message(&message.message(), StatusCode::UNAUTHORIZED)
         }
         AppMessage::UnAuthorizedMessage(message) => {
             Responder::message(message, StatusCode::UNAUTHORIZED)
@@ -278,9 +280,7 @@ pub fn send_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
         AppMessage::UnAuthorizedMessageString(message) => {
             Responder::message(message, StatusCode::UNAUTHORIZED)
         }
-        AppMessage::Forbidden => {
-            Responder::message(&get_message(app_message), StatusCode::FORBIDDEN)
-        }
+        AppMessage::Forbidden => Responder::message(&message.message(), StatusCode::FORBIDDEN),
         AppMessage::ForbiddenMessage(message) => Responder::message(message, StatusCode::FORBIDDEN),
         AppMessage::ForbiddenMessageString(message) => {
             Responder::message(message, StatusCode::FORBIDDEN)
@@ -296,16 +296,21 @@ pub fn send_response(app_message: &AppMessage) -> ntex::web::HttpResponse {
             Some(String::from("Validation Error")),
             StatusCode::BAD_REQUEST,
         ),
-        AppMessage::DatabaseError(err) => {
-            error!("{:?}", err);
-            Responder::internal_server_error()
-        }
+        AppMessage::DatabaseError(err) => match err {
+            diesel::result::Error::NotFound => {
+                Responder::not_found_message("Such entity not found")
+            }
+            _ => {
+                error!("database error: {:?}", err);
+                Responder::internal_server_error_message(&message.message())
+            }
+        },
         #[cfg(feature = "feat-hmac")]
         AppMessage::HmacError(err) => {
             error!("{:?}", err);
             Responder::internal_server_error()
         }
-        _ => Responder::bad_req_message(get_message(app_message).as_str()),
+        _ => Responder::bad_req_message(get_message(message).as_str()),
     }
 }
 
@@ -318,7 +323,7 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::WarningMessage(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::WarningMessageString(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
-        AppMessage::DatabaseEntityNotFound => StatusCode::NOT_FOUND,
+        AppMessage::DatabaseError(diesel::result::Error::NotFound) => StatusCode::NOT_FOUND,
         AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -500,10 +505,7 @@ impl From<base64::DecodeError> for AppMessage {
 #[cfg(feature = "feat-database")]
 impl From<diesel::result::Error> for AppMessage {
     fn from(value: diesel::result::Error) -> Self {
-        match value {
-            diesel::result::Error::NotFound => AppMessage::DatabaseEntityNotFound,
-            _ => AppMessage::DatabaseError(value),
-        }
+        AppMessage::DatabaseError(value)
     }
 }
 
@@ -511,33 +513,44 @@ impl From<diesel::result::Error> for AppMessage {
 impl From<AppMessage> for diesel::result::Error {
     fn from(value: AppMessage) -> Self {
         match value {
-            AppMessage::DatabaseEntityNotFound => diesel::result::Error::NotFound,
+            AppMessage::EntityNotFound(_) => diesel::result::Error::NotFound,
             AppMessage::DatabaseError(err) => err,
             _ => panic!("unhandled app message: {:?}", value),
         }
     }
 }
-#[cfg(feature = "feat-ntex")]
+
 impl AppMessage {
-    pub fn into_http_result(self) -> crate::results::HttpResult {
-        Ok(send_response(&self))
+    #[cfg(feature = "feat-ntex")]
+    pub fn http_result(&self) -> crate::results::HttpResult {
+        Ok(self.http_response())
     }
 
-    pub fn into_response(self) -> ntex::web::HttpResponse {
-        send_response(&self)
+    #[cfg(feature = "feat-ntex")]
+    pub fn http_response(&self) -> ntex::web::HttpResponse {
+        send_response(self)
+    }
+
+    #[cfg(feature = "feat-ntex")]
+    pub fn status_code(&self) -> StatusCode {
+        get_status_code(self)
+    }
+
+    pub fn message(&self) -> String {
+        get_message(self)
     }
 }
 
 #[cfg(feature = "feat-ntex")]
 impl WebResponseError for AppMessage {
     fn status_code(&self) -> StatusCode {
-        let code = get_status_code(self);
+        let code = self.status_code();
         log::info!("[error-code] {}", code);
         code
     }
 
     fn error_response(&self, _: &HttpRequest) -> ntex::web::HttpResponse {
         log::info!("[error-body] {}", self);
-        send_response(self)
+        self.http_response()
     }
 }

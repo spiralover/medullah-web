@@ -16,7 +16,7 @@ impl<T: Serialize> MappableResponse<T> for Result<T, BlockingError<AppMessage>> 
             Ok(data) => format_return(func(data)),
             Err(err) => {
                 let msg = AppMessage::BlockingNtexErrorOuterBoxed(Box::new(err));
-                msg.into_http_result()
+                msg.http_result()
             }
         }
     }
@@ -32,7 +32,7 @@ impl<T: Serialize> MappableResponse<T> for Result<T, BlockingError<AppMessage>> 
 fn format_return<T: Serialize>(ret: Return<T>) -> HttpResult {
     match ret {
         Return::Ok(item, msg) => Ok(Responder::ok(item, msg)),
-        Return::Message(msg) => msg.into_http_result(),
+        Return::Message(msg) => msg.http_result(),
         Return::Response(data, msg, status) => {
             let code = status.as_u16();
             Ok(match (200..300).contains(&code) {
