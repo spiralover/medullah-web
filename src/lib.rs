@@ -16,7 +16,6 @@ pub mod helpers;
 
 pub mod app_setup;
 pub mod env_logger;
-#[cfg(feature = "feat-ntex")]
 pub mod http;
 #[cfg(feature = "feat-rabbitmq")]
 pub mod rabbitmq;
@@ -33,7 +32,6 @@ pub mod prelude {
     pub use crate::rabbitmq::RabbitMQ;
     #[cfg(feature = "feat-redis")]
     pub use crate::redis::Redis;
-    #[cfg(feature = "feat-ntex")]
     pub use crate::results::HttpResult;
     pub use crate::results::{app_result::IntoAppResult, AppResult};
     pub use crate::MEDULLAH;

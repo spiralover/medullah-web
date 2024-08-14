@@ -2,16 +2,12 @@ use std::fmt::{Debug, Display, Formatter};
 use std::io;
 
 use log::error;
-#[cfg(feature = "feat-ntex")]
 use ntex::http::error::BlockingError;
-#[cfg(feature = "feat-ntex")]
 use ntex::http::StatusCode;
-#[cfg(feature = "feat-ntex")]
 use ntex::web::{HttpRequest, WebResponseError};
 
 #[cfg(feature = "feat-reqwest")]
 use crate::helpers::reqwest::ReqwestResponseError;
-#[cfg(feature = "feat-ntex")]
 use crate::helpers::responder::Responder;
 
 pub enum AppMessage {
@@ -63,17 +59,11 @@ pub enum AppMessage {
     RedisPoolError(deadpool::managed::PoolError<redis::RedisError>),
     #[cfg(feature = "feat-rabbitmq")]
     RmqPoolError(deadpool::managed::PoolError<lapin::Error>),
-    #[cfg(feature = "feat-ntex")]
     ErrorMessage(String, StatusCode),
-    #[cfg(feature = "feat-ntex")]
     PayloadError(ntex::http::error::PayloadError),
-    #[cfg(feature = "feat-ntex")]
     BlockingNtexErrorInnerBoxed(BlockingError<Box<Self>>),
-    #[cfg(feature = "feat-ntex")]
     BlockingNtexErrorOuterBoxed(Box<BlockingError<Self>>),
-    #[cfg(feature = "feat-ntex")]
     BlockingNtexIoError(BlockingError<io::Error>),
-    #[cfg(feature = "feat-ntex")]
     BlockingErrorCanceled,
     #[cfg(feature = "feat-database")]
     R2d2Error(r2d2::Error),
@@ -127,19 +117,14 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::Base64Error(error) => error.to_string(),
         AppMessage::FromUtf8Error(error) => error.to_string(),
         AppMessage::ChronoParseError(error) => error.to_string(),
-        #[cfg(feature = "feat-ntex")]
         AppMessage::BlockingNtexErrorInnerBoxed(error) => error.to_string(),
-        #[cfg(feature = "feat-ntex")]
         AppMessage::BlockingNtexErrorOuterBoxed(error) => error.to_string(),
-        #[cfg(feature = "feat-ntex")]
         AppMessage::BlockingNtexIoError(error) => error.to_string(),
-        #[cfg(feature = "feat-ntex")]
         AppMessage::PayloadError(error) => error.to_string(),
         AppMessage::WarningMessage(message) => message.to_string(),
         AppMessage::WarningMessageString(message) => message.to_string(),
         AppMessage::SuccessMessage(message) => message.to_string(),
         AppMessage::SuccessMessageString(message) => message.to_string(),
-        #[cfg(feature = "feat-ntex")]
         AppMessage::ErrorMessage(message, _) => message.clone(),
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseError(err) => match err {
@@ -180,7 +165,6 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
     }
 }
 
-#[cfg(feature = "feat-ntex")]
 fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
     match message {
         AppMessage::EntityNotFound(entity) => Responder::entity_not_found_message(entity),
@@ -324,7 +308,6 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
     }
 }
 
-#[cfg(feature = "feat-ntex")]
 pub fn get_status_code(status: &AppMessage) -> StatusCode {
     match status {
         AppMessage::InvalidUUID => StatusCode::BAD_REQUEST,
@@ -423,7 +406,6 @@ impl From<reqwest::Error> for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-ntex")]
 impl From<ntex::http::error::PayloadError> for AppMessage {
     fn from(value: ntex::http::error::PayloadError) -> Self {
         AppMessage::PayloadError(value)
@@ -443,21 +425,18 @@ impl From<tokio::task::JoinError> for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-ntex")]
 impl From<BlockingError<AppMessage>> for AppMessage {
     fn from(value: BlockingError<AppMessage>) -> Self {
         AppMessage::BlockingNtexErrorOuterBoxed(Box::new(value))
     }
 }
 
-#[cfg(feature = "feat-ntex")]
 impl From<BlockingError<Box<AppMessage>>> for AppMessage {
     fn from(value: BlockingError<Box<AppMessage>>) -> Self {
         AppMessage::BlockingNtexErrorInnerBoxed(value)
     }
 }
 
-#[cfg(feature = "feat-ntex")]
 impl From<BlockingError<io::Error>> for AppMessage {
     fn from(value: BlockingError<io::Error>) -> Self {
         AppMessage::BlockingNtexIoError(value)
@@ -536,17 +515,14 @@ impl From<AppMessage> for diesel::result::Error {
 }
 
 impl AppMessage {
-    #[cfg(feature = "feat-ntex")]
     pub fn http_result(&self) -> crate::results::HttpResult {
         Ok(self.http_response())
     }
 
-    #[cfg(feature = "feat-ntex")]
     pub fn http_response(&self) -> ntex::web::HttpResponse {
         send_response(self)
     }
 
-    #[cfg(feature = "feat-ntex")]
     pub fn status_code(&self) -> StatusCode {
         get_status_code(self)
     }
@@ -556,7 +532,6 @@ impl AppMessage {
     }
 }
 
-#[cfg(feature = "feat-ntex")]
 impl WebResponseError for AppMessage {
     fn status_code(&self) -> StatusCode {
         let code = self.status_code();

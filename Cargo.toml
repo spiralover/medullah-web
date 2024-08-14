@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.13.0"
+version = "0.13.1"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
@@ -9,7 +9,6 @@ repository = "https://github.com/spiralover/medullah-web"
 publish = ["spiral", "crates-io"]
 
 [features]
-default = ["feat-ntex"]
 feat-database = ["diesel", "r2d2", 'sha2']
 feat-rabbitmq = ["lapin", 'deadpool-lapin']
 feat-redis = ["redis", 'deadpool-redis']
@@ -22,7 +21,6 @@ feat-crypto = ["rust-argon2", "jsonwebtoken", "subtle"]
 feat-regex = ["fancy-regex"]
 feat-validator = ["validator"]
 feat-templating = ["tera"]
-feat-ntex = ["ntex", "ntex-cors"]
 feat-static = ["ntex-files"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -59,11 +57,11 @@ hmac = { version = "0.12.1", optional = true }
 fancy-regex = { version = "0.13.0", optional = true }
 rust-argon2 = { version = "2.1.0", optional = true }
 tera = { version = "1.20.0", optional = true }
-ntex = { version = "2.0.3", features = ["tokio"], optional = true }
+ntex = { version = "2.0.3", features = ["tokio"] }
 ntex-files = { version = "2.0.0", optional = true }
 ntex-multipart = { version = "2.0.0", optional = true }
 r2d2 = { version = "0.8.10", optional = true }
-ntex-cors = { version = "2.0.0", optional = true }
+ntex-cors = { version = "2.0.0" }
 reqwest = { version = "0.12.5", features = ["json"], optional = true }
 diesel = { version = "2.2.2", features = ["postgres", "r2d2", "uuid", "chrono", "serde_json"], optional = true }
 jsonwebtoken = { version = "9.3.0", optional = true }
