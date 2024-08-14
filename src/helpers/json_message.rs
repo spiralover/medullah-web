@@ -43,3 +43,57 @@ impl JsonMessage {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+    use ntex::http::StatusCode;
+
+    #[test]
+    fn test_ok() {
+        let data = json!({"key": "value"});
+        let message = Some("Operation successful".to_string());
+
+        let response = JsonMessage::ok(data.clone(), message.clone());
+
+        assert_eq!(response.success, true);
+        assert_eq!(response.code, StatusCode::OK.as_u16());
+        assert_eq!(response.status, StatusCode::OK.to_string());
+        assert!(response.timestamp > 0); // Check if timestamp is a positive value
+        assert_eq!(response.data, data);
+        assert_eq!(response.message, message);
+    }
+
+    #[test]
+    fn test_success() {
+        let data = json!({"key": "value"});
+        let message = Some("Operation successful".to_string());
+        let status = StatusCode::CREATED;
+
+        let response = JsonMessage::success(data.clone(), message.clone(), status);
+
+        assert_eq!(response.success, true);
+        assert_eq!(response.code, status.as_u16());
+        assert_eq!(response.status, status.to_string());
+        assert!(response.timestamp > 0); // Check if timestamp is a positive value
+        assert_eq!(response.data, data);
+        assert_eq!(response.message, message);
+    }
+
+    #[test]
+    fn test_failure() {
+        let data = json!({"error": "something went wrong"});
+        let message = Some("Operation failed".to_string());
+        let status = StatusCode::INTERNAL_SERVER_ERROR;
+
+        let response = JsonMessage::failure(data.clone(), message.clone(), status);
+
+        assert_eq!(response.success, false);
+        assert_eq!(response.code, status.as_u16());
+        assert_eq!(response.status, status.to_string());
+        assert!(response.timestamp > 0); // Check if timestamp is a positive value
+        assert_eq!(response.data, data);
+        assert_eq!(response.message, message);
+    }
+}
