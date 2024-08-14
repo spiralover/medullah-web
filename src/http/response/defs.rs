@@ -1,9 +1,11 @@
+use ntex::http::StatusCode;
 use crate::prelude::{AppMessage, AppResult, HttpResult};
 use ntex::web::HttpResponse;
 
 pub enum Return<T> {
-    Success(T, &'static str),
-    Failure(T, &'static str),
+    Ok(T, &'static str),
+    BadRequest(T, &'static str),
+    Response(T, &'static str, StatusCode),
     Message(AppMessage),
 }
 

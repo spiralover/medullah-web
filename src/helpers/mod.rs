@@ -15,6 +15,7 @@ pub mod number;
 pub mod once_lock;
 #[cfg(feature = "feat-ntex")]
 pub mod request;
+#[cfg(feature = "feat-reqwest")]
 pub mod reqwest;
 #[cfg(feature = "feat-ntex")]
 pub mod responder;

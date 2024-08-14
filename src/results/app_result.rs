@@ -73,7 +73,7 @@ pub mod database {
         fn into_app_result(self) -> AppResult<T> {
             match self {
                 Ok(value) => Ok(value),
-                Err(Error::NotFound) => Err(AppMessage::DatabaseEntityNotFound),
+                Err(Error::NotFound) => Err(AppMessage::EntityNotFound("".to_string())),
                 Err(e) => Err(AppMessage::DatabaseError(e)),
             }
         }

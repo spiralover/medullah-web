@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.11.0"
+version = "0.12.0"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
@@ -9,13 +9,14 @@ repository = "https://github.com/spiralover/medullah-web"
 publish = ["spiral", "crates-io"]
 
 [features]
-default = ["feat-mailer", "r2d2"]
+default = ["r2d2"]
 feat-database = ["diesel", "r2d2", 'sha2']
 feat-rabbitmq = ["lapin", 'deadpool-lapin']
 feat-base64 = ["base64"]
 feat-hmac = ["hmac", 'hex']
-feat-nerve = ["reqwest"]
-feat-mailer = ["reqwest", "feat-templating"]
+feat-reqwest = ["reqwest"]
+feat-nerve = ["feat-reqwest"]
+feat-mailer = ["feat-reqwest", "feat-templating"]
 feat-crypto = ["rust-argon2", "jsonwebtoken", "subtle"]
 feat-regex = ["fancy-regex"]
 feat-validator = ["validator"]

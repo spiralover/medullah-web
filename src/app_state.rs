@@ -60,6 +60,7 @@ pub struct MedullahState {
     pub helpers: AppHelpers,
 }
 
+#[cfg(feature = "feat-reqwest")]
 #[derive(Clone)]
 pub struct AppMailerConfig {
     pub from_name: String,

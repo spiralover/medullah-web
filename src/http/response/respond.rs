@@ -41,3 +41,68 @@ impl NtexBlockingResultResponder for Result<AppMessage, BlockingError<AppMessage
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ntex::http::error::BlockingError;
+    use ntex::http::StatusCode;
+    use serde_json::json;
+    use crate::helpers::json::JsonEmpty;
+
+    #[test]
+    fn test_respond() {
+        let data = json!({"key": "value"});
+        let app_result: AppResult<_> = Ok(data.clone());
+
+        let result = app_result.respond();
+        match result {
+            Ok(response) => {
+                assert_eq!(response.status(), StatusCode::OK);
+            }
+            Err(e) => panic!("Expected Ok, but got Err: {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_respond_msg() {
+        let data = json!({"key": "value"});
+        let app_result: AppResult<_> = Ok(data.clone());
+
+        let result = app_result.respond_msg("Success");
+        match result {
+            Ok(response) => {
+                assert_eq!(response.status(), StatusCode::OK);
+            }
+            Err(e) => panic!("Expected Ok, but got Err: {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_respond_error() {
+        let error = BlockingError::Canceled;
+        let result: Result<JsonEmpty, BlockingError<AppMessage>> = Err(error);
+
+        let result = result.respond();
+        match result {
+            Ok(_) => panic!("Expected Err, but got OK"),
+            Err(e) => {
+                assert_eq!(e.status_code(), StatusCode::INTERNAL_SERVER_ERROR);
+            },
+        }
+    }
+
+    #[test]
+    fn test_respond_msg_error() {
+        let error = BlockingError::Error(AppMessage::WarningMessage("invalid"));
+        let result: Result<JsonEmpty, BlockingError<AppMessage>> = Err(error);
+
+        let result = result.respond_msg("Error occurred");
+        match result {
+            Ok(_) => panic!("Expected Err, but got Ok"),
+            Err(e) => {
+                assert_eq!(e.status_code(), StatusCode::BAD_REQUEST);
+            },
+        }
+    }
+}
