@@ -1,5 +1,6 @@
 use crate::http::response::defs::{NtexBlockingResultResponder, ResultResponse};
-use crate::prelude::{AppMessage, AppResult, HttpResult, IntoAppResult};
+use crate::prelude::IntoAppResult;
+use crate::prelude::{AppMessage, AppResult, HttpResult};
 use ntex::http::error::BlockingError;
 use serde::Serialize;
 

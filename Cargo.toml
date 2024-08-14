@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.12.0"
+version = "0.13.0"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
@@ -9,9 +9,10 @@ repository = "https://github.com/spiralover/medullah-web"
 publish = ["spiral", "crates-io"]
 
 [features]
-default = ["r2d2"]
+default = ["feat-ntex"]
 feat-database = ["diesel", "r2d2", 'sha2']
 feat-rabbitmq = ["lapin", 'deadpool-lapin']
+feat-redis = ["redis", 'deadpool-redis']
 feat-base64 = ["base64"]
 feat-hmac = ["hmac", 'hex']
 feat-reqwest = ["reqwest"]
@@ -21,8 +22,7 @@ feat-crypto = ["rust-argon2", "jsonwebtoken", "subtle"]
 feat-regex = ["fancy-regex"]
 feat-validator = ["validator"]
 feat-templating = ["tera"]
-feat-id-generator = ["nanoid"]
-feat-ntex = ["feat-database", "ntex", "ntex-cors"]
+feat-ntex = ["ntex", "ntex-cors"]
 feat-static = ["ntex-files"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -35,14 +35,16 @@ lapin = { version = "2.5.0", optional = true }
 deadpool-lapin = { version = "0.12.1", features = ["rt_tokio_1"], optional = true }
 
 # Redis
-redis = { version = "0.26.0", default-features = false, features = ["tokio-native-tls-comp", "connection-manager"] }
-deadpool-redis = { version = "0.16.0", features = ["rt_tokio_1"] }
+redis = { version = "0.26.0", default-features = false, optional = true, features = [
+    "tokio-native-tls-comp", "connection-manager"
+] }
+deadpool-redis = { version = "0.16.0", features = ["rt_tokio_1"], optional = true }
 
 toml = { version = "0.8.14" }
 uuid = { version = "1.10.0", features = ["v4", "serde"] }
 log = { version = "0.4.22" }
 serde = { version = "1.0.203", features = ["derive"] }
-tokio = { version = "1.39.2", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.39.2", features = ["rt-multi-thread", "macros", "time"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 dotenv = { version = "0.15.0" }
 env_logger = { version = "0.11.3" }
@@ -57,7 +59,6 @@ hmac = { version = "0.12.1", optional = true }
 fancy-regex = { version = "0.13.0", optional = true }
 rust-argon2 = { version = "2.1.0", optional = true }
 tera = { version = "1.20.0", optional = true }
-nanoid = { version = "0.4.0", optional = true }
 ntex = { version = "2.0.3", features = ["tokio"], optional = true }
 ntex-files = { version = "2.0.0", optional = true }
 ntex-multipart = { version = "2.0.0", optional = true }

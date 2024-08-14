@@ -6,8 +6,6 @@ pub mod fs;
 pub mod hmac;
 #[cfg(feature = "feat-ntex")]
 pub mod http;
-#[cfg(feature = "feat-id-generator")]
-pub mod id_generator;
 pub mod json;
 #[cfg(feature = "feat-ntex")]
 pub mod json_message;
