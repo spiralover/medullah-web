@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.14.0 (2024-08-14)
+* refactor(http): ntex should not be a feature as we build around it
+
 ## 0.13.1 (2024-08-14)
 * refactor(http): ntex should not be a feature as we build around it
 
