@@ -12,5 +12,4 @@ pub type RedisResult<T> = Result<T, redis::RedisError>;
 #[cfg(feature = "feat-database")]
 pub type AppPaginationResult<T> = AppResult<crate::database::pagination::PageData<T>>;
 
-#[cfg(feature = "feat-ntex")]
 pub type HttpResult = Result<ntex::web::HttpResponse, AppMessage>;
