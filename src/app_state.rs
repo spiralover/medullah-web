@@ -1,6 +1,8 @@
 use std::fmt::{Debug, Formatter};
+#[allow(unused_imports)]
 use std::sync::Arc;
 
+#[cfg(feature = "feat-redis")]
 use redis::Client as RedisClient;
 #[cfg(feature = "feat-templating")]
 use tera::{Context, Tera};
@@ -10,7 +12,9 @@ use crate::helpers::jwt::Jwt;
 use crate::helpers::password::Password;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::RabbitMQ;
+#[cfg(feature = "feat-redis")]
 use crate::redis::Redis;
+#[cfg(feature = "feat-redis")]
 use crate::services::cache_service::CacheService;
 
 #[derive(Clone)]
@@ -28,8 +32,11 @@ pub struct MedullahState {
     #[cfg(feature = "feat-templating")]
     pub(crate) tera: Tera,
 
+    #[cfg(feature = "feat-redis")]
     pub(crate) redis_client: Arc<RedisClient>,
+    #[cfg(feature = "feat-redis")]
     pub(crate) redis_pool: deadpool_redis::Pool,
+    #[cfg(feature = "feat-redis")]
     pub(crate) redis: Arc<Redis>,
     #[cfg(feature = "feat-rabbitmq")]
     pub rabbitmq_client: Arc<lapin::Connection>,
@@ -80,6 +87,7 @@ pub struct AppHelpers {
 
 #[derive(Clone)]
 pub struct AppServices {
+    #[cfg(feature = "feat-redis")]
     pub cache: Arc<CacheService>,
 }
 
@@ -89,6 +97,7 @@ impl MedullahState {
         &self.database
     }
 
+    #[cfg(feature = "feat-redis")]
     pub fn redis(&self) -> Arc<Redis> {
         self.redis.clone()
     }

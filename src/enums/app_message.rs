@@ -57,7 +57,9 @@ pub enum AppMessage {
     ChronoParseError(chrono::ParseError),
     #[cfg(feature = "feat-rabbitmq")]
     RabbitmqError(lapin::Error),
+    #[cfg(feature = "feat-redis")]
     RedisError(redis::RedisError),
+    #[cfg(feature = "feat-redis")]
     RedisPoolError(deadpool::managed::PoolError<redis::RedisError>),
     #[cfg(feature = "feat-rabbitmq")]
     RmqPoolError(deadpool::managed::PoolError<lapin::Error>),
@@ -108,7 +110,9 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::SerdeError500(error) => error.to_string(),
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RabbitmqError(error) => error.to_string(),
+        #[cfg(feature = "feat-redis")]
         AppMessage::RedisError(error) => error.to_string(),
+        #[cfg(feature = "feat-redis")]
         AppMessage::RedisPoolError(error) => error.to_string(),
         AppMessage::JoinError(error) => error.to_string(),
         #[cfg(feature = "reqwest")]
@@ -211,10 +215,12 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("Rabbitmq Error: {}", message);
             Responder::internal_server_error()
         }
+        #[cfg(feature = "feat-redis")]
         AppMessage::RedisError(message) => {
             log::error!("Redis Error: {}", message);
             Responder::internal_server_error()
         }
+        #[cfg(feature = "feat-redis")]
         AppMessage::RedisPoolError(message) => {
             log::error!("Redis Pool Error: {}", message);
             Responder::internal_server_error()
@@ -348,6 +354,7 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::ReqwestResponseError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(_msg) => StatusCode::BAD_REQUEST,
+        #[cfg(feature = "feat-redis")]
         AppMessage::RedisError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RabbitmqError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -464,6 +471,7 @@ impl From<lapin::Error> for AppMessage {
     }
 }
 
+#[cfg(feature = "feat-redis")]
 impl From<redis::RedisError> for AppMessage {
     fn from(value: redis::RedisError) -> Self {
         AppMessage::RedisError(value)

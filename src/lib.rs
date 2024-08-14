@@ -9,6 +9,7 @@ pub mod results;
 #[cfg(feature = "feat-database")]
 pub mod database;
 
+#[cfg(feature = "feat-redis")]
 pub mod redis;
 
 pub mod helpers;
@@ -30,6 +31,7 @@ pub mod prelude {
     pub use crate::helpers::once_lock::OnceLockHelper;
     #[cfg(feature = "feat-rabbitmq")]
     pub use crate::rabbitmq::RabbitMQ;
+    #[cfg(feature = "feat-redis")]
     pub use crate::redis::Redis;
     #[cfg(feature = "feat-ntex")]
     pub use crate::results::HttpResult;

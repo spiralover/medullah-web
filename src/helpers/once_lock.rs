@@ -1,16 +1,16 @@
+#[allow(unused_imports)]
 use std::sync::{Arc, OnceLock};
 
 #[cfg(feature = "feat-database")]
 use diesel::PgConnection;
 #[cfg(feature = "feat-database")]
 use diesel::r2d2::ConnectionManager;
-use redis::Client;
 
 use crate::app_state::MedullahState;
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
 use crate::MEDULLAH;
-use crate::redis::Redis;
+#[cfg(feature = "feat-redis")]
 use crate::services::cache_service::CacheService;
 
 pub trait OnceLockHelper<'a> {
@@ -27,15 +27,18 @@ pub trait OnceLockHelper<'a> {
         MEDULLAH.get().unwrap().database()
     }
 
-    fn redis_client(&self) -> Arc<Client> {
+    #[cfg(feature = "feat-redis")]
+    fn redis_client(&self) -> Arc<redis::Client> {
         Arc::clone(&self.app().redis_client)
     }
 
+    #[cfg(feature = "feat-redis")]
     fn redis_pool(&self) -> deadpool_redis::Pool {
         self.app().redis_pool.clone()
     }
 
-    fn redis(&self) -> &Redis {
+    #[cfg(feature = "feat-redis")]
+    fn redis(&self) -> &crate::redis::Redis {
         &MEDULLAH.get().unwrap().redis
     }
 
@@ -54,6 +57,7 @@ pub trait OnceLockHelper<'a> {
         Arc::clone(&self.app().rabbitmq)
     }
 
+    #[cfg(feature = "feat-redis")]
     fn cache(&self) -> &CacheService {
         &MEDULLAH.get().unwrap().services.cache
     }

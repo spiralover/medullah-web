@@ -1,5 +1,6 @@
 use std::{env, fs};
 use std::path::Path;
+#[allow(unused_imports)]
 use std::sync::Arc;
 
 #[cfg(feature = "feat-database")]
@@ -22,12 +23,15 @@ use crate::helpers::password::Password;
 use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::prelude::RabbitMQ;
+#[cfg(feature = "feat-redis")]
 use crate::prelude::Redis;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection_pool;
+#[cfg(feature = "feat-redis")]
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
+#[cfg(feature = "feat-redis")]
 use crate::services::cache_service::CacheService;
 
 pub struct MedullahSetup {
@@ -50,8 +54,11 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
     #[cfg(feature = "feat-database")]
     let database_pool = establish_database_connection(&env_prefix);
 
+    #[cfg(feature = "feat-redis")]
     let redis_client = establish_redis_connection(&env_prefix);
+    #[cfg(feature = "feat-redis")]
     let redis_pool = establish_redis_connection_pool(&env_prefix);
+    #[cfg(feature = "feat-redis")]
     let redis = Arc::new(Redis::new(redis_pool.clone()));
 
     // RabbitMQ
@@ -85,8 +92,11 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         app_public_key: setup.public_key,
         app_key: env::var(format!("{}_APP_KEY", env_prefix)).unwrap(),
 
+        #[cfg(feature = "feat-redis")]
         redis_client: Arc::new(redis_client),
+        #[cfg(feature = "feat-redis")]
         redis_pool,
+        #[cfg(feature = "feat-redis")]
         redis: redis.clone(),
         #[cfg(feature = "feat-rabbitmq")]
         rabbitmq_client: rabbit_client.clone(),
@@ -112,6 +122,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         mailer_config: make_mailer_config(&env_prefix),
 
         services: AppServices {
+            #[cfg(feature = "feat-redis")]
             cache: Arc::new(CacheService::new(redis)),
         },
     }
