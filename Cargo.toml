@@ -21,7 +21,6 @@ feat-crypto = ["rust-argon2", "jsonwebtoken", "subtle"]
 feat-regex = ["fancy-regex"]
 feat-validator = ["validator"]
 feat-templating = ["tera"]
-feat-id-generator = ["nanoid"]
 feat-ntex = ["ntex", "ntex-cors"]
 feat-static = ["ntex-files"]
 
@@ -57,7 +56,6 @@ hmac = { version = "0.12.1", optional = true }
 fancy-regex = { version = "0.13.0", optional = true }
 rust-argon2 = { version = "2.1.0", optional = true }
 tera = { version = "1.20.0", optional = true }
-nanoid = { version = "0.4.0", optional = true }
 ntex = { version = "2.0.3", features = ["tokio"], optional = true }
 ntex-files = { version = "2.0.0", optional = true }
 ntex-multipart = { version = "2.0.0", optional = true }
