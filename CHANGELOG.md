@@ -3,6 +3,7 @@ medullah-web changelog file
 
 ## 0.13.0 (2024-08-14)
 * refactor(database): feature is now optional
+* fix(readme): broken changelog link
 
 ## 0.12.0 (2024-08-14)
 * fix(reqwest): scope feature to "feat-reqwest"
