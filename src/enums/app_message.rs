@@ -38,8 +38,6 @@ pub enum AppMessage {
     ReqwestResponseError(ReqwestResponseError),
     #[cfg(feature = "feat-mailer")]
     MailerError(reqwest::Error),
-    #[cfg(feature = "feat-nerve")]
-    NerveError(reqwest::Error),
     SerdeError(serde_json::Error),
     SerdeError500(serde_json::Error),
     #[cfg(feature = "feat-base64")]
@@ -111,8 +109,6 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::ReqwestResponseError(error) => error.body().to_owned(),
         #[cfg(feature = "feat-mailer")]
         AppMessage::MailerError(error) => error.to_string(),
-        #[cfg(feature = "feat-nerve")]
-        AppMessage::NerveError(error) => error.to_string(),
         #[cfg(feature = "feat-base64")]
         AppMessage::Base64Error(error) => error.to_string(),
         AppMessage::FromUtf8Error(error) => error.to_string(),
