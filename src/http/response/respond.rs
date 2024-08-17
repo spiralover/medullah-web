@@ -46,10 +46,10 @@ impl NtexBlockingResultResponder for Result<AppMessage, BlockingError<AppMessage
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::helpers::json::JsonEmpty;
     use ntex::http::error::BlockingError;
     use ntex::http::StatusCode;
     use serde_json::json;
-    use crate::helpers::json::JsonEmpty;
 
     #[test]
     fn test_respond() {
@@ -89,7 +89,7 @@ mod tests {
             Ok(_) => panic!("Expected Err, but got OK"),
             Err(e) => {
                 assert_eq!(e.status_code(), StatusCode::INTERNAL_SERVER_ERROR);
-            },
+            }
         }
     }
 
@@ -103,7 +103,7 @@ mod tests {
             Ok(_) => panic!("Expected Err, but got Ok"),
             Err(e) => {
                 assert_eq!(e.status_code(), StatusCode::BAD_REQUEST);
-            },
+            }
         }
     }
 }

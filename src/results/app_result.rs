@@ -1,16 +1,16 @@
 #[cfg(feature = "feat-database")]
-use diesel::QueryResult;
-#[cfg(feature = "feat-database")]
-use diesel::result::Error;
-use ntex::web::error::BlockingError;
-use serde::Serialize;
-#[cfg(feature = "feat-database")]
 use crate::database::Model;
 use crate::enums::app_message::AppMessage;
 use crate::helpers::json::{json_empty, JsonEmpty};
 #[cfg(feature = "feat-database")]
 use crate::results::AppPaginationResult;
 use crate::results::AppResult;
+#[cfg(feature = "feat-database")]
+use diesel::result::Error;
+#[cfg(feature = "feat-database")]
+use diesel::QueryResult;
+use ntex::web::error::BlockingError;
+use serde::Serialize;
 
 pub type AppOptionalResult<T> = Result<Option<T>, AppMessage>;
 

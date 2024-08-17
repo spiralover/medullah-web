@@ -51,9 +51,9 @@ fn format_return<T: Serialize>(ret: Return<T>) -> HttpResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
-    use ntex::http::StatusCode;
     use crate::helpers::json::JsonEmpty;
+    use ntex::http::StatusCode;
+    use serde_json::json;
 
     #[test]
     fn test_respond_map_ok() {

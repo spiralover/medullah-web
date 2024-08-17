@@ -1,26 +1,25 @@
-use std::{env, fs};
 use std::path::Path;
 #[allow(unused_imports)]
 use std::sync::Arc;
+use std::{env, fs};
 
 #[cfg(feature = "feat-database")]
-use diesel::PgConnection;
-#[cfg(feature = "feat-database")]
 use diesel::r2d2::ConnectionManager;
+#[cfg(feature = "feat-database")]
+use diesel::PgConnection;
 use log::info;
 #[cfg(feature = "feat-templating")]
 use tera::Tera;
 
-use crate::app_state::{AppHelpers, AppServices, MedullahState};
 #[cfg(feature = "feat-reqwest")]
 use crate::app_state::AppMailerConfig;
+use crate::app_state::{AppHelpers, AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
 #[cfg(feature = "feat-crypto")]
 use crate::helpers::jwt::Jwt;
 #[cfg(feature = "feat-crypto")]
 use crate::helpers::password::Password;
-use crate::MEDULLAH;
 #[cfg(feature = "feat-rabbitmq")]
 use crate::prelude::RabbitMQ;
 #[cfg(feature = "feat-redis")]
@@ -33,6 +32,7 @@ use crate::rabbitmq::conn::establish_rabbit_connection_pool;
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
 #[cfg(feature = "feat-redis")]
 use crate::services::cache_service::CacheService;
+use crate::MEDULLAH;
 
 pub struct MedullahSetup {
     pub env_prefix: String,

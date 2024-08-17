@@ -47,8 +47,8 @@ impl JsonMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
     use ntex::http::StatusCode;
+    use serde_json::json;
 
     #[test]
     fn test_ok() {

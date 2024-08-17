@@ -1,5 +1,5 @@
-use ntex::http::StatusCode;
 use crate::prelude::{AppMessage, AppResult, HttpResult};
+use ntex::http::StatusCode;
 use ntex::web::HttpResponse;
 
 pub enum Return<T> {

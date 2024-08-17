@@ -1,7 +1,7 @@
+use crate::results::AppResult;
 use chrono::Utc;
 use hmac::{Hmac as HHmac, Mac};
 use sha2::Sha256;
-use crate::results::AppResult;
 
 #[derive(Clone)]
 pub struct Hmac {
@@ -11,7 +11,7 @@ pub struct Hmac {
 impl Hmac {
     pub fn new(secret: &str) -> Self {
         Hmac {
-            secret: secret.to_string()
+            secret: secret.to_string(),
         }
     }
 
@@ -81,7 +81,8 @@ mod tests {
     fn test_hmac_valid() {
         let hmac = Hmac::new("mysecret");
         let value = "my message".to_string();
-        let provided_hmac = "6df7d0cf7d3a52a08acbd7c12a2ab86b15820de24a78bd51e264e257de3316b0".to_string();
+        let provided_hmac =
+            "6df7d0cf7d3a52a08acbd7c12a2ab86b15820de24a78bd51e264e257de3316b0".to_string();
 
         let is_valid = hmac.verify(value, provided_hmac).unwrap();
 

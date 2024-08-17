@@ -2,10 +2,6 @@ use std::fmt::{Debug, Formatter};
 #[allow(unused_imports)]
 use std::sync::Arc;
 
-#[cfg(feature = "feat-redis")]
-use redis::Client as RedisClient;
-#[cfg(feature = "feat-templating")]
-use tera::{Context, Tera};
 #[cfg(feature = "feat-crypto")]
 use crate::helpers::jwt::Jwt;
 #[cfg(feature = "feat-crypto")]
@@ -16,6 +12,10 @@ use crate::rabbitmq::RabbitMQ;
 use crate::redis::Redis;
 #[cfg(feature = "feat-redis")]
 use crate::services::cache_service::CacheService;
+#[cfg(feature = "feat-redis")]
+use redis::Client as RedisClient;
+#[cfg(feature = "feat-templating")]
+use tera::{Context, Tera};
 
 #[derive(Clone)]
 pub struct MedullahState {

@@ -143,9 +143,9 @@ impl Jwt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::prelude::AppMessage;
     use jsonwebtoken::errors::ErrorKind;
     use std::time::{SystemTime, UNIX_EPOCH};
-    use crate::prelude::AppMessage;
 
     fn get_sample_keys() -> (String, String) {
         // Replace with your actual test RSA keys or mock keys
@@ -190,8 +190,15 @@ eTkx3HO0Z4DJuTLqgAtKDr/+CWhE+ROQQQIDAQAB
     fn get_sample_claim() -> JwtTokenClaims {
         JwtTokenClaims {
             sub: "test_subject".to_string(),
-            iat: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as usize,
-            exp: (SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + 3600) as usize,
+            iat: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as usize,
+            exp: (SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+                + 3600) as usize,
             iss: "test_issuer".to_string(),
         }
     }

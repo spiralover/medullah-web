@@ -178,7 +178,10 @@ mod tests {
         let response = result.send_response();
         match response {
             Err(e) => {
-                assert_eq!(e.status_code(), AppMessage::InternalServerError.status_code());
+                assert_eq!(
+                    e.status_code(),
+                    AppMessage::InternalServerError.status_code()
+                );
             }
             Ok(_) => panic!("Expected Err, but got Ok"),
         }

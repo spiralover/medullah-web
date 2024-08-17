@@ -100,8 +100,8 @@ impl Responder {
 
 #[cfg(test)]
 mod tests {
-    use futures_util::StreamExt;
     use super::*;
+    use futures_util::StreamExt;
     use ntex::http::StatusCode;
     use ntex::util::BytesMut;
     use serde_json::json;
@@ -141,7 +141,11 @@ mod tests {
     #[tokio::test]
     async fn test_success() {
         let data = json!({"key": "value"});
-        let response = Responder::success(data.clone(), Some("Success".to_string()), StatusCode::CREATED);
+        let response = Responder::success(
+            data.clone(),
+            Some("Success".to_string()),
+            StatusCode::CREATED,
+        );
 
         assert_eq!(response.status(), StatusCode::CREATED);
         let resp_body = collect_raw_body(response).await;
@@ -156,7 +160,11 @@ mod tests {
     #[tokio::test]
     async fn test_failure() {
         let data = json!({"key": "value"});
-        let response = Responder::failure(data.clone(), Some("Failure".to_string()), StatusCode::BAD_REQUEST);
+        let response = Responder::failure(
+            data.clone(),
+            Some("Failure".to_string()),
+            StatusCode::BAD_REQUEST,
+        );
 
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
         let resp_body = collect_raw_body(response).await;
@@ -179,7 +187,7 @@ mod tests {
         assert_eq!(body["success"], false);
         assert_eq!(body["status"], "404 Not Found");
         assert_eq!(body["message"], "Error Message");
-        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap());  // assuming `json_empty()` returns an empty object
+        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap()); // assuming `json_empty()` returns an empty object
     }
 
     #[tokio::test]
@@ -189,7 +197,12 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::FOUND);
         assert_eq!(
-            response.headers().get("Location").unwrap().to_str().unwrap(),
+            response
+                .headers()
+                .get("Location")
+                .unwrap()
+                .to_str()
+                .unwrap(),
             url
         );
     }
@@ -205,6 +218,6 @@ mod tests {
         assert_eq!(body["success"], false);
         assert_eq!(body["status"], "500 Internal Server Error");
         assert_eq!(body["message"], "Internal Server Error");
-        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap());  // assuming `json_empty()` returns an empty object
+        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap()); // assuming `json_empty()` returns an empty object
     }
 }

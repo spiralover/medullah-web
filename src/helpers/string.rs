@@ -26,7 +26,8 @@ mod tests {
         assert!(Str::is_username_valid("abc1234".to_string()).unwrap());
         assert!(Str::is_username_valid("a.b.c".to_string()).unwrap());
         assert!(Str::is_username_valid("username1".to_string()).unwrap());
-        assert!(Str::is_username_valid("a123456789012345678901234567890123".to_string()).unwrap()); // 37 chars
+        assert!(Str::is_username_valid("a123456789012345678901234567890123".to_string()).unwrap());
+        // 37 chars
     }
 
     #[cfg(feature = "feat-regex")]
@@ -35,7 +36,10 @@ mod tests {
         assert!(!Str::is_username_valid("1username".to_string()).unwrap()); // Starts with a digit
         assert!(!Str::is_username_valid("username!".to_string()).unwrap()); // Invalid character
         assert!(!Str::is_username_valid("".to_string()).unwrap()); // Empty username
-        assert!(!Str::is_username_valid("a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z".to_string()).unwrap()); // More than 37 chars
+        assert!(!Str::is_username_valid(
+            "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z".to_string()
+        )
+        .unwrap()); // More than 37 chars
     }
 
     #[test]

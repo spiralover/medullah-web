@@ -2,18 +2,18 @@ use std::future::Future;
 use std::sync::Arc;
 
 use futures_util::StreamExt;
-use lapin::{BasicProperties, Channel, options::*, types::FieldTable};
+use lapin::{options::*, types::FieldTable, BasicProperties, Channel};
 use log::{error, info};
 use tokio::runtime::Handle;
 use tokio::task::JoinHandle;
 
 pub use {
-    lapin::ExchangeKind,
     lapin::message::{Delivery, DeliveryResult},
+    lapin::ExchangeKind,
 };
 
-use crate::MEDULLAH;
 use crate::prelude::{AppResult, OnceLockHelper};
+use crate::MEDULLAH;
 
 pub mod conn;
 
