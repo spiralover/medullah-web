@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.14.3 (2024-08-17)
+* feat(app-message): handle database conflict
+
 ## 0.14.2 (2024-08-17)
 * fix(cache): add more debug info
 * fix(redis): avoid unwrapping serde result
