@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.14.3"
+version = "0.14.4"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
