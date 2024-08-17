@@ -1,6 +1,10 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.14.4 (2024-08-17)
+* fix(jwt): use 'auth_iss_public_key' to verify jwt signatrue
+* fix(workflow): merge qa & release workflows
+
 ## 0.14.3 (2024-08-17)
 * feat(app-message): handle database conflict
 
