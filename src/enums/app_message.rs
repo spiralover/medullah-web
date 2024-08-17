@@ -125,6 +125,12 @@ fn get_message(status: &AppMessage) -> String {
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseError(err) => match err {
             diesel::result::Error::NotFound => String::from("Such entity not found"),
+            diesel::result::Error::DatabaseError(err, _) => match err {
+                diesel::result::DatabaseErrorKind::UniqueViolation => {
+                    "conflicted with existing entity".to_string()
+                }
+                _ => "something went wrong".to_string(),
+            },
             _ => {
                 error!("database error: {:?}", err);
                 String::from("Something went wrong")
@@ -290,6 +296,15 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             diesel::result::Error::NotFound => {
                 Responder::not_found_message("Such entity not found")
             }
+            diesel::result::Error::DatabaseError(err, _) => {
+                error!("database error: {:?}", err);
+                match err {
+                    diesel::result::DatabaseErrorKind::UniqueViolation => {
+                        Responder::message(&message.message(), StatusCode::CONFLICT)
+                    }
+                    _ => Responder::internal_server_error(),
+                }
+            }
             _ => {
                 error!("database error: {:?}", err);
                 Responder::internal_server_error_message(&message.message())
@@ -305,6 +320,9 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
 }
 
 pub fn get_status_code(status: &AppMessage) -> StatusCode {
+    #[cfg(feature = "feat-database")]
+    use diesel::result::Error as DieselError;
+
     match status {
         AppMessage::InvalidUUID => StatusCode::BAD_REQUEST,
         AppMessage::SuccessMessage(_msg) => StatusCode::OK,
@@ -313,7 +331,12 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::WarningMessageString(_msg) => StatusCode::BAD_REQUEST,
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
         #[cfg(feature = "feat-database")]
-        AppMessage::DatabaseError(diesel::result::Error::NotFound) => StatusCode::NOT_FOUND,
+        AppMessage::DatabaseError(DieselError::NotFound) => StatusCode::NOT_FOUND,
+        #[cfg(feature = "feat-database")]
+        AppMessage::DatabaseError(DieselError::DatabaseError(
+            diesel::result::DatabaseErrorKind::UniqueViolation,
+            _,
+        )) => StatusCode::CONFLICT,
         AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -502,8 +525,14 @@ impl From<diesel::result::Error> for AppMessage {
 #[cfg(feature = "feat-database")]
 impl From<AppMessage> for diesel::result::Error {
     fn from(value: AppMessage) -> Self {
+        use diesel::result::Error as DieselError;
+
         match value {
             AppMessage::EntityNotFound(_) => diesel::result::Error::NotFound,
+            AppMessage::DatabaseError(DieselError::DatabaseError(
+                diesel::result::DatabaseErrorKind::UniqueViolation,
+                x,
+            )) => DieselError::DatabaseError(diesel::result::DatabaseErrorKind::UniqueViolation, x),
             AppMessage::DatabaseError(err) => err,
             _ => panic!("unhandled app message: {:?}", value),
         }
