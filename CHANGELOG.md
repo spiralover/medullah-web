@@ -1,7 +1,12 @@
 # Medullah Changelog
 medullah-web changelog file 
 
-## 0.14.1 (2024-08-14)
+## 0.14.2 (2024-08-17)
+* fix(cache): add more debug info
+* fix(redis): avoid unwrapping serde result
+* fix(mailer): config setup should be scoped to "feat-mailer"
+
+## 0.14.1 (2024-08-16)
 * fix(nerve): removed partially implemented feature
 
 ## 0.14.0 (2024-08-14)
