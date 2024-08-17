@@ -1,7 +1,7 @@
 use std::future::Future;
 use std::sync::Arc;
 
-use log::debug;
+use log::{debug, error};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -58,11 +58,19 @@ impl CacheService {
                 None => {
                     debug!("'{}' is missing in cache, executing setter()...", key);
                     match setter(self).await {
-                        Ok(value) => match self.put(key, value.clone()).await {
-                            Ok(_) => Ok(value),
-                            Err(err) => Err(err),
-                        },
-                        Err(err) => Err(err),
+                        Ok(value) => {
+                            debug!("'{}' setter finished running, caching now...", key);
+                            let result = self.put(key, value.clone()).await;
+                            debug!("'{}' caching finished, returning value...", key);
+                            match result {
+                                Ok(_) => Ok(value),
+                                Err(err) => Err(err),
+                            }
+                        }
+                        Err(err) => {
+                            error!("'{}' setter returned failure: {:?}", key, err);
+                            Err(err)
+                        }
                     }
                 }
                 Some(data) => {
