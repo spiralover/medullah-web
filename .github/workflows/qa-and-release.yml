@@ -2,8 +2,9 @@ name: Code QA & Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -52,4 +53,5 @@ jobs:
           target: x86_64-unknown-linux-gnu
 
       - name: Publish package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: cargo publish
