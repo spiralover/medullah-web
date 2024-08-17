@@ -125,7 +125,7 @@ impl Redis {
     pub async fn queue<T: Serialize>(&self, queue: String, data: T) -> AppResult<i32> {
         match self.pool.get().await {
             Ok(mut conn) => {
-                let content = serde_json::to_string(&data).unwrap();
+                let content = serde_json::to_string(&data)?;
                 conn.lpush::<&str, &str, i32>(&*queue, &content)
                     .await
                     .into_app_result()
@@ -137,7 +137,7 @@ impl Redis {
     pub async fn set<T: Serialize>(&self, key: String, value: T) -> AppResult<String> {
         match self.pool.get().await {
             Ok(mut conn) => {
-                let content = serde_json::to_string(&value).unwrap();
+                let content = serde_json::to_string(&value)?;
                 conn.set::<String, String, String>(key, content)
                     .await
                     .into_app_result()
@@ -163,7 +163,7 @@ impl Redis {
     pub async fn publish<T: Serialize>(&self, channel: String, data: T) -> AppResult<i32> {
         match self.pool.get().await {
             Ok(mut conn) => {
-                let content = serde_json::to_string(&data).unwrap();
+                let content = serde_json::to_string(&data)?;
                 conn.publish::<String, String, i32>(channel, content)
                     .await
                     .into_app_result()
