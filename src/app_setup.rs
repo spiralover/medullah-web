@@ -170,7 +170,7 @@ fn make_helpers(env_prefix: &str, setup: &MedullahSetup) -> AppHelpers {
     }
 }
 
-#[cfg(feature = "feat-reqwest")]
+#[cfg(feature = "feat-mailer")]
 fn make_mailer_config(env_prefix: &str) -> AppMailerConfig {
     AppMailerConfig {
         from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
