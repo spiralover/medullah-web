@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.14.5 (2024-08-18)
+* bump: upgraded packages to their latest versions
+
 ## 0.14.4 (2024-08-17)
 * fix(jwt): use 'auth_iss_public_key' to verify jwt signatrue
 * fix(workflow): merge qa & release workflows

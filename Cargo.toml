@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.14.4"
+version = "0.14.5"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
@@ -37,26 +37,26 @@ redis = { version = "0.26.0", default-features = false, optional = true, feature
 ] }
 deadpool-redis = { version = "0.16.0", features = ["rt_tokio_1"], optional = true }
 
-toml = { version = "0.8.14" }
+toml = { version = "0.8.19" }
 uuid = { version = "1.10.0", features = ["v4", "serde"] }
 log = { version = "0.4.22" }
-serde = { version = "1.0.203", features = ["derive"] }
-tokio = { version = "1.39.2", features = ["rt-multi-thread", "macros", "time"] }
+serde = { version = "1.0.208", features = ["derive"] }
+tokio = { version = "1.39.3", features = ["rt-multi-thread", "macros", "time"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 dotenv = { version = "0.15.0" }
-env_logger = { version = "0.11.3" }
+env_logger = { version = "0.11.5" }
 serde_json = { version = "1.0.120", features = ["raw_value"] }
 futures-util = { version = "0.3.30" }
 base64 = { version = "0.22.1", optional = true }
 dyn-clone = { version = "1.0.17" }
-subtle = { version = "2.5", optional = true }
+subtle = { version = "2.6.1", optional = true }
 hex = { version = "0.4.3", optional = true }
 sha2 = { version = "0.10.8", optional = true }
 hmac = { version = "0.12.1", optional = true }
 fancy-regex = { version = "0.13.0", optional = true }
 rust-argon2 = { version = "2.1.0", optional = true }
 tera = { version = "1.20.0", optional = true }
-ntex = { version = "2.0.3", features = ["tokio"] }
+ntex = { version = "2.3.0", features = ["tokio"] }
 ntex-files = { version = "2.0.0", optional = true }
 ntex-multipart = { version = "2.0.0", optional = true }
 r2d2 = { version = "0.8.10", optional = true }
