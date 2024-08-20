@@ -96,10 +96,12 @@ impl Responder {
     }
 
     pub fn message(msg: &str, status: StatusCode) -> Response {
-        Self::respond(
-            JsonMessage::failure(json_empty(), Some(msg.to_owned()), status),
-            status,
-        )
+        let message = match status.is_success() {
+            true => JsonMessage::success(json_empty(), Some(msg.to_owned()), status),
+            false => JsonMessage::failure(json_empty(), Some(msg.to_owned()), status),
+        };
+
+        Self::respond(message, status)
     }
 
     fn respond<T: Serialize>(data: T, status: StatusCode) -> Response {
@@ -120,11 +122,12 @@ impl Responder {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use futures_util::StreamExt;
     use ntex::http::StatusCode;
     use ntex::util::BytesMut;
     use serde_json::json;
+
+    use super::*;
 
     async fn collect_raw_body(mut response: Response) -> String {
         let mut buffer = BytesMut::new();
