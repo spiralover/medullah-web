@@ -43,7 +43,7 @@ pub enum AppMessage {
     #[cfg(feature = "feat-base64")]
     Base64Error(base64::DecodeError),
     JoinError(tokio::task::JoinError),
-    #[cfg(feature = "feat-crypto")]
+    #[cfg(feature = "feat-jwt")]
     JwtError(jsonwebtoken::errors::Error),
     #[cfg(feature = "feat-crypto")]
     ArgonError(argon2::Error),
@@ -88,7 +88,7 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::R2d2Error(error) => error.to_string(),
         #[cfg(feature = "feat-rabbitmq")]
         AppMessage::RmqPoolError(error) => error.to_string(),
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "feat-jwt")]
         AppMessage::JwtError(err) => err.to_string(),
         #[cfg(feature = "feat-crypto")]
         AppMessage::ArgonError(err) => err.to_string(),
@@ -160,7 +160,7 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
         AppMessage::ForbiddenMessage(message) => message.to_string(),
         AppMessage::ForbiddenMessageString(message) => message.to_owned(),
         AppMessage::InternalServerErrorMessage(message) => message.to_string(),
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "feat-jwt")]
         AppMessage::JwtError(_) => "failed to authenticate your jwt token".to_string(),
         _ => {
             error!("[middleware-level-error] {:?}", app);
@@ -188,7 +188,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("R2d2 Error: {}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "feat-jwt")]
         AppMessage::JwtError(message) => {
             log::error!("Jwt Error: {}", message);
             Responder::message("invalid jwt token", StatusCode::UNAUTHORIZED)
@@ -340,7 +340,7 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
             _,
         )) => StatusCode::CONFLICT,
         AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "feat-jwt")]
         AppMessage::JwtError(_) => StatusCode::UNAUTHORIZED,
         #[cfg(feature = "feat-crypto")]
         AppMessage::ArgonError(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -406,7 +406,7 @@ impl From<io::Error> for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-crypto")]
+#[cfg(feature = "feat-jwt")]
 impl From<jsonwebtoken::errors::Error> for AppMessage {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
         AppMessage::JwtError(value)

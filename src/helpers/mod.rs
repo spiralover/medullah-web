@@ -7,7 +7,7 @@ pub mod hmac;
 pub mod http;
 pub mod json;
 pub mod json_message;
-#[cfg(feature = "feat-crypto")]
+#[cfg(feature = "feat-jwt")]
 pub mod jwt;
 pub mod number;
 pub mod once_lock;
