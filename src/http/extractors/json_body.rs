@@ -18,6 +18,10 @@ impl JsonBody {
     pub fn deserialize<T: DeserializeOwned>(self) -> AppResult<T> {
         serde_json::from_str::<T>(&self.json).into_app_result()
     }
+
+    pub fn json_value(&self) -> AppResult<serde_json::Value> {
+        serde_json::to_value(&self.json).into_app_result()
+    }
 }
 
 impl<Err> FromRequest<Err> for JsonBody {
