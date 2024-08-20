@@ -1,6 +1,10 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.14.6 (2024-08-20)
+* feat(http): added separate serializer & deserializer
+* feat(app-state): added 'helpers()' helper func to easily acquire struct of helpers
+
 ## 0.14.5 (2024-08-18)
 * bump: upgraded packages to their latest versions
 
