@@ -11,8 +11,8 @@ pub struct JsonBody {
 }
 
 impl JsonBody {
-    pub fn raw(self) -> String {
-        self.json
+    pub fn raw(&self) -> &String {
+        &self.json
     }
 
     pub fn json<T: DeserializeOwned>(self) -> AppResult<T> {

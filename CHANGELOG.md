@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.14.8 (2024-08-20)
+* fix(json): JsonBody.raw() now return &String
+
 ## 0.14.7 (2024-08-20)
 * fix(responder): 'message' should be flexible enough to decide weather message is success/failure
 * fix(app-message): return 401 on jwt decoding failure
