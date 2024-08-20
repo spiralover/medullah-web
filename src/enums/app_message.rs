@@ -160,6 +160,8 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
         AppMessage::ForbiddenMessage(message) => message.to_string(),
         AppMessage::ForbiddenMessageString(message) => message.to_owned(),
         AppMessage::InternalServerErrorMessage(message) => message.to_string(),
+        #[cfg(feature = "feat-crypto")]
+        AppMessage::JwtError(_) => "failed to authenticate your jwt token".to_string(),
         _ => {
             error!("[middleware-level-error] {:?}", app);
             String::from("Something isn't right, our engineers are on it")
