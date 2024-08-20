@@ -54,7 +54,9 @@ mod tests {
     #[test]
     fn test_raw() {
         let json_str = r#"{"field1": "value1", "field2": 42}"#.to_string();
-        let json_body = JsonBody { json: json_str.clone() };
+        let json_body = JsonBody {
+            json: json_str.clone(),
+        };
 
         assert_eq!(json_body.raw(), &json_str);
     }
@@ -116,7 +118,9 @@ mod tests {
     #[test]
     fn test_json_value_string_as_value() {
         let json_str = "\"just_a_string\"".to_string();
-        let json_body = JsonBody { json: json_str.clone() };
+        let json_body = JsonBody {
+            json: json_str.clone(),
+        };
 
         let result = json_body.json_value();
         assert!(result.is_ok());
