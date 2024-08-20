@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.15.1 (2024-08-20)
+* fix(helpers): jwt helper should be scoped to feat-jwt
+
 ## 0.15.0 (2024-08-20)
 * feat(jwt): introduced new feat-jwt feature to help decouple jwt from crypto dependencies
 * fix(jwt): send customized error message for middleware-level error
