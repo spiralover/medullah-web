@@ -6,6 +6,7 @@ medullah-web changelog file
 * fix(jwt): send customized error message for middleware-level error
 * fix(json): renamed 'json()' to 'deserialize()'
 * feat(json): can now collect serde_json::Value from extractor
+* fix(json): deserialize() now accepts ref of itself instead of moving to itself
 
 ## 0.14.8 (2024-08-20)
 * fix(json): JsonBody.raw() now return &String
