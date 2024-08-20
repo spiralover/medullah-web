@@ -11,7 +11,7 @@ use log::info;
 #[cfg(feature = "feat-templating")]
 use tera::Tera;
 
-#[cfg(feature = "feat-reqwest")]
+#[cfg(feature = "feat-mailer")]
 use crate::app_state::AppMailerConfig;
 use crate::app_state::{AppHelpers, AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
