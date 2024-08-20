@@ -16,7 +16,7 @@ use crate::app_state::AppMailerConfig;
 use crate::app_state::{AppHelpers, AppServices, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DBPool;
-#[cfg(feature = "feat-crypto")]
+#[cfg(feature = "feat-jwt")]
 use crate::helpers::jwt::Jwt;
 #[cfg(feature = "feat-crypto")]
 use crate::helpers::password::Password;
@@ -152,14 +152,14 @@ fn make_helpers(env_prefix: &str, setup: &MedullahSetup) -> AppHelpers {
     #[cfg(feature = "feat-crypto")]
     let app_key = env::var(format!("{}_APP_KEY", env_prefix)).unwrap();
 
-    #[cfg(feature = "feat-crypto")]
+    #[cfg(feature = "feat-jwt")]
     let token_lifetime: i64 = env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
         .unwrap()
         .parse()
         .unwrap();
 
     AppHelpers {
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "feat-jwt")]
         jwt: Arc::new(Jwt::new(
             setup.auth_iss_public_key.clone(),
             setup.private_key.clone(),

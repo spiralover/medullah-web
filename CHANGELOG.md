@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.15.2 (2024-08-20)
+* fix(helpers): carefully decouple 
+
 ## 0.15.1 (2024-08-20)
 * fix(helpers): jwt helper should be scoped to feat-jwt
 

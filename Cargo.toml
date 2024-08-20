@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.15.1"
+version = "0.15.2"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
@@ -16,7 +16,7 @@ feat-base64 = ["base64"]
 feat-hmac = ["hmac", 'hex']
 feat-reqwest = ["reqwest"]
 feat-mailer = ["feat-reqwest", "feat-templating"]
-feat-crypto = ["rust-argon2", "jsonwebtoken", "subtle"]
+feat-crypto = ["rust-argon2", "subtle"]
 feat-jwt = ["jsonwebtoken"]
 feat-regex = ["fancy-regex"]
 feat-validator = ["validator"]
