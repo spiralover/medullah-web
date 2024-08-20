@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 #[allow(unused_imports)]
 use std::sync::Arc;
 
-#[cfg(feature = "feat-crypto")]
+#[cfg(feature = "feat-jwt")]
 use crate::helpers::jwt::Jwt;
 #[cfg(feature = "feat-crypto")]
 use crate::helpers::password::Password;
