@@ -15,7 +15,7 @@ impl Hmac {
         }
     }
 
-    pub fn hash(&self, value: String) -> AppResult<String> {
+    pub fn hash(&self, value: &String) -> AppResult<String> {
         type HmacSha256 = HHmac<Sha256>;
 
         let mut mac = HmacSha256::new_from_slice(self.secret.as_bytes())?;
@@ -29,12 +29,12 @@ impl Hmac {
 
     pub fn generate_random() -> AppResult<String> {
         let timestamp = Utc::now().timestamp_micros().to_string();
-        Hmac::new(&timestamp).hash(timestamp)
+        Hmac::new(&timestamp).hash(&timestamp)
     }
 
-    pub fn verify(&self, value: String, provided_hmac: String) -> AppResult<bool> {
+    pub fn verify(&self, value: &String, provided_hmac: &String) -> AppResult<bool> {
         let mac = self.hash(value)?;
-        Ok(provided_hmac == mac)
+        Ok(provided_hmac == &mac)
     }
 }
 
@@ -48,7 +48,7 @@ mod tests {
         let value = "my message".to_string();
         let expected_hmac = "6df7d0cf7d3a52a08acbd7c12a2ab86b15820de24a78bd51e264e257de3316b0";
 
-        let generated_hmac = hmac.hash(value).unwrap();
+        let generated_hmac = hmac.hash(&value).unwrap();
 
         assert_eq!(
             generated_hmac, expected_hmac,
@@ -84,7 +84,7 @@ mod tests {
         let provided_hmac =
             "6df7d0cf7d3a52a08acbd7c12a2ab86b15820de24a78bd51e264e257de3316b0".to_string();
 
-        let is_valid = hmac.verify(value, provided_hmac).unwrap();
+        let is_valid = hmac.verify(&value, &provided_hmac).unwrap();
 
         assert!(
             is_valid,
@@ -98,7 +98,7 @@ mod tests {
         let value = "my message".to_string();
         let provided_hmac = "invalidhmac".to_string();
 
-        let is_valid = hmac.verify(value, provided_hmac).unwrap();
+        let is_valid = hmac.verify(&value, &provided_hmac).unwrap();
 
         assert!(
             !is_valid,
@@ -113,8 +113,8 @@ mod tests {
         let value1 = "message1".to_string();
         let value2 = "message2".to_string();
 
-        let hmac1 = hmac.hash(value1).unwrap();
-        let hmac2 = hmac.hash(value2).unwrap();
+        let hmac1 = hmac.hash(&value1).unwrap();
+        let hmac2 = hmac.hash(&value2).unwrap();
 
         assert_ne!(
             hmac1, hmac2,
