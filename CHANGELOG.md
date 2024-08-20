@@ -1,6 +1,10 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.14.7 (2024-08-20)
+* fix(responder): 'message' should be flexible enough to decide weather message is success/failure
+* fix(app-message): return 401 on jwt decoding failure
+
 ## 0.14.6 (2024-08-20)
 * feat(http): added separate serializer & deserializer
 * feat(app-state): added 'helpers()' helper func to easily acquire struct of helpers

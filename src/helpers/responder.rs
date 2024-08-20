@@ -96,10 +96,12 @@ impl Responder {
     }
 
     pub fn message(msg: &str, status: StatusCode) -> Response {
-        Self::respond(
-            JsonMessage::failure(json_empty(), Some(msg.to_owned()), status),
-            status,
-        )
+        let message = match status.is_success() {
+            true => JsonMessage::success(json_empty(), Some(msg.to_owned()), status),
+            false => JsonMessage::failure(json_empty(), Some(msg.to_owned()), status),
+        };
+
+        Self::respond(message, status)
     }
 
     fn respond<T: Serialize>(data: T, status: StatusCode) -> Response {
@@ -120,11 +122,12 @@ impl Responder {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use futures_util::StreamExt;
     use ntex::http::StatusCode;
     use ntex::util::BytesMut;
     use serde_json::json;
+
+    use super::*;
 
     async fn collect_raw_body(mut response: Response) -> String {
         let mut buffer = BytesMut::new();
@@ -197,7 +200,21 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_message() {
+    async fn test_message_success() {
+        let response = Responder::message("User Created", StatusCode::CREATED);
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+        let resp_body = collect_raw_body(response).await;
+        let body: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
+        assert_eq!(body["code"], 201);
+        assert_eq!(body["success"], true);
+        assert_eq!(body["status"], "201 Created");
+        assert_eq!(body["message"], "User Created");
+        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap()); // assuming `json_empty()` returns an empty object
+    }
+
+    #[tokio::test]
+    async fn test_message_failure() {
         let response = Responder::message("Error Message", StatusCode::NOT_FOUND);
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
