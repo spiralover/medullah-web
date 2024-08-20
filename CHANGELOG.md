@@ -1,6 +1,14 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.15.0 (2024-08-20)
+* feat(jwt): introduced new feat-jwt feature to help decouple jwt from crypto dependencies
+* fix(jwt): send customized error message for middleware-level error
+* fix(json): renamed 'json()' to 'deserialize()'
+* feat(json): can now collect serde_json::Value from extractor
+* fix(json): deserialize() now accepts ref of itself instead of moving to itself
+* test(json): added unit tests
+
 ## 0.14.8 (2024-08-20)
 * fix(json): JsonBody.raw() now return &String
 
