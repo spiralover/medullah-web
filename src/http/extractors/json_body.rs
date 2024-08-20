@@ -15,7 +15,7 @@ impl JsonBody {
         &self.json
     }
 
-    pub fn json<T: DeserializeOwned>(self) -> AppResult<T> {
+    pub fn deserialize<T: DeserializeOwned>(self) -> AppResult<T> {
         serde_json::from_str::<T>(&self.json).into_app_result()
     }
 }
