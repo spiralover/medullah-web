@@ -189,7 +189,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
         #[cfg(feature = "feat-crypto")]
         AppMessage::JwtError(message) => {
             log::error!("Jwt Error: {}", message);
-            Responder::internal_server_error()
+            Responder::message("invalid jwt token", StatusCode::UNAUTHORIZED)
         }
         #[cfg(feature = "feat-crypto")]
         AppMessage::ArgonError(message) => {
@@ -339,7 +339,7 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
         )) => StatusCode::CONFLICT,
         AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-crypto")]
-        AppMessage::JwtError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::JwtError(_) => StatusCode::UNAUTHORIZED,
         #[cfg(feature = "feat-crypto")]
         AppMessage::ArgonError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-database")]
