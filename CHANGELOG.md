@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.15.3 (2024-08-20)
+* fix(database): doesn't require sha2 to work
+
 ## 0.15.2 (2024-08-20)
 * fix(helpers): carefully decouple 
 * fix(mailer): scope import to feature
