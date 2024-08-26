@@ -12,7 +12,7 @@ use crate::prelude::{AppResult, MedullahState};
 
 pub struct ServerConfig<TB>
 where
-    TB: FnOnce() -> Vec<Route> + Send + Copy + 'static,
+    TB: FnOnce() -> Vec<Route> + Send + Copy + 'static
 {
     pub app: String,
     pub env_prefix: String,
