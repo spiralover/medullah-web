@@ -1,7 +1,6 @@
 use std::future::Future;
 use std::pin::Pin;
-use ntex::web;
-use ntex::web::HttpRequest;
+use ntex::web::{HttpRequest, WebResponse};
 use crate::http::middlewares::executor::{MiddlewareExecutor};
 use crate::results::AppResult;
 
@@ -11,7 +10,7 @@ pub type BeforeMiddlewareHandler =
 fn(HttpRequest) -> Pin<Box<dyn Future<Output = AppResult<HttpRequest>>>>;
 
 pub type AfterMiddlewareHandler =
-fn(web::WebResponse) -> Pin<Box<dyn Future<Output = AppResult<web::WebResponse>>>>;
+fn(WebResponse) -> Pin<Box<dyn Future<Output = AppResult<WebResponse>>>>;
 
 #[derive(Clone)]
 pub enum Middleware {
