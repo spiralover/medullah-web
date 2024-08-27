@@ -16,22 +16,22 @@ impl MiddlewareExecutor {
 }
 
 impl<S> ServiceMiddleware<S> for MiddlewareExecutor {
-    type Service = SayHiMiddleware<S>;
+    type Service = ExecutorMiddlewareInternal<S>;
 
     fn create(&self, service: S) -> Self::Service {
-        SayHiMiddleware {
+        ExecutorMiddlewareInternal {
             service,
             middleware: self.handler.clone(),
         }
     }
 }
 
-pub struct SayHiMiddleware<S> {
+pub struct ExecutorMiddlewareInternal<S> {
     service: S,
     middleware: Middleware,
 }
 
-impl<S, Err> Service<web::WebRequest<Err>> for SayHiMiddleware<S>
+impl<S, Err> Service<web::WebRequest<Err>> for ExecutorMiddlewareInternal<S>
 where
     S: Service<web::WebRequest<Err>, Response = web::WebResponse, Error = web::Error>,
     Err: web::ErrorRenderer,
