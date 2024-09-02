@@ -47,6 +47,7 @@ pub enum AppMessage {
     JwtError(jsonwebtoken::errors::Error),
     #[cfg(feature = "feat-crypto")]
     ArgonError(argon2::Error),
+    StrUtf8Error(std::str::Utf8Error),
     FromUtf8Error(std::string::FromUtf8Error),
     ChronoParseError(chrono::ParseError),
     #[cfg(feature = "feat-rabbitmq")]
@@ -111,6 +112,7 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::MailerError(error) => error.to_string(),
         #[cfg(feature = "feat-base64")]
         AppMessage::Base64Error(error) => error.to_string(),
+        AppMessage::StrUtf8Error(error) => error.to_string(),
         AppMessage::FromUtf8Error(error) => error.to_string(),
         AppMessage::ChronoParseError(error) => error.to_string(),
         AppMessage::BlockingNtexErrorInnerBoxed(error) => error.to_string(),
@@ -226,6 +228,10 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestResponseError(err) => {
             log::error!("Http Client(Reqwest) Error[{}]: {}", err.code(), err.body());
+            Responder::internal_server_error()
+        }
+        AppMessage::StrUtf8Error(message) => {
+            log::error!("Str-Utf8 Conversion Error: {:?}", message);
             Responder::internal_server_error()
         }
         AppMessage::FromUtf8Error(message) => {
@@ -507,6 +513,12 @@ impl From<chrono::ParseError> for AppMessage {
 impl From<std::string::FromUtf8Error> for AppMessage {
     fn from(value: std::string::FromUtf8Error) -> Self {
         AppMessage::FromUtf8Error(value)
+    }
+}
+
+impl From<std::str::Utf8Error> for AppMessage {
+    fn from(value: std::str::Utf8Error) -> Self {
+        AppMessage::StrUtf8Error(value)
     }
 }
 
