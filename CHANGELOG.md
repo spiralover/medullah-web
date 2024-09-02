@@ -1,6 +1,10 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.17.0 (2024-09-02)
+* refactor(rabbitmq): use message wrapper instead of passing Delivery directly
+* feat(app-message): impl From<std::str::Utf8Error>
+
 ## 0.16.0 (2024-08-27)
 * refactor(middleware): reworked logic & drop the usage of 'dyn_clone'
 

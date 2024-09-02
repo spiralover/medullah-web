@@ -14,8 +14,10 @@ pub use {
 
 use crate::prelude::{AppResult, OnceLockHelper};
 use crate::MEDULLAH;
+pub use crate::rabbitmq::message::Message;
 
 pub mod conn;
+mod message;
 
 #[derive(Clone)]
 pub struct RabbitMQ {
@@ -146,7 +148,7 @@ impl RabbitMQ {
     /// Consume messages from a specified queue and execute an async function on each message
     pub async fn consume<F, Fut>(&self, queue: &str, tag: &str, func: F) -> AppResult<()>
     where
-        F: Fn(Arc<Self>, Delivery) -> Fut + Send + Copy + 'static,
+        F: Fn(Arc<Self>, Message) -> Fut + Send + Copy + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
         info!("subscribing to {}...", queue);
@@ -168,7 +170,7 @@ impl RabbitMQ {
 
                 let handler = async move {
                     let delivery_tag = delivery.delivery_tag;
-                    match func(instance.clone(), delivery).await {
+                    match func(instance.clone(), Message::new(delivery)).await {
                         Ok(_) => {}
                         Err(err) => {
                             if instance.nack_on_failure {
@@ -203,7 +205,7 @@ impl RabbitMQ {
         func: F,
     ) -> JoinHandle<AppResult<()>>
     where
-        F: Fn(Arc<Self>, Delivery) -> Fut + Copy + Send + Sync + 'static,
+        F: Fn(Arc<Self>, Message) -> Fut + Copy + Send + Sync + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
         let tag = tag.to_owned();
