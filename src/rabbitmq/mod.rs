@@ -13,8 +13,8 @@ pub use {
 };
 
 use crate::prelude::{AppResult, OnceLockHelper};
-use crate::MEDULLAH;
 pub use crate::rabbitmq::message::Message;
+use crate::MEDULLAH;
 
 pub mod conn;
 mod message;
