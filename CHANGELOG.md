@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.17.3 (2024-09-02)
+* bump: to latest crates versions
+
 ## 0.17.2 (2024-09-02)
 * feat(rabbitmq): expose option structs
 
