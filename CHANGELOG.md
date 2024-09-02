@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.17.2 (2024-09-02)
+* feat(rabbitmq): expose option structs
+
 ## 0.17.1 (2024-09-02)
 * feat(rabbitmq): added "ack_opt()" & "nack_opt()" to ack & nack with option
 
