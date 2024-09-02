@@ -1,6 +1,13 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.17.0 (2024-09-02)
+* refactor(rabbitmq): use message wrapper instead of passing Delivery directly
+* feat(app-message): impl From<std::str::Utf8Error>
+* feat(app-message): improve readability
+* feat(app-message): hide get_status_code()
+* refactor(form-helper): removed 'get_nullable_time', 'get_nullable_uuid', 'get_uuid_from_string'
+
 ## 0.16.0 (2024-08-27)
 * refactor(middleware): reworked logic & drop the usage of 'dyn_clone'
 
