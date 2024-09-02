@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.17.1 (2024-09-02)
+* feat(rabbitmq): added "ack_opt()" & "nack_opt()" to ack & nack with option
+
 ## 0.17.0 (2024-09-02)
 * refactor(rabbitmq): use message wrapper instead of passing Delivery directly
 * feat(app-message): impl From<std::str::Utf8Error>
