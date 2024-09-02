@@ -36,15 +36,21 @@ impl Message {
     }
 
     pub async fn ack(&self) -> AppResult<()> {
-        self.delivery.acker.ack(BasicAckOptions::default()).await?;
+        self.ack_opt(BasicAckOptions::default()).await?;
         Ok(())
     }
 
     pub async fn nack(&self) -> AppResult<()> {
-        self.delivery
-            .acker
-            .nack(BasicNackOptions::default())
-            .await?;
+        self.nack_opt(BasicNackOptions::default()).await
+    }
+
+    pub async fn ack_opt(&self, opt: BasicAckOptions) -> AppResult<()> {
+        self.delivery.acker.ack(opt).await?;
+        Ok(())
+    }
+
+    pub async fn nack_opt(&self, opt: BasicNackOptions) -> AppResult<()> {
+        self.delivery.acker.nack(opt).await?;
         Ok(())
     }
 }
