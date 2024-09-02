@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.16.0 (2024-08-27)
+* refactor(middleware): reworked logic & drop the usage of 'dyn_clone'
+
 ## 0.15.3 (2024-08-20)
 * fix(database): doesn't require sha2 to work
 

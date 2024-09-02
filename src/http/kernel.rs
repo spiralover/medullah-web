@@ -5,8 +5,6 @@ use ntex::{web, web::Route as NtexRoute};
 use ntex_cors::Cors;
 
 use crate::helpers::responder::Responder;
-use crate::http::middlewares::base_middleware::BaseMiddleware;
-
 use crate::http::middlewares::Middleware;
 
 pub struct Controller {
@@ -38,32 +36,20 @@ pub fn register_routes(config: &mut ServiceConfig, routes: Vec<Route>) {
 
                 if total == 1 {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(
-                            route.middlewares.first().unwrap().clone(),
-                        ))
+                        .wrap(route.middlewares.first().unwrap().middleware())
                         .configure(controller.handler);
                     config.service(scope);
                 } else if total == 2 {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(
-                            route.middlewares.first().unwrap().clone(),
-                        ))
-                        .wrap(BaseMiddleware::new(
-                            route.middlewares.last().unwrap().clone(),
-                        ))
+                        .wrap(route.middlewares.first().unwrap().middleware())
+                        .wrap(route.middlewares.last().unwrap().middleware())
                         .configure(controller.handler);
                     config.service(scope);
                 } else {
                     let scope = web::scope(path.as_str())
-                        .wrap(BaseMiddleware::new(
-                            route.middlewares.first().unwrap().clone(),
-                        ))
-                        .wrap(BaseMiddleware::new(
-                            route.middlewares.get(1).unwrap().clone(),
-                        ))
-                        .wrap(BaseMiddleware::new(
-                            route.middlewares.last().unwrap().clone(),
-                        ))
+                        .wrap(route.middlewares.first().unwrap().middleware())
+                        .wrap(route.middlewares.get(1).unwrap().middleware())
+                        .wrap(route.middlewares.last().unwrap().middleware())
                         .configure(controller.handler);
                     config.service(scope);
                 }
