@@ -327,7 +327,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
     }
 }
 
-pub fn get_status_code(status: &AppMessage) -> StatusCode {
+fn get_status_code(status: &AppMessage) -> StatusCode {
     #[cfg(feature = "feat-database")]
     use diesel::result::Error as DieselError;
 

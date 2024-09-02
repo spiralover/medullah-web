@@ -5,6 +5,7 @@ medullah-web changelog file
 * refactor(rabbitmq): use message wrapper instead of passing Delivery directly
 * feat(app-message): impl From<std::str::Utf8Error>
 * feat(app-message): improve readability
+* feat(app-message): hide get_status_code()
 
 ## 0.16.0 (2024-08-27)
 * refactor(middleware): reworked logic & drop the usage of 'dyn_clone'
