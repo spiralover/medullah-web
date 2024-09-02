@@ -93,7 +93,6 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::JwtError(err) => err.to_string(),
         #[cfg(feature = "feat-crypto")]
         AppMessage::ArgonError(err) => err.to_string(),
-        AppMessage::HttpClientError(msg, _) => msg.to_owned(),
         AppMessage::IoError(error) => error.to_string(),
         AppMessage::SerdeError(error) => error.to_string(),
         AppMessage::SerdeError500(error) => error.to_string(),
@@ -119,11 +118,17 @@ fn get_message(status: &AppMessage) -> String {
         AppMessage::BlockingNtexErrorOuterBoxed(error) => error.to_string(),
         AppMessage::BlockingNtexIoError(error) => error.to_string(),
         AppMessage::PayloadError(error) => error.to_string(),
-        AppMessage::WarningMessage(message) => message.to_string(),
-        AppMessage::WarningMessageString(message) => message.to_string(),
-        AppMessage::SuccessMessage(message) => message.to_string(),
-        AppMessage::SuccessMessageString(message) => message.to_string(),
-        AppMessage::ErrorMessage(message, _) => message.clone(),
+        AppMessage::WarningMessage(message)
+        | AppMessage::SuccessMessage(message)
+        | AppMessage::ForbiddenMessage(message)
+        | AppMessage::UnAuthorizedMessage(message)
+        | AppMessage::InternalServerErrorMessage(message) => message.to_string(),
+        AppMessage::WarningMessageString(message)
+        | AppMessage::SuccessMessageString(message)
+        | AppMessage::UnAuthorizedMessageString(message)
+        | AppMessage::ForbiddenMessageString(message)
+        | AppMessage::HttpClientError(message, _)
+        | AppMessage::ErrorMessage(message, _) => message.to_string(),
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseError(err) => match err {
             diesel::result::Error::NotFound => String::from("Such entity not found"),
@@ -138,11 +143,6 @@ fn get_message(status: &AppMessage) -> String {
                 String::from("Something went wrong")
             }
         },
-        AppMessage::UnAuthorizedMessage(message) => message.to_string(),
-        AppMessage::UnAuthorizedMessageString(message) => message.to_string(),
-        AppMessage::ForbiddenMessage(message) => message.to_string(),
-        AppMessage::ForbiddenMessageString(message) => message.to_string(),
-        AppMessage::InternalServerErrorMessage(message) => message.to_string(),
         #[cfg(feature = "feat-hmac")]
         AppMessage::HmacError(message) => message.to_string(),
         #[cfg(feature = "feat-validator")]
@@ -332,11 +332,12 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
     use diesel::result::Error as DieselError;
 
     match status {
-        AppMessage::InvalidUUID => StatusCode::BAD_REQUEST,
-        AppMessage::SuccessMessage(_msg) => StatusCode::OK,
-        AppMessage::SuccessMessageString(_msg) => StatusCode::OK,
-        AppMessage::WarningMessage(_msg) => StatusCode::BAD_REQUEST,
-        AppMessage::WarningMessageString(_msg) => StatusCode::BAD_REQUEST,
+        AppMessage::SuccessMessage(_) | AppMessage::SuccessMessageString(_) => StatusCode::OK,
+        AppMessage::InvalidUUID
+        | AppMessage::WarningMessage(_)
+        | AppMessage::WarningMessageString(_)
+        | AppMessage::SerdeError(_)
+        | AppMessage::ChronoParseError(_) => StatusCode::BAD_REQUEST,
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseError(DieselError::NotFound) => StatusCode::NOT_FOUND,
@@ -345,44 +346,17 @@ pub fn get_status_code(status: &AppMessage) -> StatusCode {
             diesel::result::DatabaseErrorKind::UniqueViolation,
             _,
         )) => StatusCode::CONFLICT,
-        AppMessage::HttpClientError(_msg, _code) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-jwt")]
         AppMessage::JwtError(_) => StatusCode::UNAUTHORIZED,
-        #[cfg(feature = "feat-crypto")]
-        AppMessage::ArgonError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        #[cfg(feature = "feat-database")]
-        AppMessage::R2d2Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        #[cfg(feature = "feat-rabbitmq")]
-        AppMessage::RmqPoolError(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::IoError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::ChronoParseError(_msg) => StatusCode::BAD_REQUEST,
-        AppMessage::SerdeError(_msg) => StatusCode::BAD_REQUEST,
-        AppMessage::SerdeError500(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        #[cfg(feature = "reqwest")]
-        AppMessage::ReqwestError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        #[cfg(feature = "reqwest")]
-        AppMessage::ReqwestResponseError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
         #[cfg(feature = "feat-validator")]
-        AppMessage::FormValidationError(_msg) => StatusCode::BAD_REQUEST,
-        #[cfg(feature = "feat-redis")]
-        AppMessage::RedisError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        #[cfg(feature = "feat-rabbitmq")]
-        AppMessage::RabbitmqError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::BlockingNtexErrorInnerBoxed(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::BlockingNtexErrorOuterBoxed(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::BlockingNtexIoError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::PayloadError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::FormValidationError(_) => StatusCode::BAD_REQUEST,
         AppMessage::ErrorMessage(_, status) => *status,
-        AppMessage::UnAuthorized => StatusCode::UNAUTHORIZED,
-        AppMessage::UnAuthorizedMessage(_) => StatusCode::UNAUTHORIZED,
-        AppMessage::UnAuthorizedMessageString(_) => StatusCode::UNAUTHORIZED,
-        AppMessage::Forbidden => StatusCode::FORBIDDEN,
-        AppMessage::ForbiddenMessage(_) => StatusCode::FORBIDDEN,
-        AppMessage::ForbiddenMessageString(_) => StatusCode::FORBIDDEN,
-        AppMessage::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
-        AppMessage::InternalServerErrorMessage(_) => StatusCode::INTERNAL_SERVER_ERROR,
-        #[cfg(feature = "feat-hmac")]
-        AppMessage::HmacError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        AppMessage::UnAuthorized
+        | AppMessage::UnAuthorizedMessage(_)
+        | AppMessage::UnAuthorizedMessageString(_) => StatusCode::UNAUTHORIZED,
+        AppMessage::Forbidden
+        | AppMessage::ForbiddenMessage(_)
+        | AppMessage::ForbiddenMessageString(_) => StatusCode::FORBIDDEN,
         _ => StatusCode::INTERNAL_SERVER_ERROR, // all database-related errors are 500
     }
 }
