@@ -34,11 +34,12 @@ impl Tokio {
     /// ```
     ///
     /// ```
-    pub fn timeout<Fun, Fut>(interval: u64, func: Fun)
+    pub fn timeout<Fun, Fut>(interval: u64, func: Fun, name: &str)
     where
         Fun: FnOnce() -> Fut + Send + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
+        let name = name.to_owned();
         spawn(async move {
             let mut interval = time::interval(Duration::from_millis(interval));
 
@@ -48,7 +49,7 @@ impl Tokio {
             match func().await {
                 Ok(_) => {}
                 Err(err) => {
-                    error!("[execution-error] {:?}", err);
+                    error!("[execution-error][{}] {:?}", name, err);
                 }
             }
         });
@@ -68,11 +69,12 @@ impl Tokio {
     /// ```
     ///
     /// ```
-    pub fn tick<Fun, Fut>(interval: u64, func: Fun)
+    pub fn tick<Fun, Fut>(interval: u64, func: Fun, name: &str)
     where
         Fun: Fn() -> Fut + Send + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
+        let name = name.to_owned();
         spawn(async move {
             let mut interval = time::interval(Duration::from_millis(interval));
 
@@ -82,7 +84,7 @@ impl Tokio {
                 match func().await {
                     Ok(_) => {}
                     Err(err) => {
-                        error!("[execution-error] {:?}", err);
+                        error!("[execution-error][{}] {:?}", name, err);
                     }
                 }
             }
