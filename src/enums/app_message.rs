@@ -11,12 +11,12 @@ use crate::helpers::reqwest::ReqwestResponseError;
 use crate::helpers::responder::Responder;
 
 pub enum AppMessage {
-    InvalidUUID,
     UnAuthorized,
     Forbidden,
     InternalServerError,
     InternalServerErrorMessage(&'static str),
     IoError(io::Error),
+    UuidError(uuid::Error),
     Redirect(&'static str),
     SuccessMessage(&'static str),
     SuccessMessageString(String),
@@ -76,7 +76,7 @@ fn format_message(status: &AppMessage, f: &mut Formatter<'_>) -> std::fmt::Resul
 
 fn get_message(status: &AppMessage) -> String {
     match status {
-        AppMessage::InvalidUUID => String::from("Invalid unique identifier"),
+        AppMessage::UuidError(err) => err.to_string(),
         AppMessage::UnAuthorized => {
             String::from("You are not authorized to access requested resource(s)")
         }
@@ -336,7 +336,7 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
 
     match status {
         AppMessage::SuccessMessage(_) | AppMessage::SuccessMessageString(_) => StatusCode::OK,
-        AppMessage::InvalidUUID
+        AppMessage::UuidError(_)
         | AppMessage::WarningMessage(_)
         | AppMessage::WarningMessageString(_)
         | AppMessage::SerdeError(_)
