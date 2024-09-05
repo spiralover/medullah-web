@@ -130,12 +130,12 @@ fn get_message(status: &AppMessage) -> String {
         #[cfg(feature = "feat-database")]
         AppMessage::DatabaseError(err) => match err {
             diesel::result::Error::NotFound => String::from("Such entity not found"),
-            diesel::result::Error::DatabaseError(err, _) => match err {
+            diesel::result::Error::DatabaseError(err, info) => match err {
                 diesel::result::DatabaseErrorKind::UniqueViolation => {
                     "conflicted with existing entity".to_string()
                 }
                 _ => {
-                    error!("database kind-level-error: {:?}", err);
+                    error!("database kind-level-error({:?}): {} [::] {:?}", err, info.message(), info.details());
                     "something went wrong".to_string()
                 }
             },
