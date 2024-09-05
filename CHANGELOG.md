@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.18.2 (2024-09-05)
+* feat(rabbitmq): use tag to provide more context in error log
+
 ## 0.18.1 (2024-09-05)
 * feat(app-message): improve database error logging
 

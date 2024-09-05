@@ -165,6 +165,8 @@ impl RabbitMQ {
 
         let instance = Arc::new(self.clone());
         while let Some(result) = consumer.next().await {
+            let consumer_tag = tag.to_owned();
+
             if let Ok(delivery) = result {
                 let instance = instance.clone();
 
@@ -179,7 +181,10 @@ impl RabbitMQ {
                                     .await;
                             }
 
-                            error!("[consume-executor] returned error: {:?}", err);
+                            error!(
+                                "[consume-executor][{}] returned error: {:?}",
+                                consumer_tag, err
+                            );
                         }
                     }
                 };
