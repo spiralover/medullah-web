@@ -135,7 +135,12 @@ fn get_message(status: &AppMessage) -> String {
                     "conflicted with existing entity".to_string()
                 }
                 _ => {
-                    error!("database kind-level-error({:?}): {} [::] {:?}", err, info.message(), info.details());
+                    error!(
+                        "database kind-level-error({:?}): {} [::] {:?}",
+                        err,
+                        info.message(),
+                        info.details()
+                    );
                     "something went wrong".to_string()
                 }
             },
