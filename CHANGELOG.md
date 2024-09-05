@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.18.1 (2024-09-05)
+* feat(app-message): improve database error logging
+
 ## 0.18.0 (2024-09-05)
 * feat(tokio): add name to tick & timeout for easier debugging
 * feat(app-message): add error log to error kind error message
