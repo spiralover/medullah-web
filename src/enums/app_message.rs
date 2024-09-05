@@ -136,7 +136,10 @@ fn get_message(status: &AppMessage) -> String {
                 diesel::result::DatabaseErrorKind::UniqueViolation => {
                     "conflicted with existing entity".to_string()
                 }
-                _ => "something went wrong".to_string(),
+                _ => {
+                    error!("database kind-level-error: {:?}", err);
+                    "something went wrong".to_string()
+                },
             },
             _ => {
                 error!("database error: {:?}", err);
