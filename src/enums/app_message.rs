@@ -1,14 +1,12 @@
-use std::fmt::{Debug, Display, Formatter};
-use std::io;
-
+#[cfg(feature = "feat-reqwest")]
+use crate::helpers::reqwest::ReqwestResponseError;
+use crate::helpers::responder::Responder;
 use log::error;
 use ntex::http::error::BlockingError;
 use ntex::http::StatusCode;
 use ntex::web::{HttpRequest, WebResponseError};
-
-#[cfg(feature = "feat-reqwest")]
-use crate::helpers::reqwest::ReqwestResponseError;
-use crate::helpers::responder::Responder;
+use std::fmt::{Debug, Display, Formatter};
+use std::io;
 
 pub enum AppMessage {
     UnAuthorized,
@@ -139,7 +137,7 @@ fn get_message(status: &AppMessage) -> String {
                 _ => {
                     error!("database kind-level-error: {:?}", err);
                     "something went wrong".to_string()
-                },
+                }
             },
             _ => {
                 error!("database error: {:?}", err);
@@ -420,6 +418,12 @@ impl From<ntex::http::error::PayloadError> for AppMessage {
 impl From<r2d2::Error> for AppMessage {
     fn from(value: r2d2::Error) -> Self {
         AppMessage::R2d2Error(value)
+    }
+}
+
+impl From<uuid::Error> for AppMessage {
+    fn from(value: uuid::Error) -> Self {
+        AppMessage::UuidError(value)
     }
 }
 
