@@ -1,22 +1,20 @@
-use std::fmt::{Debug, Display, Formatter};
-use std::io;
-
+#[cfg(feature = "feat-reqwest")]
+use crate::helpers::reqwest::ReqwestResponseError;
+use crate::helpers::responder::Responder;
 use log::error;
 use ntex::http::error::BlockingError;
 use ntex::http::StatusCode;
 use ntex::web::{HttpRequest, WebResponseError};
-
-#[cfg(feature = "feat-reqwest")]
-use crate::helpers::reqwest::ReqwestResponseError;
-use crate::helpers::responder::Responder;
+use std::fmt::{Debug, Display, Formatter};
+use std::io;
 
 pub enum AppMessage {
-    InvalidUUID,
     UnAuthorized,
     Forbidden,
     InternalServerError,
     InternalServerErrorMessage(&'static str),
     IoError(io::Error),
+    UuidError(uuid::Error),
     Redirect(&'static str),
     SuccessMessage(&'static str),
     SuccessMessageString(String),
@@ -76,7 +74,7 @@ fn format_message(status: &AppMessage, f: &mut Formatter<'_>) -> std::fmt::Resul
 
 fn get_message(status: &AppMessage) -> String {
     match status {
-        AppMessage::InvalidUUID => String::from("Invalid unique identifier"),
+        AppMessage::UuidError(err) => err.to_string(),
         AppMessage::UnAuthorized => {
             String::from("You are not authorized to access requested resource(s)")
         }
@@ -136,7 +134,10 @@ fn get_message(status: &AppMessage) -> String {
                 diesel::result::DatabaseErrorKind::UniqueViolation => {
                     "conflicted with existing entity".to_string()
                 }
-                _ => "something went wrong".to_string(),
+                _ => {
+                    error!("database kind-level-error: {:?}", err);
+                    "something went wrong".to_string()
+                }
             },
             _ => {
                 error!("database error: {:?}", err);
@@ -333,7 +334,7 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
 
     match status {
         AppMessage::SuccessMessage(_) | AppMessage::SuccessMessageString(_) => StatusCode::OK,
-        AppMessage::InvalidUUID
+        AppMessage::UuidError(_)
         | AppMessage::WarningMessage(_)
         | AppMessage::WarningMessageString(_)
         | AppMessage::SerdeError(_)
@@ -417,6 +418,12 @@ impl From<ntex::http::error::PayloadError> for AppMessage {
 impl From<r2d2::Error> for AppMessage {
     fn from(value: r2d2::Error) -> Self {
         AppMessage::R2d2Error(value)
+    }
+}
+
+impl From<uuid::Error> for AppMessage {
+    fn from(value: uuid::Error) -> Self {
+        AppMessage::UuidError(value)
     }
 }
 

@@ -1,6 +1,12 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.18.0 (2024-09-05)
+* feat(tokio): add name to tick & timeout for easier debugging
+* feat(app-message): add error log to error kind error message
+* refactor(app-message): renamed InvalidUUID variant to UuidError(_)
+* feat(app-message): impl From<uuid::Error> for AppMessage
+
 ## 0.17.3 (2024-09-02)
 * bump: to latest crates versions
 
