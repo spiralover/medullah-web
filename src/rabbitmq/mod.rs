@@ -1,11 +1,12 @@
-use std::future::Future;
-use std::sync::Arc;
-
 use futures_util::StreamExt;
-use lapin::{types::FieldTable, BasicProperties, Channel};
-use log::{error, info};
+use lapin::types::FieldTable;
+use lapin::{BasicProperties, Channel, ChannelState};
+use log::{error, info, warn};
+use std::future::Future;
+use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio::task::JoinHandle;
+use tokio::time::sleep;
 
 pub use {
     lapin::message::{Delivery, DeliveryResult},
@@ -21,14 +22,15 @@ mod message;
 
 #[derive(Clone)]
 pub struct RabbitMQ {
-    pub publish_channel: Channel,
-    pub consume_channel: Channel,
+    conn_pool: deadpool_lapin::Pool,
+    publish_channel: Channel,
+    consume_channel: Channel,
     /// automatically nack a message if the handler returns an error.
-    pub nack_on_failure: bool,
+    nack_on_failure: bool,
     /// whether to requeue a message if the handler returns an error.
-    pub requeue_on_failure: bool,
+    requeue_on_failure: bool,
     /// whether the handler should be executed in the background (asynchronously) or not.
-    pub execute_handler_asynchronously: bool,
+    execute_handler_asynchronously: bool,
 }
 
 #[derive(Default)]
@@ -40,8 +42,9 @@ pub struct RabbitMQOptions {
     /// whether the handler should be executed in the background (asynchronously) or not.
     pub execute_handler_asynchronously: bool,
 }
-
 impl RabbitMQ {
+    const RETRY_DELAY: Duration = Duration::from_secs(2);
+
     /// Create a new instance and connect to the RabbitMQ server
     pub async fn new(pool: deadpool_lapin::Pool) -> AppResult<Self> {
         Self::new_opt(
@@ -73,46 +76,56 @@ impl RabbitMQ {
         let publish_channel = connection.create_channel().await?;
         let consume_channel = connection.create_channel().await?;
         Ok(Self {
+            conn_pool: pool,
             publish_channel,
             consume_channel,
             nack_on_failure: opt.nack_on_failure,
             requeue_on_failure: opt.requeue_on_failure,
-            execute_handler_asynchronously: opt.nack_on_failure,
+            execute_handler_asynchronously: opt.execute_handler_asynchronously,
         })
     }
 
-    pub fn set_nack_on_failure(&mut self, state: bool) {
+    pub fn nack_on_failure(&mut self, state: bool) {
         self.nack_on_failure = state;
     }
 
-    // Declare an exchange
-    pub async fn declare_exchange(&self, exchange: &str, kind: ExchangeKind) -> AppResult<()> {
+    pub fn requeue_on_failure(&mut self, state: bool) {
+        self.requeue_on_failure = state;
+    }
+
+    pub async fn declare_exchange(&mut self, exchange: &str, kind: ExchangeKind) -> AppResult<()> {
+        self.ensure_channel_is_usable(true).await?;
+
         self.publish_channel
             .exchange_declare(
                 exchange,
-                kind,
+                kind.clone(),
                 ExchangeDeclareOptions::default(),
                 FieldTable::default(),
             )
             .await?;
+
         Ok(())
     }
 
-    // Declare a queue
-    pub async fn declare_queue(&self, queue: &str) -> AppResult<()> {
+    pub async fn declare_queue(&mut self, queue: &str) -> AppResult<()> {
+        self.ensure_channel_is_usable(true).await?;
+
         self.publish_channel
             .queue_declare(queue, QueueDeclareOptions::default(), FieldTable::default())
             .await?;
+
         Ok(())
     }
 
-    // Bind a queue to an exchange with a routing key
     pub async fn bind_queue(
-        &self,
+        &mut self,
         queue: &str,
         exchange: &str,
         routing_key: &str,
     ) -> AppResult<()> {
+        self.ensure_channel_is_usable(true).await?;
+
         self.publish_channel
             .queue_bind(
                 queue,
@@ -122,16 +135,18 @@ impl RabbitMQ {
                 FieldTable::default(),
             )
             .await?;
+
         Ok(())
     }
 
-    // Publish a message to a specified exchange and routing key
     pub async fn publish(
-        &self,
+        &mut self,
         exchange: &str,
         routing_key: &str,
         payload: &[u8],
     ) -> AppResult<()> {
+        self.ensure_channel_is_usable(true).await?;
+
         self.publish_channel
             .basic_publish(
                 exchange,
@@ -140,18 +155,18 @@ impl RabbitMQ {
                 payload,
                 BasicProperties::default(),
             )
-            .await?
             .await?;
+
         Ok(())
     }
 
-    /// Consume messages from a specified queue and execute an async function on each message
-    pub async fn consume<F, Fut>(&self, queue: &str, tag: &str, func: F) -> AppResult<()>
+    pub async fn consume<F, Fut>(&mut self, queue: &str, tag: &str, func: F) -> AppResult<()>
     where
-        F: Fn(Arc<Self>, Message) -> Fut + Send + Copy + 'static,
+        F: Fn(Message) -> Fut + Send + Copy + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
         info!("subscribing to {}...", queue);
+        self.ensure_channel_is_usable(false).await?;
 
         let mut consumer = self
             .consume_channel
@@ -163,16 +178,15 @@ impl RabbitMQ {
             )
             .await?;
 
-        let instance = Arc::new(self.clone());
+        let instance = self.clone();
         while let Some(result) = consumer.next().await {
             let consumer_tag = tag.to_owned();
 
             if let Ok(delivery) = result {
-                let instance = instance.clone();
-
+                let mut instance = instance.clone();
                 let handler = async move {
                     let delivery_tag = delivery.delivery_tag;
-                    match func(instance.clone(), Message::new(delivery)).await {
+                    match func(Message::new(delivery)).await {
                         Ok(_) => {}
                         Err(err) => {
                             if instance.nack_on_failure {
@@ -180,7 +194,6 @@ impl RabbitMQ {
                                     .nack(delivery_tag, instance.requeue_on_failure)
                                     .await;
                             }
-
                             error!(
                                 "[consume-executor][{}] returned error: {:?}",
                                 consumer_tag, err
@@ -189,12 +202,11 @@ impl RabbitMQ {
                     }
                 };
 
-                match self.execute_handler_asynchronously {
-                    true => {
-                        Handle::current().spawn(handler);
-                    }
-                    false => handler.await,
-                };
+                if self.execute_handler_asynchronously {
+                    Handle::current().spawn(handler);
+                } else {
+                    handler.await;
+                }
             }
         }
 
@@ -202,7 +214,7 @@ impl RabbitMQ {
     }
 
     /// Consume messages from a specified queue and execute an async function on each message
-    /// This method will run in detached mode
+    /// This method will run in detached mode :)
     pub async fn consume_detached<F, Fut>(
         &self,
         queue: &str,
@@ -210,25 +222,31 @@ impl RabbitMQ {
         func: F,
     ) -> JoinHandle<AppResult<()>>
     where
-        F: Fn(Arc<Self>, Message) -> Fut + Copy + Send + Sync + 'static,
+        F: Fn(Message) -> Fut + Copy + Send + Sync + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
         let tag = tag.to_owned();
         let queue = queue.to_owned();
-        let instance = Arc::new(self.clone());
-        Handle::current().spawn(async move { instance.consume(&queue, &tag, func).await })
+        let instance = self.clone();
+        Handle::current().spawn(async move {
+            let mut instance = instance.clone();
+            instance.consume(&queue, &tag, func).await
+        })
     }
 
-    // Acknowledge a message
-    pub async fn ack(&self, delivery_tag: u64) -> AppResult<()> {
+    pub async fn ack(&mut self, delivery_tag: u64) -> AppResult<()> {
+        self.ensure_channel_is_usable(false).await?;
+
         self.consume_channel
             .basic_ack(delivery_tag, BasicAckOptions::default())
             .await?;
+
         Ok(())
     }
 
-    // Negatively acknowledge a message
-    pub async fn nack(&self, delivery_tag: u64, requeue: bool) -> AppResult<()> {
+    pub async fn nack(&mut self, delivery_tag: u64, requeue: bool) -> AppResult<()> {
+        self.ensure_channel_is_usable(false).await?;
+
         self.consume_channel
             .basic_nack(
                 delivery_tag,
@@ -238,6 +256,51 @@ impl RabbitMQ {
                 },
             )
             .await?;
+
+        Ok(())
+    }
+
+    async fn ensure_channel_is_usable(&mut self, is_publish_channel: bool) -> AppResult<()> {
+        loop {
+            let channel = match is_publish_channel {
+                true => &self.publish_channel,
+                false => &self.consume_channel,
+            };
+
+            match channel.status().state() {
+                ChannelState::Closed => {
+                    warn!("channel is closed, reconnecting...");
+                    self.recreate_channel(is_publish_channel).await?;
+                }
+                ChannelState::Closing => {
+                    warn!("channel is closing, reconnecting...");
+                    self.recreate_channel(is_publish_channel).await?;
+                }
+                ChannelState::Error => {
+                    warn!("channel is in error state, reconnecting...");
+                    self.recreate_channel(is_publish_channel).await?;
+                }
+                _ => break,
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn recreate_channel(&mut self, is_publish_channel: bool) -> AppResult<()> {
+        let connection = self.conn_pool.get().await?;
+
+        sleep(Self::RETRY_DELAY).await;
+
+        match is_publish_channel {
+            true => {
+                self.publish_channel = connection.create_channel().await?;
+            }
+            false => {
+                self.consume_channel = connection.create_channel().await?;
+            }
+        }
+
         Ok(())
     }
 }
