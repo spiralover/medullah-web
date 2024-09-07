@@ -1,16 +1,16 @@
 #[allow(unused_imports)]
 use std::sync::{Arc, OnceLock};
 
-#[cfg(feature = "feat-database")]
-use diesel::r2d2::ConnectionManager;
-#[cfg(feature = "feat-database")]
-use diesel::PgConnection;
 use crate::app_state::{AppHelpers, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
 #[cfg(feature = "feat-redis")]
 use crate::services::cache_service::CacheService;
 use crate::MEDULLAH;
+#[cfg(feature = "feat-database")]
+use diesel::r2d2::ConnectionManager;
+#[cfg(feature = "feat-database")]
+use diesel::PgConnection;
 
 pub trait OnceLockHelper<'a> {
     fn app(&self) -> &'a MedullahState {
