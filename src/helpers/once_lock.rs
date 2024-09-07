@@ -5,7 +5,6 @@ use std::sync::{Arc, OnceLock};
 use diesel::r2d2::ConnectionManager;
 #[cfg(feature = "feat-database")]
 use diesel::PgConnection;
-
 use crate::app_state::{AppHelpers, MedullahState};
 #[cfg(feature = "feat-database")]
 use crate::database::DatabaseConnectionHelper;
@@ -57,7 +56,7 @@ pub trait OnceLockHelper<'a> {
     }
 
     #[cfg(feature = "feat-rabbitmq")]
-    fn rabbitmq(&self) -> Arc<crate::rabbitmq::RabbitMQ> {
+    fn rabbitmq(&self) -> Arc<tokio::sync::Mutex<crate::prelude::RabbitMQ>> {
         Arc::clone(&self.app().rabbitmq)
     }
 

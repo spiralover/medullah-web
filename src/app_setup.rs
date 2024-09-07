@@ -3,14 +3,6 @@ use std::path::Path;
 use std::sync::Arc;
 use std::{env, fs};
 
-#[cfg(feature = "feat-database")]
-use diesel::r2d2::ConnectionManager;
-#[cfg(feature = "feat-database")]
-use diesel::PgConnection;
-use log::info;
-#[cfg(feature = "feat-templating")]
-use tera::Tera;
-
 #[cfg(feature = "feat-mailer")]
 use crate::app_state::AppMailerConfig;
 use crate::app_state::{AppHelpers, AppServices, MedullahState};
@@ -33,6 +25,13 @@ use crate::redis::conn::{establish_redis_connection, establish_redis_connection_
 #[cfg(feature = "feat-redis")]
 use crate::services::cache_service::CacheService;
 use crate::MEDULLAH;
+#[cfg(feature = "feat-database")]
+use diesel::r2d2::ConnectionManager;
+#[cfg(feature = "feat-database")]
+use diesel::PgConnection;
+use log::info;
+#[cfg(feature = "feat-templating")]
+use tera::Tera;
 
 pub struct MedullahSetup {
     pub env_prefix: String,
@@ -69,7 +68,9 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
     let rabbitmq_pool = establish_rabbit_connection_pool(&env_prefix).await;
 
     #[cfg(feature = "feat-rabbitmq")]
-    let rabbitmq = Arc::new(RabbitMQ::new(rabbitmq_pool.clone()).await.unwrap());
+    let rabbitmq = Arc::new(tokio::sync::Mutex::new(
+        RabbitMQ::new(rabbitmq_pool.clone()).await.unwrap(),
+    ));
 
     // templating
     #[cfg(feature = "feat-templating")]

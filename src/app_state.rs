@@ -43,7 +43,7 @@ pub struct MedullahState {
     #[cfg(feature = "feat-rabbitmq")]
     pub rabbitmq_pool: deadpool_lapin::Pool,
     #[cfg(feature = "feat-rabbitmq")]
-    pub rabbitmq: Arc<RabbitMQ>,
+    pub rabbitmq: Arc<tokio::sync::Mutex<RabbitMQ>>,
     #[cfg(feature = "feat-database")]
     pub(crate) database: crate::database::DBPool,
 
@@ -103,8 +103,8 @@ impl MedullahState {
     }
 
     #[cfg(feature = "feat-rabbitmq")]
-    pub fn rabbitmq(&self) -> Arc<RabbitMQ> {
-        self.rabbitmq.clone()
+    pub fn rabbitmq(&self) -> Arc<tokio::sync::Mutex<RabbitMQ>> {
+        Arc::clone(&self.rabbitmq)
     }
 
     pub fn title(&self, text: &str) -> String {

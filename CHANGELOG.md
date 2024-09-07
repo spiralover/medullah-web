@@ -1,6 +1,13 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.19.0 (2024-09-07)
+* refactor(rabbitmq): recreate closed channel
+* feat(rabbitmq): global state is now wrapped around Arc<Mutex<>>
+* fix(rabbitmq): execute_handler_asynchronously not being set correctly
+* refactor(rabbitmq): renamed "set_nack_on_failure" to "nack_on_failure"
+* feat(rabbitmq): add "requeue_on_failure" method
+
 ## 0.18.2 (2024-09-05)
 * feat(rabbitmq): use tag to provide more context in error log
 
