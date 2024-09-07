@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.19.1 (2024-09-07)
+* feat(reqwest): ability to directly deserialize error response
+
 ## 0.19.0 (2024-09-07)
 * refactor(rabbitmq): recreate closed channel
 * feat(rabbitmq): global state is now wrapped around Arc<Mutex<>>
