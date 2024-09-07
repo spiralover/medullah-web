@@ -1,7 +1,8 @@
+use crate::prelude::{AppMessage, IntoAppResult};
+use crate::results::AppResult;
 use reqwest::StatusCode;
+use serde::de::DeserializeOwned;
 use std::fmt::Display;
-
-use crate::prelude::AppMessage;
 
 pub struct ReqwestResponseError {
     body: String,
@@ -23,6 +24,10 @@ impl ReqwestResponseError {
 
     pub fn body(&self) -> &String {
         &self.body
+    }
+
+    pub fn deserialize<T: DeserializeOwned>(&self) -> AppResult<T> {
+        serde_json::from_str::<T>(&self.body).into_app_result()
     }
 }
 
