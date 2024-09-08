@@ -85,12 +85,25 @@ impl RabbitMQ {
         })
     }
 
-    pub fn nack_on_failure(&mut self, state: bool) {
+    /// Set whether to nack a message if the handler returns an error.
+    /// Default value is `true`
+    pub fn nack_on_failure(&mut self, state: bool) -> &mut Self {
         self.nack_on_failure = state;
+        self
     }
 
-    pub fn requeue_on_failure(&mut self, state: bool) {
+    /// Set whether to requeue a message if the handler returns an error.
+    /// Default value is `true`
+    pub fn requeue_on_failure(&mut self, state: bool) -> &mut Self {
         self.requeue_on_failure = state;
+        self
+    }
+
+    /// Set whether the handler should be executed in the background (asynchronously) or not.
+    /// Default value is `true`
+    pub fn execute_handler_asynchronously(&mut self, state: bool) -> &mut Self {
+        self.execute_handler_asynchronously = state;
+        self
     }
 
     pub async fn declare_exchange(&mut self, exchange: &str, kind: ExchangeKind) -> AppResult<()> {
