@@ -3,6 +3,7 @@ medullah-web changelog file
 
 ## 0.19.4 (2024-09-08)
 * feat(rabbitmq): return &mut Self for 'nack_on_failure' & 'requeue_on_failure'
+* feat(rabbitmq): added 'execute_handler_asynchronously()' to alter state
 
 ## 0.19.3 (2024-09-08)
 * fix(rabbitmq): separate exchange & routing key generic params to avoid first param influencing the second
