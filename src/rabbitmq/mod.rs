@@ -118,11 +118,11 @@ impl RabbitMQ {
         Ok(())
     }
 
-    pub async fn bind_queue<RK: ToString>(
+    pub async fn bind_queue<R: ToString>(
         &mut self,
         queue: &str,
         exchange: &str,
-        routing_key: RK,
+        routing_key: R,
     ) -> AppResult<()> {
         self.ensure_channel_is_usable(true).await?;
 
@@ -139,12 +139,16 @@ impl RabbitMQ {
         Ok(())
     }
 
-    pub async fn publish<RK: ToString>(
+    pub async fn publish<E, R>(
         &mut self,
-        exchange: RK,
-        routing_key: RK,
+        exchange: E,
+        routing_key: R,
         payload: &[u8],
-    ) -> AppResult<()> {
+    ) -> AppResult<()>
+    where
+        E: ToString,
+        R: ToString,
+    {
         self.ensure_channel_is_usable(true).await?;
 
         self.publish_channel
