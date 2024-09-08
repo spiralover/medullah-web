@@ -85,12 +85,14 @@ impl RabbitMQ {
         })
     }
 
-    pub fn nack_on_failure(&mut self, state: bool) {
+    pub fn nack_on_failure(&mut self, state: bool) -> &mut Self {
         self.nack_on_failure = state;
+        self
     }
 
-    pub fn requeue_on_failure(&mut self, state: bool) {
+    pub fn requeue_on_failure(&mut self, state: bool) -> &mut Self {
         self.requeue_on_failure = state;
+        self
     }
 
     pub async fn declare_exchange(&mut self, exchange: &str, kind: ExchangeKind) -> AppResult<()> {
