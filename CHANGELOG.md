@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.19.2 (2024-09-08)
+* feat(rabbitmq): routing key params now accepts vars that implements ToString
+
 ## 0.19.1 (2024-09-07)
 * feat(reqwest): ability to directly deserialize error response
 
