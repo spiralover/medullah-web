@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.19.3 (2024-09-08)
+* fix(rabbitmq): separate exchange & routing key generic params to avoid first param influencing the second
+
 ## 0.19.2 (2024-09-08)
 * feat(rabbitmq): routing key params now accepts vars that implements ToString
 
