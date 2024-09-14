@@ -38,9 +38,11 @@ pub trait MappableResponse<T>: Sized {
 }
 
 pub trait StructResponse: Sized {
-    fn into_response(self, suc: &str) -> HttpResponse;
+    fn into_response(self) -> HttpResponse;
 
-    fn respond(self, suc: &str) -> Result<HttpResponse, AppMessage>;
+    fn respond(self) -> Result<HttpResponse, AppMessage>;
+
+    fn respond_msg(self, suc: &str) -> Result<HttpResponse, AppMessage>;
 }
 
 pub trait OptionResultResponse<T> {

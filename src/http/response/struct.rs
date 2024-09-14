@@ -7,11 +7,15 @@ use crate::http::response::defs::StructResponse;
 use crate::prelude::HttpResult;
 
 impl<T: Serialize> StructResponse for T {
-    fn into_response(self, suc: &str) -> HttpResponse {
-        Responder::success(self, Some(suc.to_string()), StatusCode::OK)
+    fn into_response(self) -> HttpResponse {
+        Responder::success(self, None, StatusCode::OK)
     }
 
-    fn respond(self, suc: &str) -> HttpResult {
-        Ok(self.into_response(suc))
+    fn respond(self) -> HttpResult {
+        Ok(self.into_response())
+    }
+
+    fn respond_msg(self, suc: &str) -> HttpResult {
+        Ok(Responder::ok(self, suc))
     }
 }
