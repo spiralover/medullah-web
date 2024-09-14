@@ -7,11 +7,11 @@ use crate::http::response::defs::StructResponse;
 use crate::prelude::HttpResult;
 
 impl<T: Serialize> StructResponse for T {
-    fn send_response(self) -> HttpResponse {
-        Responder::success(self, None, StatusCode::OK)
+    fn into_response(self, suc: &str) -> HttpResponse {
+        Responder::success(self, Some(suc.to_string()), StatusCode::OK)
     }
 
-    fn send_struct_result(self) -> HttpResult {
-        Ok(self.send_response())
+    fn respond(self, suc: &str) -> HttpResult {
+        Ok(self.into_response(suc))
     }
 }

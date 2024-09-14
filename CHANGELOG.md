@@ -1,6 +1,11 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.0 (2024-09-14)
+* feat(struct-responder): renamed method "send_response" to "into_response"
+* feat(struct-responder): renamed method "send_struct_result" to "respond"
+* feat(struct-response): now requires success message
+
 ## 0.19.4 (2024-09-08)
 * feat(rabbitmq): return &mut Self for 'nack_on_failure' & 'requeue_on_failure'
 * feat(rabbitmq): added 'execute_handler_asynchronously()' to alter state
