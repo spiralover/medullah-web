@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.3 (2024-09-16)
+* feat(string): uc_first and uc_words helper functions
+
 ## 0.20.2 (2024-09-16)
 * bump(deadpool-redis): to version 0.17.0
 
