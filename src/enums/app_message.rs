@@ -7,6 +7,7 @@ use ntex::http::StatusCode;
 use ntex::web::{HttpRequest, WebResponseError};
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
+use std::ops::Deref;
 
 pub enum AppMessage {
     UnAuthorized,
@@ -259,11 +260,17 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
         }
         AppMessage::BlockingNtexErrorInnerBoxed(message) => {
             log::error!("Blocking Error: {}", message);
-            Responder::internal_server_error()
+            match message {
+                BlockingError::Error(error) => send_response(error),
+                BlockingError::Canceled => Responder::internal_server_error(),
+            }
         }
         AppMessage::BlockingNtexErrorOuterBoxed(message) => {
             log::error!("Blocking Error: {}", message);
-            Responder::internal_server_error()
+            match message.deref() {
+                BlockingError::Error(error) => send_response(error),
+                BlockingError::Canceled => Responder::internal_server_error(),
+            }
         }
         AppMessage::BlockingNtexIoError(message) => {
             log::error!("Blocking IO Error: {}", message);
