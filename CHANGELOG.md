@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.1 (2024-09-16)
+* feat(app-message): handle blocking error hand return proper error message
+
 ## 0.20.0 (2024-09-14)
 * feat(struct-responder): renamed method "send_response" to "into_response"
 * feat(struct-responder): renamed method "send_struct_result" to "respond"
