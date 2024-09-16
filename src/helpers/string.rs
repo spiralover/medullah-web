@@ -3,6 +3,21 @@ use uuid::Uuid;
 pub struct Str;
 
 impl Str {
+    pub fn uc_first(s: &str) -> String {
+        let mut chars = s.chars();
+        match chars.next() {
+            None => String::new(),
+            Some(first_char) => first_char.to_uppercase().collect::<String>() + chars.as_str(),
+        }
+    }
+
+    pub fn uc_words(s: &str) -> String {
+        s.split_whitespace()
+            .map(|word| Self::uc_first(word))
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+
     #[cfg(feature = "feat-regex")]
     pub fn is_username_valid(name: String) -> Box<fancy_regex::Result<bool>> {
         let regex = fancy_regex::Regex::new(r"^[a-z][a-z\d\.]{0,37}$").unwrap();
@@ -18,6 +33,26 @@ impl Str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_uc_first() {
+        assert_eq!(Str::uc_first("hello"), "Hello");
+        assert_eq!(Str::uc_first("rust"), "Rust");
+        assert_eq!(Str::uc_first(""), ""); // Test empty string
+        assert_eq!(Str::uc_first("a"), "A"); // Test single character
+        assert_eq!(Str::uc_first("hELLO"), "HELLO"); // Test capitalizing first char but not modifying others
+        assert_eq!(Str::uc_first("1world"), "1world"); // Test first character is non-alphabetic
+    }
+
+    #[test]
+    fn test_uc_words() {
+        assert_eq!(Str::uc_words("hello world"), "Hello World");
+        assert_eq!(Str::uc_words("rust programming language"), "Rust Programming Language");
+        assert_eq!(Str::uc_words(""), ""); // Test empty string
+        assert_eq!(Str::uc_words("a b c"), "A B C"); // Test single characters
+        assert_eq!(Str::uc_words("multiple    spaces"), "Multiple Spaces"); // Test multiple spaces
+        assert_eq!(Str::uc_words("123 hello"), "123 Hello"); // Test with non-alphabetic characters
+    }
 
     #[cfg(feature = "feat-regex")]
     #[test]
