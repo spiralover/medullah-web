@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.2 (2024-09-16)
+* bump(deadpool-redis): to version 0.17.0
+
 ## 0.20.1 (2024-09-16)
 * feat(app-message): handle blocking error hand return proper error message
 

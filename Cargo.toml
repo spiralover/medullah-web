@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.20.1"
+version = "0.20.2"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Base on Ntex"
@@ -36,7 +36,7 @@ deadpool-lapin = { version = "0.12.1", features = ["rt_tokio_1"], optional = tru
 redis = { version = "0.26.0", default-features = false, optional = true, features = [
     "tokio-native-tls-comp", "connection-manager"
 ] }
-deadpool-redis = { version = "0.16.0", features = ["rt_tokio_1"], optional = true }
+deadpool-redis = { version = "0.17.0", features = ["rt_tokio_1"], optional = true }
 
 toml = { version = "0.8.19" }
 uuid = { version = "1.10.0", features = ["v4", "serde"] }
