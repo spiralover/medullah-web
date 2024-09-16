@@ -13,7 +13,7 @@ impl Str {
 
     pub fn uc_words(s: &str) -> String {
         s.split_whitespace()
-            .map(|word| Self::uc_first(word))
+            .map(Self::uc_first)
             .collect::<Vec<_>>()
             .join(" ")
     }
