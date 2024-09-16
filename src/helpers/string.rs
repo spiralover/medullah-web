@@ -47,7 +47,10 @@ mod tests {
     #[test]
     fn test_uc_words() {
         assert_eq!(Str::uc_words("hello world"), "Hello World");
-        assert_eq!(Str::uc_words("rust programming language"), "Rust Programming Language");
+        assert_eq!(
+            Str::uc_words("rust programming language"),
+            "Rust Programming Language"
+        );
         assert_eq!(Str::uc_words(""), ""); // Test empty string
         assert_eq!(Str::uc_words("a b c"), "A B C"); // Test single characters
         assert_eq!(Str::uc_words("multiple    spaces"), "Multiple Spaces"); // Test multiple spaces
