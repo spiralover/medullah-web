@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.4 (2024-09-16)
+* feat(app-message): improve database conflict error logging
+
 ## 0.20.3 (2024-09-16)
 * feat(string): uc_first and uc_words helper functions
 
