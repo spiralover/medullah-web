@@ -133,6 +133,13 @@ fn get_message(status: &AppMessage) -> String {
             diesel::result::Error::NotFound => String::from("Such entity not found"),
             diesel::result::Error::DatabaseError(err, info) => match err {
                 diesel::result::DatabaseErrorKind::UniqueViolation => {
+                    error!(
+                        "conflict error({:?}): {} [::] {:?}",
+                        err,
+                        info.message(),
+                        info.details()
+                    );
+
                     "conflicted with existing entity".to_string()
                 }
                 _ => {
