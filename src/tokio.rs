@@ -3,6 +3,7 @@ use crate::results::AppResult;
 use log::error;
 use std::future::Future;
 use std::time::Duration;
+use tokio::task::{spawn_blocking, JoinHandle};
 use tokio::{spawn, time};
 
 pub struct Tokio;
@@ -89,5 +90,13 @@ impl Tokio {
                 }
             }
         });
+    }
+
+    pub fn blk<F, R>(f: F) -> JoinHandle<R>
+    where
+        F: FnOnce() -> R + Send + 'static,
+        R: Send + 'static,
+    {
+        spawn_blocking(f)
     }
 }

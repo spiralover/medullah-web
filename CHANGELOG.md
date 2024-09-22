@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.5 (2024-09-18)
+* feat(tokio): added 'blk()' as an alias of 'spawn_blocking()'
+
 ## 0.20.4 (2024-09-18)
 * feat(app-message): improve database conflict error logging
 

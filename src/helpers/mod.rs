@@ -19,3 +19,6 @@ pub mod reqwest;
 pub mod responder;
 pub mod string;
 pub mod time;
+mod tokio;
+
+pub use tokio::blk;
