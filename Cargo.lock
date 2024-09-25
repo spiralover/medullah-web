@@ -859,9 +859,9 @@ dependencies = [
 
 [[package]]
 name = "deadpool-redis"
-version = "0.17.0"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cde57b1dcd182bfa749c847c2e3a5e8602a0c448d7aecd9e7b983d28a0eae2b"
+checksum = "bfae6799b68a735270e4344ee3e834365f707c72da09c9a8bb89b45cc3351395"
 dependencies = [
  "deadpool",
  "redis",
@@ -953,9 +953,9 @@ checksum = "339544cc9e2c4dc3fc7149fd630c5f22263a4fdf18a98afd0075784968b5cf00"
 
 [[package]]
 name = "diesel"
-version = "2.2.3"
+version = "2.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65e13bab2796f412722112327f3e575601a3e9cdcbe426f0d30dbf43f3f5dc71"
+checksum = "158fe8e2e68695bd615d7e4f3227c0727b151330d3e253b525086c348d055d5e"
 dependencies = [
  "bitflags 2.5.0",
  "byteorder",
@@ -1903,7 +1903,7 @@ dependencies = [
 
 [[package]]
 name = "medullah-web"
-version = "0.20.5"
+version = "0.20.6"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2042,12 +2042,13 @@ dependencies = [
 
 [[package]]
 name = "ntex"
-version = "2.3.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67d650f702d20dc4e34a3339a71d7f41a7e780c84788888649df72d0382c6f9a"
+checksum = "93daf570cdedb9a01a3020ccd367b2ff37402b30c979aff2da23e3e84d2b6cfc"
 dependencies = [
  "base64 0.22.1",
  "bitflags 2.5.0",
+ "bytes",
  "encoding_rs",
  "httparse",
  "httpdate",
@@ -2168,9 +2169,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-io"
-version = "2.2.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "261f9cb7b47e806d7c789a1ea1537779dcd569abd534db3986369908aecefd10"
+checksum = "ec68a2766bcc47426631e3461c8d7994f6eec194445f394ab61f83d92756ad12"
 dependencies = [
  "bitflags 2.5.0",
  "log",
@@ -2209,9 +2210,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-net"
-version = "2.0.0"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44110aa49eddc9fdee2e673698fb6cc61bea3c1df1c8239bab86d465cafd2097"
+checksum = "02f3d87616c8fc39c41d432402d98a118861e8e144df30037fe1400cdd29ac35"
 dependencies = [
  "log",
  "ntex-bytes",
@@ -2239,9 +2240,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-rt"
-version = "0.4.13"
+version = "0.4.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "471b8ce4b4edfd8eddcb4143ebd91022e949b96627e14436bf0beec66ecd6394"
+checksum = "1d24cfad65aab77e56ee1f1a218ca248c141a22f6f65aba8ed56037ec3c6f3a4"
 dependencies = [
  "async-channel",
  "futures-core",
@@ -2252,9 +2253,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-server"
-version = "2.3.0"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "896c71a48e4a1379ac4c3c5aa16c4aa31f67507c6eb127983c71337de84aba50"
+checksum = "1b9c3f4b038d1bcc3aff4e457a4b8258828b8e119c9ef4fd1e42c8df5e732cee"
 dependencies = [
  "async-broadcast",
  "async-channel",
@@ -2282,9 +2283,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-tls"
-version = "2.0.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d996277357fbbf5bd73e1ec9e93a97e3192ee748f496f8dde88a578146647d4"
+checksum = "6e08948d9a1d27d11c474c374e6b8c0eee7e2dd4a288967d5dcce13d7adbd80e"
 dependencies = [
  "log",
  "ntex-bytes",
@@ -2296,9 +2297,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-tokio"
-version = "0.5.0"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5715ef31e5a599ab467846acd948ea597193fc08343338fdecbd1e5fe181af3d"
+checksum = "623868ff022f737d7b94212dc85e471f895e58f6c59c72552cdc9a22c5f167ed"
 dependencies = [
  "log",
  "ntex-bytes",
@@ -2309,9 +2310,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-util"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8e59fcf971ac9cdf8eb680017018a2e57d30f3c576166b468600a924f09608e"
+checksum = "cb89227b7c7b6850e17be71b1abe711e2b6e96d8e386b76ea259c155c4ab65d4"
 dependencies = [
  "bitflags 2.5.0",
  "futures-core",
@@ -2904,9 +2905,9 @@ dependencies = [
 
 [[package]]
 name = "redis"
-version = "0.26.0"
+version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cc5b667390cb038bc65fc4b18c06e2550469f7e06a02d886f1a018a11f63563"
+checksum = "a7e86f5670bd8b028edfb240f0616cad620705b31ec389d55e4f3da2c38dcd48"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -3277,18 +3278,18 @@ checksum = "92d43fe69e652f3df9bdc2b85b2854a0825b86e4fb76bc44d945137d053639ca"
 
 [[package]]
 name = "serde"
-version = "1.0.209"
+version = "1.0.210"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99fce0ffe7310761ca6bf9faf5115afbc19688edd00171d81b1bb1b116c63e09"
+checksum = "c8e3592472072e6e22e0a54d5904d9febf8508f65fb8552499a1abc7d1078c3a"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.209"
+version = "1.0.210"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5831b979fd7b5439637af1752d535ff49f4860c0f341d1baeb6faf0f4242170"
+checksum = "243902eda00fad750862fc144cea25caca5e20d615af0a81bee94ca738f1df1f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3297,9 +3298,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.127"
+version = "1.0.128"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8043c06d9f82bd7271361ed64f415fe5e12a77fdb52e573e7f06a516dea329ad"
+checksum = "6ff5456707a1de34e7e37f2a6fd3d3f808c318259cbd01ab6377795054b483d8"
 dependencies = [
  "itoa",
  "memchr",

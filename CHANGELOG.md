@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.6 (2024-09-25)
+* bump(crates): to their respective latest versions
+
 ## 0.20.5 (2024-09-18)
 * feat(tokio): added 'blk()' as an alias of 'spawn_blocking()'
 
