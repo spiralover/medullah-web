@@ -291,6 +291,11 @@ impl RabbitMQ {
         Ok(connection.close(reply_code, reply_text).await?)
     }
 
+    /// Acquire connection pool in use by this instance
+    pub fn connection_pool(&self) -> deadpool_lapin::Pool {
+        self.conn_pool.clone()
+    }
+
     async fn ensure_channel_is_usable(&mut self, is_publish_channel: bool) -> AppResult<()> {
         loop {
             let channel = match is_publish_channel {
