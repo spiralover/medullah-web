@@ -1,7 +1,7 @@
 # Medullah Changelog
 medullah-web changelog file 
 
-## 0.20.7 (2024-09-25)
+## 0.20.7 (2024-10-03)
 * feat(rabbitmq): "close" method to close connection
 * feat(rabbitmq): acquire connection pool in use by this instance
 
