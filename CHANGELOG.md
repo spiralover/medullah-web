@@ -1,6 +1,9 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.20.7 (2024-09-25)
+* feat(rabbitmq): "close" method to close connection
+
 ## 0.20.6 (2024-09-25)
 * bump(crates): to their respective latest versions
 

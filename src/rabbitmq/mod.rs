@@ -1,6 +1,6 @@
 use futures_util::StreamExt;
-use lapin::types::FieldTable;
-use lapin::{BasicProperties, Channel, ChannelState};
+use lapin::types::{FieldTable, ReplyCode};
+use lapin::{BasicProperties, Channel, ChannelState, ConnectionState};
 use log::{error, info, warn};
 use std::future::Future;
 use std::time::Duration;
@@ -13,7 +13,7 @@ pub use {
     lapin::{options::*, ExchangeKind},
 };
 
-use crate::prelude::{AppResult, OnceLockHelper};
+use crate::prelude::{AppMessage, AppResult, OnceLockHelper};
 pub use crate::rabbitmq::message::Message;
 use crate::MEDULLAH;
 
@@ -25,6 +25,8 @@ pub struct RabbitMQ {
     conn_pool: deadpool_lapin::Pool,
     publish_channel: Channel,
     consume_channel: Channel,
+    /// helps determine if the connection can be reconnected
+    can_reconnect: bool,
     /// automatically nack a message if the handler returns an error.
     nack_on_failure: bool,
     /// whether to requeue a message if the handler returns an error.
@@ -79,6 +81,7 @@ impl RabbitMQ {
             conn_pool: pool,
             publish_channel,
             consume_channel,
+            can_reconnect: true,
             nack_on_failure: opt.nack_on_failure,
             requeue_on_failure: opt.requeue_on_failure,
             execute_handler_asynchronously: opt.execute_handler_asynchronously,
@@ -277,6 +280,17 @@ impl RabbitMQ {
         Ok(())
     }
 
+    /// Request a connection close.
+    ///
+    /// This method is only successful if the connection is in the connected state,
+    /// otherwise an [`InvalidConnectionState`] error is returned.
+    ///
+    pub async fn close(&mut self, reply_code: ReplyCode, reply_text: &str) -> AppResult<()> {
+        let connection = self.conn_pool.get().await?;
+        self.can_reconnect = false;
+        Ok(connection.close(reply_code, reply_text).await?)
+    }
+
     async fn ensure_channel_is_usable(&mut self, is_publish_channel: bool) -> AppResult<()> {
         loop {
             let channel = match is_publish_channel {
@@ -305,6 +319,12 @@ impl RabbitMQ {
     }
 
     async fn recreate_channel(&mut self, is_publish_channel: bool) -> AppResult<()> {
+        if !self.can_reconnect {
+            return Err(AppMessage::RabbitmqError(
+                lapin::Error::InvalidConnectionState(ConnectionState::Closed),
+            ));
+        }
+
         let connection = self.conn_pool.get().await?;
 
         sleep(Self::RETRY_DELAY).await;
