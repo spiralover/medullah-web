@@ -1,17 +1,17 @@
 use futures_util::StreamExt;
+use lapin::types::FieldTable;
 use lapin::{BasicProperties, Channel, ChannelState, ConnectionState};
 use log::{error, info, warn};
 use std::future::Future;
 use std::time::Duration;
-use lapin::types::FieldTable;
 use tokio::runtime::Handle;
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
 
 pub use {
     lapin::message::{Delivery, DeliveryResult},
-    lapin::{options::*, ExchangeKind},
     lapin::types::ReplyCode,
+    lapin::{options::*, ExchangeKind},
 };
 
 use crate::prelude::{AppMessage, AppResult, OnceLockHelper};
