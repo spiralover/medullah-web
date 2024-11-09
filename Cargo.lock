@@ -2048,7 +2048,7 @@ dependencies = [
 
 [[package]]
 name = "medullah-web"
-version = "0.20.9"
+version = "0.21.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
