@@ -1,5 +1,5 @@
-mod enum_diesel;
 mod enum_common;
+mod enum_diesel;
 mod enum_diesel_generate;
 
 #[allow(unused_imports)]
