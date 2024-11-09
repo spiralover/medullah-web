@@ -17,7 +17,7 @@ macro_rules! generate_enum {
         medullah_web::impl_enum_common_traits!($enum_name);
 
         // Conditional trait implementation for Diesel if the 'database' feature is enabled
-        #[cfg(feature = "database")]
+        #[cfg(feature = "feat-database")]
         medullah_web::impl_enum_diesel_traits!($enum_name);
     };
 }
