@@ -21,6 +21,7 @@ pub mod http;
 pub mod rabbitmq;
 pub mod services;
 pub mod tokio;
+pub mod macros;
 
 pub static MEDULLAH: OnceLock<MedullahState> = OnceLock::new();
 
