@@ -17,11 +17,11 @@ pub mod helpers;
 pub mod app_setup;
 pub mod env_logger;
 pub mod http;
+pub mod macros;
 #[cfg(feature = "feat-rabbitmq")]
 pub mod rabbitmq;
 pub mod services;
 pub mod tokio;
-pub mod macros;
 
 pub static MEDULLAH: OnceLock<MedullahState> = OnceLock::new();
 
