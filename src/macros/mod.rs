@@ -1,5 +1,5 @@
-mod enum_diesel;
 mod enum_common;
+mod enum_diesel;
 
 #[allow(unused_imports)]
 pub use enum_common::*;

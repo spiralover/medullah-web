@@ -38,8 +38,12 @@ macro_rules! impl_enum_common_traits {
                     {
                         use std::str::FromStr;
 
-                        $variant_name::from_str(value)
-                            .map_err(|_| serde::de::Error::invalid_value(serde::de::Unexpected::Str(value), &self))
+                        $variant_name::from_str(value).map_err(|_| {
+                            serde::de::Error::invalid_value(
+                                serde::de::Unexpected::Str(value),
+                                &self,
+                            )
+                        })
                     }
                 }
 
