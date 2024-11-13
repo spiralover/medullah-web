@@ -4,7 +4,7 @@ macro_rules! generate_enum {
     ($enum_name:ident { $($variant_name:ident),* }) => {
         // Conditional derive attributes for the database feature
         #[derive(strum_macros::EnumString, strum_macros::Display, Clone, Eq, PartialEq)]
-        #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+        #[strum(serialize_all = "snake_case")]
         pub enum $enum_name {
             $(
                 $variant_name,  // Add each variant to the enum
