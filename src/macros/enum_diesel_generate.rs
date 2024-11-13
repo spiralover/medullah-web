@@ -5,7 +5,7 @@ macro_rules! generate_diesel_enum {
         // Conditional derive attributes for the database feature
         #[derive(diesel::AsExpression, diesel::FromSqlRow, strum_macros::EnumString, strum_macros::Display, Clone, Eq, PartialEq)]
         #[diesel(sql_type = diesel::sql_types::Text)]
-        #[strum(serialize_all = "snake_case")]
+        #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
         pub enum $enum_name {
             $(
                 $variant_name,  // Add each variant to the enum
@@ -28,7 +28,7 @@ macro_rules! generate_diesel_enum_with_optional_features {
         #[cfg_attr(feature = $feature, derive(diesel::AsExpression, diesel::FromSqlRow))]
         #[cfg_attr(feature = $feature, diesel(sql_type = diesel::sql_types::Text))]
         #[derive(strum_macros::EnumString, strum_macros::Display, Clone, Eq, PartialEq)]
-        #[strum(serialize_all = "snake_case")]
+        #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
         pub enum $enum_name {
             $(
                 $variant_name,  // Add each variant to the enum
