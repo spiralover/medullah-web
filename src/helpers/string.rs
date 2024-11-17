@@ -1,4 +1,5 @@
 use uuid::Uuid;
+use crate::helpers::Regex;
 
 pub struct Str;
 
@@ -20,8 +21,7 @@ impl Str {
 
     #[cfg(feature = "feat-regex")]
     pub fn is_username_valid(name: String) -> Box<fancy_regex::Result<bool>> {
-        let regex = fancy_regex::Regex::new(r"^[a-z][a-z\d\.]{0,37}$").unwrap();
-        Box::new(regex.is_match(name.as_str()))
+        Regex::validate_username(&name)
     }
 
     /// Generate uuid v4 based id with dashes(-) removed

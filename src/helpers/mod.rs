@@ -2,7 +2,7 @@
 pub mod base64;
 pub mod form;
 pub mod fs;
-#[cfg(feature = "hmac")]
+#[cfg(feature = "feat-hmac")]
 pub mod hmac;
 pub mod http;
 pub mod json;
@@ -21,4 +21,10 @@ pub mod string;
 pub mod time;
 mod tokio;
 
+#[cfg(feature = "feat-regex")]
+mod regex;
+
 pub use tokio::blk;
+
+#[cfg(feature = "feat-regex")]
+pub use regex::*;

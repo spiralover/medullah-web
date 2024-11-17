@@ -52,8 +52,7 @@ impl Jwt {
     /// # Examples
     ///
     /// ```
-    /// use medullah_web::helpers::jwt::Jwt;
-    /// use medullah_web::helpers::jwt::JwtTokenClaims;
+    /// use medullah_web::helpers::jwt::{Jwt, JwtTokenClaims};
     ///
     /// let private_key = "private_key".to_string();
     /// let public_key = "public_key".to_string();
@@ -78,8 +77,7 @@ impl Jwt {
     /// # Examples
     ///
     /// ```
-    /// use medullah_web::helpers::jwt::Jwt;
-    /// use medullah_web::helpers::jwt::JwtTokenClaims;
+    /// use medullah_web::helpers::jwt::{Jwt, JwtTokenClaims};
     ///
     /// let private_key = "private_key".to_string();
     /// let public_key = "public_key".to_string();
@@ -91,7 +89,7 @@ impl Jwt {
     ///     exp: 0,
     ///     iss: "".to_string(),
     /// };
-    /// let token = jwt.generate(claims)?;
+    /// let token = jwt.generate(claims).unwrap();
     ///
     /// println!("JWT Token: {}", token.access_token);
     /// ```
@@ -127,7 +125,7 @@ impl Jwt {
     /// let jwt = Jwt::new(public_key, private_key, 60);
     ///
     /// let token = "my-jwt-token";
-    /// let claims = jwt.decode::<JwtTokenClaims>(&token)?;
+    /// let claims = jwt.decode::<JwtTokenClaims>(&token).unwrap();
     ///
     /// println!("Token Payload: {}", claims.claims.sub);
     /// ```
