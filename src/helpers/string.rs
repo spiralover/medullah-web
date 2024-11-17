@@ -1,5 +1,5 @@
-use uuid::Uuid;
 use crate::helpers::Regex;
+use uuid::Uuid;
 
 pub struct Str;
 

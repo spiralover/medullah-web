@@ -233,10 +233,7 @@ mod tests {
 
     #[test]
     fn test_alpha_numeric_dot_underscore_invalid() {
-        let result = Regex::validate(
-            "user..name_123",
-            RegexType::AlphaNumericDotUnderscore,
-        );
+        let result = Regex::validate("user..name_123", RegexType::AlphaNumericDotUnderscore);
         assert!(result.is_ok() && !result.unwrap());
 
         let result = Regex::validate("user_name_.", RegexType::AlphaNumericDotUnderscore);
