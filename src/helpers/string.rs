@@ -21,7 +21,7 @@ impl Str {
     }
 
     #[cfg(feature = "feat-regex")]
-    pub fn is_username_valid(name: String) -> fancy_regex::Result<bool> {
+    pub fn is_username_valid(name: String) -> Box<fancy_regex::Result<bool>> {
         Regex::validate_username(Cow::from(&name))
     }
 

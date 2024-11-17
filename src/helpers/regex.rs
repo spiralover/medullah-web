@@ -35,7 +35,7 @@ impl Regex {
     /// - `rt`: The `RegexType` enum variant that defines which regex pattern to use for validation.
     ///
     /// # Returns
-    /// A `Result<bool, fancy_regex::Error>`, where:
+    /// A `Box<Result<bool, fancy_regex::Error>>`, where:
     /// - `Ok(true)` means the string matches the regex pattern (valid username).
     /// - `Ok(false)` means the string does not match the regex pattern (invalid username).
     /// - `Err(fancy_regex::Error)` means there was an error compiling or executing the regex.
@@ -53,10 +53,14 @@ impl Regex {
     /// let result = Regex::validate(invalid_username, RegexType::AlphaNumeric);
     /// assert_eq!(result.is_ok() && result.unwrap(), false);
     /// ```
-    pub fn validate(val: &str, rt: RegexType) -> Result<bool, fancy_regex::Error> {
+    pub fn validate(val: &str, rt: RegexType) -> Box<Result<bool, fancy_regex::Error>> {
         let regex = Regex::acquire_regex(rt);
-        let regex = fancy_regex::Regex::new(regex)?;
-        regex.is_match(val)
+        let regex = match fancy_regex::Regex::new(regex) {
+            Ok(regex) => regex,
+            Err(err) => return Box::new(Err(err)),
+        };
+
+        Box::new(regex.is_match(val))
     }
 
     /// Validates a username using a specified regex type. This method accepts a `Cow<str>` so it can handle both
@@ -67,7 +71,7 @@ impl Regex {
     /// - `rt`: The `RegexType` enum variant that defines which regex pattern to use for validation.
     ///
     /// # Returns
-    /// A `Result<bool, fancy_regex::Error>` indicating whether the username is valid according to the specified regex.
+    /// A `Box<Result<bool, fancy_regex::Error>>` indicating whether the username is valid according to the specified regex.
     ///
     /// # Examples
     ///
@@ -75,14 +79,14 @@ impl Regex {
     /// use medullah_web::helpers::Regex;
     ///
     /// let valid_username = "user.first";
-    /// let result = Regex::validate_username(valid_username.into());
+    /// let result = Regex::validate_username(valid_username);
     /// assert_eq!(result.is_ok() && result.unwrap(), true);
     ///
     /// let invalid_username = "user#123";
-    /// let result = Regex::validate_username(invalid_username.into());
+    /// let result = Regex::validate_username(invalid_username);
     /// assert_eq!(result.is_ok() && result.unwrap(), false);
     /// ```
-    pub fn validate_username(val: Cow<str>) -> Result<bool, fancy_regex::Error> {
+    pub fn validate_username(val: Cow<str>) -> Box<Result<bool, fancy_regex::Error>> {
         Self::validate(&val, RegexType::AlphaNumericDot)
     }
 
@@ -100,7 +104,9 @@ impl Regex {
             RegexType::AlphaNumericDot => r"^[a-z](?!.*\.\.)(?!.*\.$)[a-z\d\.]{0,37}$", // Letters, digits, and dots, no consecutive or trailing dots.
             RegexType::AlphaNumericUnderscore => r"^[a-z](?!.*\_\_)(?!.*\_$)[a-z\d\_]{0,37}$", // Letters, digits, and underscores, no consecutive or trailing underscores.
             RegexType::AlphaNumericDotUnderscore => r"^[a-z](?!.*\.\.)(?!.*\.$)[a-z\d\._]{0,37}$", // Letters, digits, dots, and underscores.
-            RegexType::AlphaNumericDashDot => r"^[a-z](?!.*\-\-)(?!.*\.\.)(?!.*\-$)(?!.*\.$)[a-z\d\-\.\_]{0,37}$", // Letters, digits, dashes, dots, and underscores.
+            RegexType::AlphaNumericDashDot => {
+                r"^[a-z](?!.*\-\-)(?!.*\.\.)(?!.*\-$)(?!.*\.$)[a-z\d\-\.\_]{0,37}$"
+            } // Letters, digits, dashes, dots, and underscores.
             RegexType::Custom(val) => val,
         }
     }
@@ -113,129 +119,132 @@ mod tests {
     // Test for AlphaNumeric regex type
     #[test]
     fn test_alpha_numeric_valid() {
-        let result = Regex::validate("username".into(), RegexType::AlphaNumeric);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("username", RegexType::AlphaNumeric);
+        assert!(result.is_ok() && result.unwrap());
     }
 
     #[test]
     fn test_alpha_numeric_invalid() {
-        let result = Regex::validate("user123!".into(), RegexType::AlphaNumeric);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user123!", RegexType::AlphaNumeric);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("user123_".into(), RegexType::AlphaNumeric);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user123_", RegexType::AlphaNumeric);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("123user".into(), RegexType::AlphaNumeric);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("123user", RegexType::AlphaNumeric);
+        assert!(result.is_ok() && !result.unwrap());
     }
 
     // Test for AlphaNumericDash regex type
     #[test]
     fn test_alpha_numeric_dash_valid() {
-        let result = Regex::validate("username-123".into(), RegexType::AlphaNumericDash);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("username-123", RegexType::AlphaNumericDash);
+        assert!(result.is_ok() && result.unwrap());
 
-        let result = Regex::validate("user-123".into(), RegexType::AlphaNumericDash);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user-123", RegexType::AlphaNumericDash);
+        assert!(result.is_ok() && result.unwrap());
     }
 
     #[test]
     fn test_alpha_numeric_dash_invalid() {
-        let result = Regex::validate("user--123".into(), RegexType::AlphaNumericDash);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user--123", RegexType::AlphaNumericDash);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("user-".into(), RegexType::AlphaNumericDash);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user-", RegexType::AlphaNumericDash);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("-user123".into(), RegexType::AlphaNumericDash);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("-user123", RegexType::AlphaNumericDash);
+        assert!(result.is_ok() && !result.unwrap());
     }
 
     // Test for AlphaNumericDot regex type
     #[test]
     fn test_alpha_numeric_dot_valid() {
-        let result = Regex::validate("user.name".into(), RegexType::AlphaNumericDot);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user.name", RegexType::AlphaNumericDot);
+        assert!(result.is_ok() && result.unwrap());
 
-        let result = Regex::validate("user123.name".into(), RegexType::AlphaNumericDot);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user123.name", RegexType::AlphaNumericDot);
+        assert!(result.is_ok() && result.unwrap());
     }
 
     #[test]
     fn test_alpha_numeric_dot_invalid() {
-        let result = Regex::validate("user..name".into(), RegexType::AlphaNumericDot);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user..name", RegexType::AlphaNumericDot);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("user.name.".into(), RegexType::AlphaNumericDot);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user.name.", RegexType::AlphaNumericDot);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate(".username".into(), RegexType::AlphaNumericDot);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate(".username", RegexType::AlphaNumericDot);
+        assert!(result.is_ok() && !result.unwrap());
     }
 
     // Test for AlphaNumericDashDot regex type
     #[test]
     fn test_alpha_numeric_dash_dot_valid() {
-        let result = Regex::validate("user-name.123".into(), RegexType::AlphaNumericDashDot);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user-name.123", RegexType::AlphaNumericDashDot);
+        assert!(result.is_ok() && result.unwrap());
 
-        let result = Regex::validate("user-name_123".into(), RegexType::AlphaNumericDashDot);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user-name_123", RegexType::AlphaNumericDashDot);
+        assert!(result.is_ok() && result.unwrap());
     }
 
     #[test]
     fn test_alpha_numeric_dash_dot_invalid() {
-        let result = Regex::validate("user..name".into(), RegexType::AlphaNumericDashDot);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user..name", RegexType::AlphaNumericDashDot);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("user-name.".into(), RegexType::AlphaNumericDashDot);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user-name.", RegexType::AlphaNumericDashDot);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("user-.name".into(), RegexType::AlphaNumericDashDot);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user-.name", RegexType::AlphaNumericDashDot);
+        assert!(result.is_ok() && result.unwrap());
     }
 
     // Test for AlphaNumericUnderscore regex type
     #[test]
     fn test_alpha_numeric_underscore_valid() {
-        let result = Regex::validate("user_name".into(), RegexType::AlphaNumericUnderscore);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user_name", RegexType::AlphaNumericUnderscore);
+        assert!(result.is_ok() && result.unwrap());
 
-        let result = Regex::validate("user123_name".into(), RegexType::AlphaNumericUnderscore);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user123_name", RegexType::AlphaNumericUnderscore);
+        assert!(result.is_ok() && result.unwrap());
     }
 
     #[test]
     fn test_alpha_numeric_underscore_invalid() {
-        let result = Regex::validate("user__name".into(), RegexType::AlphaNumericUnderscore);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user__name", RegexType::AlphaNumericUnderscore);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("user_name_".into(), RegexType::AlphaNumericUnderscore);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user_name_", RegexType::AlphaNumericUnderscore);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("_username".into(), RegexType::AlphaNumericUnderscore);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("_username", RegexType::AlphaNumericUnderscore);
+        assert!(result.is_ok() && !result.unwrap());
     }
 
     // Test for AlphaNumericDotUnderscore regex type
     #[test]
     fn test_alpha_numeric_dot_underscore_valid() {
-        let result = Regex::validate("user.name_123".into(), RegexType::AlphaNumericDotUnderscore);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user.name_123", RegexType::AlphaNumericDotUnderscore);
+        assert!(result.is_ok() && result.unwrap());
 
-        let result = Regex::validate("user_123.name".into(), RegexType::AlphaNumericDotUnderscore);
-        assert!(result.is_ok() && result.unwrap() == true);
+        let result = Regex::validate("user_123.name", RegexType::AlphaNumericDotUnderscore);
+        assert!(result.is_ok() && result.unwrap());
     }
 
     #[test]
     fn test_alpha_numeric_dot_underscore_invalid() {
-        let result = Regex::validate("user..name_123".into(), RegexType::AlphaNumericDotUnderscore);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate(
+            "user..name_123",
+            RegexType::AlphaNumericDotUnderscore,
+        );
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("user_name_.".into(), RegexType::AlphaNumericDotUnderscore);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("user_name_.", RegexType::AlphaNumericDotUnderscore);
+        assert!(result.is_ok() && !result.unwrap());
 
-        let result = Regex::validate("_user.name".into(), RegexType::AlphaNumericDotUnderscore);
-        assert!(result.is_ok() && result.unwrap() == false);
+        let result = Regex::validate("_user.name", RegexType::AlphaNumericDotUnderscore);
+        assert!(result.is_ok() && !result.unwrap());
     }
 }
