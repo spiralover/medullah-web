@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 /// A utility struct for working with regular expressions for username validation.
 pub struct Regex;
 
@@ -86,8 +84,8 @@ impl Regex {
     /// let result = Regex::validate_username(invalid_username);
     /// assert_eq!(result.is_ok() && result.unwrap(), false);
     /// ```
-    pub fn validate_username(val: Cow<str>) -> Box<Result<bool, fancy_regex::Error>> {
-        Self::validate(&val, RegexType::AlphaNumericDot)
+    pub fn validate_username(val: &str) -> Box<Result<bool, fancy_regex::Error>> {
+        Self::validate(val, RegexType::AlphaNumericDot)
     }
 
     /// Retrieves the regex pattern associated with the given `RegexType` variant.
