@@ -4,6 +4,9 @@ pub struct Regex;
 /// Enum representing different types of regex patterns for username validation.
 pub enum RegexType {
     /// Allows only lowercase letters (1 to 38 characters).
+    Alphabetic,
+
+    /// Allows only lowercase letters and numbers (1 to 38 characters), also must start with char.
     AlphaNumeric,
 
     /// Allows lowercase letters, digits, and hyphens (`-`), but no consecutive or trailing hyphens.
@@ -97,7 +100,8 @@ impl Regex {
     /// A string slice (`&'static str`) containing the regex pattern associated with the `RegexType` variant.
     fn acquire_regex(rt: RegexType) -> &'static str {
         match rt {
-            RegexType::AlphaNumeric => r"^[a-z]{1,38}$", // Only lowercase letters, 1-38 characters.
+            RegexType::Alphabetic => r"^[a-z]{1,38}$", // Only lowercase letters, 1-38 characters.
+            RegexType::AlphaNumeric => r"^[a-z][a-z0-9]{0,37}$", // Only lowercase letters, 1-38 characters.
             RegexType::AlphaNumericDash => r"^[a-z](?!.*\-\-)(?!.*\-$)[a-z\d\-]{0,37}$", // Letters, digits, and dashes, no consecutive or trailing dashes.
             RegexType::AlphaNumericDot => r"^[a-z](?!.*\.\.)(?!.*\.$)[a-z\d\.]{0,37}$", // Letters, digits, and dots, no consecutive or trailing dots.
             RegexType::AlphaNumericUnderscore => r"^[a-z](?!.*\_\_)(?!.*\_$)[a-z\d\_]{0,37}$", // Letters, digits, and underscores, no consecutive or trailing underscores.
@@ -114,10 +118,35 @@ impl Regex {
 mod tests {
     use super::*;
 
+    // Test for Alphabetic regex type
+    #[test]
+    fn test_alphabetic_valid() {
+        let result = Regex::validate("username", RegexType::Alphabetic);
+        assert!(result.is_ok() && result.unwrap());
+    }
+
+    #[test]
+    fn test_alphabetic_invalid() {
+        let result = Regex::validate("user1name", RegexType::Alphabetic);
+        assert!(result.is_ok() && !result.unwrap());
+
+        let result = Regex::validate("1username", RegexType::Alphabetic);
+        assert!(result.is_ok() && !result.unwrap());
+
+        let result = Regex::validate("username1", RegexType::Alphabetic);
+        assert!(result.is_ok() && !result.unwrap());
+    }
+
     // Test for AlphaNumeric regex type
     #[test]
     fn test_alpha_numeric_valid() {
         let result = Regex::validate("username", RegexType::AlphaNumeric);
+        assert!(result.is_ok() && result.unwrap());
+
+        let result = Regex::validate("user1name", RegexType::AlphaNumeric);
+        assert!(result.is_ok() && result.unwrap());
+
+        let result = Regex::validate("user1name2", RegexType::AlphaNumeric);
         assert!(result.is_ok() && result.unwrap());
     }
 
