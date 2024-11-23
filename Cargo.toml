@@ -44,6 +44,7 @@ serde = { version = "1.0.215", features = ["derive"] }
 tokio = { version = "1.41.1", features = ["rt-multi-thread", "macros", "time"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 dotenv = { version = "0.15.0" }
+env_logger = { version = "0.11.5" }
 serde_json = { version = "1.0.133", features = ["raw_value"] }
 futures-util = { version = "0.3.31" }
 base64 = { version = "0.22.1", optional = true }
