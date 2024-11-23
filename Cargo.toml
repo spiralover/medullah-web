@@ -1,6 +1,6 @@
 [package]
 name = "medullah-web"
-version = "0.22.1"
+version = "0.22.2"
 edition = "2021"
 license = "MIT"
 description = "Micro-Framework Based on Ntex"
@@ -38,15 +38,13 @@ redis = { version = "0.27.5", default-features = false, optional = true, feature
 ] }
 deadpool-redis = { version = "0.18.0", features = ["rt_tokio_1"], optional = true }
 
-toml = { version = "0.8.19" }
 uuid = { version = "1.11.0", features = ["v4", "serde"] }
 log = { version = "0.4.22" }
-serde = { version = "1.0.214", features = ["derive"] }
+serde = { version = "1.0.215", features = ["derive"] }
 tokio = { version = "1.41.1", features = ["rt-multi-thread", "macros", "time"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 dotenv = { version = "0.15.0" }
-env_logger = { version = "0.11.5" }
-serde_json = { version = "1.0.132", features = ["raw_value"] }
+serde_json = { version = "1.0.133", features = ["raw_value"] }
 futures-util = { version = "0.3.31" }
 base64 = { version = "0.22.1", optional = true }
 subtle = { version = "2.6.1", optional = true }
@@ -58,10 +56,9 @@ rust-argon2 = { version = "2.1.0", optional = true }
 tera = { version = "1.20.0", optional = true }
 ntex = { version = "2.8.0", features = ["tokio"] }
 ntex-files = { version = "2.0.0", optional = true }
-ntex-multipart = { version = "2.0.0", optional = true }
 r2d2 = { version = "0.8.10", optional = true }
 ntex-cors = { version = "2.0.0" }
 reqwest = { version = "0.12.9", features = ["json"], optional = true }
-diesel = { version = "2.2.4", features = ["postgres", "r2d2", "uuid", "chrono", "serde_json"], optional = true }
+diesel = { version = "2.2.5", features = ["postgres", "r2d2", "uuid", "chrono", "serde_json"], optional = true }
 jsonwebtoken = { version = "9.3.0", optional = true }
 validator = { version = "0.19.0", features = ["derive"], optional = true }
