@@ -37,6 +37,8 @@ pub enum AppMessage {
     ReqwestResponseError(ReqwestResponseError),
     #[cfg(feature = "feat-mailer")]
     MailerError(reqwest::Error),
+    #[cfg(feature = "feat-strum")]
+    StrumParseError(strum::ParseError),
     SerdeError(serde_json::Error),
     SerdeError500(serde_json::Error),
     #[cfg(feature = "feat-base64")]
@@ -159,6 +161,8 @@ fn get_message(status: &AppMessage) -> String {
         },
         #[cfg(feature = "feat-hmac")]
         AppMessage::HmacError(message) => message.to_string(),
+        #[cfg(feature = "feat-strum")]
+        AppMessage::StrumParseError(message) => message.to_string(),
         #[cfg(feature = "feat-validator")]
         AppMessage::FormValidationError(e) => String::from(e.to_string().as_str()),
         _ => String::from("Internal Server Error"),
@@ -255,6 +259,11 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
         #[cfg(feature = "feat-base64")]
         AppMessage::Base64Error(message) => {
             log::error!("Base64 Error: {:?}", message);
+            Responder::internal_server_error()
+        }
+        #[cfg(feature = "feat-strum")]
+        AppMessage::StrumParseError(message) => {
+            log::error!("Strum Parse Error: {:?}", message);
             Responder::internal_server_error()
         }
         AppMessage::SerdeError(message) => {
@@ -519,6 +528,13 @@ impl From<std::string::FromUtf8Error> for AppMessage {
 impl From<std::str::Utf8Error> for AppMessage {
     fn from(value: std::str::Utf8Error) -> Self {
         AppMessage::StrUtf8Error(value)
+    }
+}
+
+#[cfg(feature = "feat-strum")]
+impl From<strum::ParseError> for AppMessage {
+    fn from(value: strum::ParseError) -> Self {
+        AppMessage::StrumParseError(value)
     }
 }
 
