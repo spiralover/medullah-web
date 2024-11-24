@@ -2048,7 +2048,7 @@ dependencies = [
 
 [[package]]
 name = "medullah-web"
-version = "0.22.2"
+version = "0.22.3"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2075,6 +2075,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "strum",
  "subtle",
  "tera",
  "tokio",
@@ -3607,6 +3608,12 @@ name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
+
+[[package]]
+name = "strum"
+version = "0.26.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
 
 [[package]]
 name = "subtle"
