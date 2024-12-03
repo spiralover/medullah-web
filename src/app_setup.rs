@@ -38,11 +38,12 @@ pub struct MedullahSetup {
     pub private_key: String,
     pub public_key: String,
     pub auth_iss_public_key: String,
+    pub allowed_origins: Vec<String>,
 }
 
 pub async fn make_app_state(setup: MedullahSetup) -> MedullahState {
     let app = create_app_state(setup).await;
-    MEDULLAH.set(app.clone()).expect("failed to set up TSP");
+    MEDULLAH.set(app.clone()).expect("failed to set up medullah-web");
     app
 }
 
@@ -117,7 +118,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
             .parse()
             .unwrap(),
 
-        allowed_origins: get_allowed_origins(&env_prefix),
+        allowed_origins: setup.allowed_origins,
 
         #[cfg(feature = "feat-mailer")]
         mailer_config: make_mailer_config(&env_prefix),
@@ -140,12 +141,6 @@ pub fn get_server_host_config(env_prefix: &String) -> (String, u16, usize) {
         .parse()
         .unwrap();
     (host, port, workers)
-}
-
-pub fn get_allowed_origins(env_prefix: &String) -> Vec<String> {
-    let url_str = env::var(format!("{}_ALLOWED_ORIGINS", env_prefix)).unwrap();
-    let origins: Vec<&str> = url_str.split(',').collect();
-    origins.iter().map(|o| o.trim().to_string()).collect()
 }
 
 #[allow(unused_variables)]

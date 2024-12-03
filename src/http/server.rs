@@ -19,8 +19,16 @@ where
     pub private_key: String,
     pub public_key: String,
     pub auth_iss_public_key: String,
+
     #[cfg(feature = "feat-static")]
     pub static_config: StaticFileConfig,
+
+    /// whether the app bootstrap has started
+    pub has_started_bootstrap: bool,
+
+    /// list of comma-separated allowed origins
+    pub allowed_origins: Vec<String>,
+
     pub boot_thread: TB,
 }
 
@@ -28,6 +36,12 @@ where
 pub struct StaticFileConfig {
     pub path: String,
     pub dir: String,
+}
+
+pub fn init_bootstrap(service: &str) -> AppResult<()> {
+    load_environment_variables(service);
+    init_env_logger();
+    Ok(())
 }
 
 pub async fn start_ntex_server<Callback, Fut, TB>(
@@ -39,15 +53,16 @@ where
     Fut: Future<Output = AppResult<()>> + Send + 'static,
     TB: FnOnce() -> Vec<Route> + Send + Copy + 'static,
 {
-    load_environment_variables(&config.app);
-
-    init_env_logger();
+    if !config.has_started_bootstrap {
+        init_bootstrap(&config.app).expect("failed to init bootstrap: ");
+    }
 
     let app_state = make_app_state(MedullahSetup {
         public_key: config.public_key,
         private_key: config.private_key,
         env_prefix: config.env_prefix.clone(),
         auth_iss_public_key: config.auth_iss_public_key,
+        allowed_origins: config.allowed_origins,
     })
     .await;
 

@@ -1,3 +1,4 @@
+use log::info;
 use ntex::http::{header, StatusCode};
 use ntex::web::middleware::Logger;
 use ntex::web::ServiceConfig;
@@ -63,7 +64,7 @@ pub fn register_routes(config: &mut ServiceConfig, routes: Vec<Route>) {
 }
 
 pub fn setup_logger() -> Logger {
-    Logger::new("%{r}a \"%r7\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T")
+    Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T")
         .exclude("/favicon.ico")
         .exclude("/system/docker-health-check")
 }
@@ -72,6 +73,14 @@ pub fn setup_cors(origins: Vec<String>) -> Cors {
     let mut cors = Cors::new();
 
     for origin in origins {
+        info!("registering cors origin: {origin}...");
+
+        // convert "*" to ntex-compatible value
+        let origin = match origin == "*" {
+            false => origin,
+            true => "All".to_string(),
+        };
+
         cors = cors.allowed_origin(origin.as_str());
     }
 
