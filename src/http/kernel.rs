@@ -1,3 +1,4 @@
+use log::info;
 use ntex::http::{header, StatusCode};
 use ntex::web::middleware::Logger;
 use ntex::web::ServiceConfig;
@@ -72,6 +73,14 @@ pub fn setup_cors(origins: Vec<String>) -> Cors {
     let mut cors = Cors::new();
 
     for origin in origins {
+        info!("registering cors origin: {origin}...");
+
+        // convert "*" to ntex-compatible value
+        let origin = match origin == "*" {
+            false => origin,
+            true => "All".to_string(),
+        };
+
         cors = cors.allowed_origin(origin.as_str());
     }
 
