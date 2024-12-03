@@ -43,7 +43,9 @@ pub struct MedullahSetup {
 
 pub async fn make_app_state(setup: MedullahSetup) -> MedullahState {
     let app = create_app_state(setup).await;
-    MEDULLAH.set(app.clone()).expect("failed to set up medullah-web");
+    MEDULLAH
+        .set(app.clone())
+        .expect("failed to set up medullah-web");
     app
 }
 
