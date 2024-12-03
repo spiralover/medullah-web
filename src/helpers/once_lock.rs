@@ -26,7 +26,7 @@ pub trait OnceLockHelper {
     }
 
     #[cfg(feature = "feat-database")]
-    fn database(&self) -> &'a crate::database::DBPool {
+    fn database(&self) -> &crate::database::DBPool {
         MEDULLAH.get().unwrap().database()
     }
 
