@@ -12,8 +12,8 @@ use diesel::r2d2::ConnectionManager;
 #[cfg(feature = "feat-database")]
 use diesel::PgConnection;
 
-pub trait OnceLockHelper<'a> {
-    fn app(&self) -> &'a MedullahState {
+pub trait OnceLockHelper {
+    fn app(&self) -> &MedullahState {
         MEDULLAH.get().unwrap()
     }
 
@@ -73,4 +73,4 @@ pub trait OnceLockHelper<'a> {
     }
 }
 
-impl<'a> OnceLockHelper<'a> for OnceLock<MedullahState> {}
+impl OnceLockHelper for OnceLock<MedullahState> {}
