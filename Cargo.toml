@@ -6,8 +6,6 @@ license = "MIT"
 description = "Micro-Framework Based on Ntex"
 repository = "https://github.com/spiralover/medullah-web"
 
-publish = ["spiral", "crates-io"]
-
 [features]
 feat-database = ["diesel", "r2d2"]
 feat-rabbitmq = ["lapin", 'deadpool-lapin']
