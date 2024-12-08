@@ -64,7 +64,7 @@ pub fn register_routes(config: &mut ServiceConfig, routes: Vec<Route>) {
 }
 
 pub fn setup_logger() -> Logger {
-    Logger::new("%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T")
+    Logger::default()
         .exclude("/favicon.ico")
         .exclude("/system/docker-health-check")
 }
