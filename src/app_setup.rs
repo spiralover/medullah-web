@@ -113,8 +113,11 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         #[cfg(feature = "feat-templating")]
         tera: tera_templating,
 
+        #[cfg(feature = "feat-jwt")]
         auth_iss_public_key: setup.auth_iss_public_key,
+        #[cfg(feature = "feat-jwt")]
         auth_pat_prefix: env::var(format!("{}_AUTH_PAT_PREFIX", env_prefix)).unwrap(),
+        #[cfg(feature = "feat-jwt")]
         auth_token_lifetime: env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
             .unwrap()
             .parse()
