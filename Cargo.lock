@@ -603,9 +603,9 @@ checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
 name = "chrono"
-version = "0.4.38"
+version = "0.4.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a21f936df1771bf62b77f047b726c4625ff2e8aa607c01ec06e5a05bd8463401"
+checksum = "7e36cc9d416881d2e24f9a963be5fb1cd90966419ac844274161d10488b3e825"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -962,9 +962,9 @@ checksum = "339544cc9e2c4dc3fc7149fd630c5f22263a4fdf18a98afd0075784968b5cf00"
 
 [[package]]
 name = "diesel"
-version = "2.2.5"
+version = "2.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cbf9649c05e0a9dbd6d0b0b8301db5182b972d0fd02f0a7c6736cf632d7c0fd5"
+checksum = "ccf1bedf64cdb9643204a36dd15b19a6ce8e7aa7f7b105868e9f1fad5ffa7d12"
 dependencies = [
  "bitflags 2.5.0",
  "byteorder",
@@ -2066,7 +2066,7 @@ dependencies = [
 
 [[package]]
 name = "medullah-web"
-version = "0.23.1"
+version = "0.23.2"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2204,9 +2204,9 @@ dependencies = [
 
 [[package]]
 name = "ntex"
-version = "2.9.0"
+version = "2.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d89f9d82fbcff4998af06815e18773fab96c85ec2b58efe8957f4e8562eb4b4"
+checksum = "a1988f5a24be40f4cd06c5a1d66ff71da4dcf161f19a61013e6f967642c3c5bc"
 dependencies = [
  "base64 0.22.1",
  "bitflags 2.5.0",
@@ -2332,9 +2332,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-io"
-version = "2.8.2"
+version = "2.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ab41a7f7a96c6d1f9736d71efae9eb91c59274cb35757986eae9bd1fd76b052"
+checksum = "857063bbe358ab1d9b49ce3fdcdaf39394aea018818d0bdae3add00ad6dc27c1"
 dependencies = [
  "bitflags 2.5.0",
  "log",
@@ -2402,9 +2402,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-server"
-version = "2.5.0"
+version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "300921ed1f8626d7bfb06813ff839945eed08f763fbc1296590f878b8ee7f9e3"
+checksum = "36cc0ec66ac03f7a76637a1264a57e3234bd95c478fc282ace88c3bde908dc5f"
 dependencies = [
  "async-broadcast",
  "async-channel",
@@ -2423,9 +2423,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-service"
-version = "3.3.1"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62351b99deeb128baafbd71fc22e8ef93bef643fc60fbb51db8a45006f03cda1"
+checksum = "07867c1db27ae44cc6c796a0995c08d76aac32dffde961677a3b1950a0008a54"
 dependencies = [
  "slab",
 ]
@@ -2459,9 +2459,9 @@ dependencies = [
 
 [[package]]
 name = "ntex-util"
-version = "2.5.0"
+version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10fc97836b6bf4044897370725b7fbcfecef9a8be29c352c35f8c0a587e2e721"
+checksum = "73a7a68f2b6508ac7da46cc5b78cd9c997580473b3673a308c0f1e27c643a402"
 dependencies = [
  "bitflags 2.5.0",
  "futures-core",
@@ -3426,18 +3426,18 @@ checksum = "92d43fe69e652f3df9bdc2b85b2854a0825b86e4fb76bc44d945137d053639ca"
 
 [[package]]
 name = "serde"
-version = "1.0.215"
+version = "1.0.216"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6513c1ad0b11a9376da888e3e0baa0077f1aed55c17f50e7b2397136129fb88f"
+checksum = "0b9781016e935a97e8beecf0c933758c97a5520d32930e460142b4cd80c6338e"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.215"
+version = "1.0.216"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad1e866f866923f252f05c889987993144fb74e722403468a4ebd70c3cd756c0"
+checksum = "46f859dbbf73865c6627ed570e78961cd3ac92407a2d117204c49232485da55e"
 dependencies = [
  "proc-macro2",
  "quote",

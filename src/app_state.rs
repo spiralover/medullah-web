@@ -48,12 +48,15 @@ pub struct MedullahState {
     pub(crate) database: crate::database::DBPool,
 
     /// personal access token prefix
+    #[cfg(feature = "feat-jwt")]
     pub auth_pat_prefix: String,
 
     /// authentication token lifetime (in minutes)
+    #[cfg(feature = "feat-jwt")]
     pub auth_token_lifetime: i64,
 
     /// authentication issuer public key
+    #[cfg(feature = "feat-jwt")]
     pub auth_iss_public_key: String,
 
     /// list of comma-separated allowed origins
