@@ -14,6 +14,7 @@ pub enum AppMessage {
     Forbidden,
     InternalServerError,
     InternalServerErrorMessage(&'static str),
+    Anyhow(anyhow::Error),
     IoError(io::Error),
     UuidError(uuid::Error),
     Redirect(&'static str),
@@ -77,6 +78,7 @@ fn format_message(status: &AppMessage, f: &mut Formatter<'_>) -> std::fmt::Resul
 
 fn get_message(status: &AppMessage) -> String {
     match status {
+        AppMessage::Anyhow(err) => err.to_string(),
         AppMessage::UuidError(err) => err.to_string(),
         AppMessage::UnAuthorized => {
             String::from("You are not authorized to access requested resource(s)")
@@ -180,6 +182,7 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
         AppMessage::ForbiddenMessage(message) => message.to_string(),
         AppMessage::ForbiddenMessageString(message) => message.to_owned(),
         AppMessage::InternalServerErrorMessage(message) => message.to_string(),
+        AppMessage::Anyhow(message) => message.to_string(),
         #[cfg(feature = "feat-jwt")]
         AppMessage::JwtError(_) => "failed to authenticate your jwt token".to_string(),
         _ => {
@@ -199,6 +202,10 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             )
             .finish()
             .into_body(),
+        AppMessage::Anyhow(err) => {
+            log::error!("Anyhow Error: {}", err);
+            Responder::internal_server_error()
+        }
         AppMessage::IoError(message) => {
             log::error!("IO Error: {}", message);
             Responder::internal_server_error()
@@ -406,6 +413,12 @@ impl From<validator::ValidationErrors> for AppMessage {
 impl Display for AppMessage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         format_message(self, f)
+    }
+}
+
+impl From<anyhow::Error> for AppMessage {
+    fn from(value: anyhow::Error) -> Self {
+        AppMessage::Anyhow(value)
     }
 }
 
