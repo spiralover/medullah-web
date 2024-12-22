@@ -104,7 +104,16 @@ impl Responder {
         Self::respond(message, status)
     }
 
-    fn respond<T: Serialize>(data: T, status: StatusCode) -> Response {
+    /// Send a response without the standard response wrapper
+    ///
+    /// # Arguments
+    ///
+    /// * `data`: Any item that implements serde::Serialize
+    /// * `status`: A http status code to respond with
+    ///
+    /// returns: Response<Body>
+    ///
+    pub fn respond<T: Serialize>(data: T, status: StatusCode) -> Response {
         Self::make_response(data, status)
     }
 
