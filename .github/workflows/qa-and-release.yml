@@ -21,7 +21,7 @@ jobs:
         run: cargo clippy --all-targets --all-features
 
       - name: Run Tests
-        run: cargo test --workspace --features=feat-regex,feat-crypto,feat-base64,feat-hmac,feat-reqwest
+        run: cargo test --workspace --features=regex,crypto,base64,hmac,reqwest,multipart
 
       - name: Run cargo fmt
         if: github.event_name == 'push'

@@ -13,7 +13,7 @@ use crate::results::AppResult;
 pub trait RequestHelper {
     fn app(&self) -> &MedullahState;
 
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     fn db_pool(&self) -> &crate::database::DBPool;
 
     fn client_info(&self) -> ClientInfo;
@@ -28,7 +28,7 @@ impl RequestHelper for HttpRequest {
         self.app_state::<MedullahState>().unwrap()
     }
 
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     fn db_pool(&self) -> &crate::database::DBPool {
         self.app().database()
     }

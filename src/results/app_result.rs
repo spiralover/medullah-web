@@ -1,13 +1,13 @@
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use crate::database::Model;
 use crate::enums::app_message::AppMessage;
 use crate::helpers::json::{json_empty, JsonEmpty};
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use crate::results::AppPaginationResult;
 use crate::results::AppResult;
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use diesel::result::Error;
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use diesel::QueryResult;
 use ntex::web::error::BlockingError;
 use serde::Serialize;
@@ -37,17 +37,17 @@ impl<T> IntoAppResult<T> for serde_json::Result<T> {
     }
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 pub trait IntoShareableResult<S: Serialize, T: Serialize + Model> {
     fn into_shareable_result(self) -> AppResult<S>;
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 pub trait IntoShareablePaginationResult<S: Serialize, T: Serialize + Model> {
     fn into_shareable_result(self) -> AppPaginationResult<S>;
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 impl<Sha, Ent> IntoShareableResult<Sha, Ent> for AppResult<Ent>
 where
     Sha: Serialize,
@@ -58,7 +58,7 @@ where
     }
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 impl<Sha, Ent> IntoShareablePaginationResult<Sha, Ent> for AppPaginationResult<Ent>
 where
     Sha: Serialize,
@@ -69,7 +69,7 @@ where
     }
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 impl<T> IntoAppResult<T> for QueryResult<T> {
     fn into_app_result(self) -> AppResult<T> {
         match self {

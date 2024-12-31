@@ -18,7 +18,7 @@ impl Str {
             .join(" ")
     }
 
-    #[cfg(feature = "feat-regex")]
+    #[cfg(feature = "regex")]
     pub fn is_username_valid(name: String) -> Box<fancy_regex::Result<bool>> {
         crate::helpers::Regex::validate_username(&name)
     }
@@ -56,7 +56,7 @@ mod tests {
         assert_eq!(Str::uc_words("123 hello"), "123 Hello"); // Test with non-alphabetic characters
     }
 
-    #[cfg(feature = "feat-regex")]
+    #[cfg(feature = "regex")]
     #[test]
     fn test_is_username_valid_valid_usernames() {
         assert!(Str::is_username_valid("a".to_string()).unwrap());
@@ -67,7 +67,7 @@ mod tests {
         // 37 chars
     }
 
-    #[cfg(feature = "feat-regex")]
+    #[cfg(feature = "regex")]
     #[test]
     fn test_is_username_valid_invalid_usernames() {
         assert!(!Str::is_username_valid("1username".to_string()).unwrap()); // Starts with a digit

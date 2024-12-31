@@ -9,10 +9,10 @@ pub use enum_common::*;
 #[allow(unused_imports)]
 pub use enum_generate::*;
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 #[allow(unused_imports)]
 pub use enum_diesel_generate::*;
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 #[allow(unused_imports)]
 pub use enum_diesel::*;

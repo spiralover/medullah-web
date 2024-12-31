@@ -31,7 +31,7 @@ pub struct IdAsUuid {
     pub id: Uuid,
 }
 
-#[cfg(feature = "feat-validator")]
+#[cfg(feature = "validator")]
 #[derive(Deserialize, validator::Validate)]
 pub struct ReasonPayload {
     #[validate(length(min = 3, max = 1500))]
