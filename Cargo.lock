@@ -2071,8 +2071,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "medullah-multipart"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc40c954bda9236d66ffaa3af0cfa153c02983c502e8ce3366259881df104550"
+dependencies = [
+ "futures",
+ "ntex",
+ "ntex-multipart",
+ "tokio",
+]
+
+[[package]]
 name = "medullah-web"
-version = "0.23.4"
+version = "0.24.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -2090,6 +2102,7 @@ dependencies = [
  "jsonwebtoken",
  "lapin",
  "log",
+ "medullah-multipart",
  "ntex",
  "ntex-cors",
  "ntex-files",
@@ -2362,6 +2375,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "ntex-multipart"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8dd0a3006402a1d1284ae45f489e4be6605d664cf2aeb1c187b1d3fe0b13fd94"
+dependencies = [
+ "derive_more",
+ "futures",
+ "httparse",
+ "log",
+ "mime",
+ "ntex",
+ "twoway",
 ]
 
 [[package]]
@@ -4014,6 +4042,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
+name = "twoway"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c57ffb460d7c24cd6eda43694110189030a3d1dfe418416d9468fd1c1d290b47"
+dependencies = [
+ "memchr",
+ "unchecked-index",
+]
+
+[[package]]
 name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4024,6 +4062,12 @@ name = "ucd-trie"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed646292ffc8188ef8ea4d1e0e0150fb15a5c2e12ad9b8fc191ae7a8a7f3c4b9"
+
+[[package]]
+name = "unchecked-index"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eeba86d422ce181a719445e51872fa30f1f7413b62becb52e95ec91aa262d85c"
 
 [[package]]
 name = "unic-char-property"

@@ -1,4 +1,4 @@
-#[cfg(feature = "feat-redis")]
+#[cfg(feature = "redis")]
 pub mod cache_service;
-#[cfg(feature = "feat-mailer")]
+#[cfg(feature = "mailer")]
 pub mod mail_service;

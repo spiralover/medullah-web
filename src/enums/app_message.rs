@@ -1,4 +1,4 @@
-#[cfg(feature = "feat-reqwest")]
+#[cfg(feature = "reqwest")]
 use crate::helpers::reqwest::ReqwestResponseError;
 use crate::helpers::responder::Responder;
 use log::error;
@@ -23,42 +23,44 @@ pub enum AppMessage {
     WarningMessage(&'static str),
     WarningMessageString(String),
     HttpClientError(String, String),
-    #[cfg(feature = "feat-hmac")]
+    #[cfg(feature = "hmac")]
     HmacError(hmac::digest::InvalidLength),
     UnAuthorizedMessage(&'static str),
     UnAuthorizedMessageString(String),
     ForbiddenMessage(&'static str),
     ForbiddenMessageString(String),
-    #[cfg(feature = "feat-validator")]
+    #[cfg(feature = "validator")]
     FormValidationError(validator::ValidationErrors),
     EntityNotFound(String),
     #[cfg(feature = "reqwest")]
     ReqwestError(reqwest::Error),
     #[cfg(feature = "reqwest")]
     ReqwestResponseError(ReqwestResponseError),
-    #[cfg(feature = "feat-mailer")]
+    #[cfg(feature = "mailer")]
     MailerError(reqwest::Error),
-    #[cfg(feature = "feat-strum")]
+    #[cfg(feature = "multipart")]
+    MultipartError(medullah_multipart::MultipartError),
+    #[cfg(feature = "strum")]
     StrumParseError(strum::ParseError),
     SerdeError(serde_json::Error),
     SerdeError500(serde_json::Error),
-    #[cfg(feature = "feat-base64")]
+    #[cfg(feature = "base64")]
     Base64Error(base64::DecodeError),
     JoinError(tokio::task::JoinError),
-    #[cfg(feature = "feat-jwt")]
+    #[cfg(feature = "jwt")]
     JwtError(jsonwebtoken::errors::Error),
-    #[cfg(feature = "feat-crypto")]
+    #[cfg(feature = "crypto")]
     ArgonError(argon2::Error),
     StrUtf8Error(std::str::Utf8Error),
     FromUtf8Error(std::string::FromUtf8Error),
     ChronoParseError(chrono::ParseError),
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     RabbitmqError(lapin::Error),
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     RedisError(redis::RedisError),
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     RedisPoolError(deadpool::managed::PoolError<redis::RedisError>),
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     RmqPoolError(deadpool::managed::PoolError<lapin::Error>),
     ErrorMessage(String, StatusCode),
     PayloadError(ntex::http::error::PayloadError),
@@ -66,9 +68,9 @@ pub enum AppMessage {
     BlockingNtexErrorOuterBoxed(Box<BlockingError<Self>>),
     BlockingNtexIoError(BlockingError<io::Error>),
     BlockingErrorCanceled,
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     R2d2Error(r2d2::Error),
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     DatabaseError(diesel::result::Error),
 }
 
@@ -88,31 +90,33 @@ fn get_message(status: &AppMessage) -> String {
         }
         AppMessage::Redirect(url) => format!("Redirecting to '{}'...", url),
         AppMessage::EntityNotFound(entity) => format!("Such {} does not exits", entity),
-        #[cfg(feature = "feat-database")]
+        #[cfg(feature = "database")]
         AppMessage::R2d2Error(error) => error.to_string(),
-        #[cfg(feature = "feat-rabbitmq")]
+        #[cfg(feature = "rabbitmq")]
         AppMessage::RmqPoolError(error) => error.to_string(),
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         AppMessage::JwtError(err) => err.to_string(),
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "crypto")]
         AppMessage::ArgonError(err) => err.to_string(),
+        #[cfg(feature = "multipart")]
+        AppMessage::MultipartError(err) => err.to_string(),
         AppMessage::IoError(error) => error.to_string(),
         AppMessage::SerdeError(error) => error.to_string(),
         AppMessage::SerdeError500(error) => error.to_string(),
-        #[cfg(feature = "feat-rabbitmq")]
+        #[cfg(feature = "rabbitmq")]
         AppMessage::RabbitmqError(error) => error.to_string(),
-        #[cfg(feature = "feat-redis")]
+        #[cfg(feature = "redis")]
         AppMessage::RedisError(error) => error.to_string(),
-        #[cfg(feature = "feat-redis")]
+        #[cfg(feature = "redis")]
         AppMessage::RedisPoolError(error) => error.to_string(),
         AppMessage::JoinError(error) => error.to_string(),
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestError(error) => error.to_string(),
         #[cfg(feature = "reqwest")]
         AppMessage::ReqwestResponseError(error) => error.body().to_owned(),
-        #[cfg(feature = "feat-mailer")]
+        #[cfg(feature = "mailer")]
         AppMessage::MailerError(error) => error.to_string(),
-        #[cfg(feature = "feat-base64")]
+        #[cfg(feature = "base64")]
         AppMessage::Base64Error(error) => error.to_string(),
         AppMessage::StrUtf8Error(error) => error.to_string(),
         AppMessage::FromUtf8Error(error) => error.to_string(),
@@ -132,7 +136,7 @@ fn get_message(status: &AppMessage) -> String {
         | AppMessage::ForbiddenMessageString(message)
         | AppMessage::HttpClientError(message, _)
         | AppMessage::ErrorMessage(message, _) => message.to_string(),
-        #[cfg(feature = "feat-database")]
+        #[cfg(feature = "database")]
         AppMessage::DatabaseError(err) => match err {
             diesel::result::Error::NotFound => String::from("Such entity not found"),
             diesel::result::Error::DatabaseError(err, info) => match err {
@@ -161,11 +165,11 @@ fn get_message(status: &AppMessage) -> String {
                 String::from("Something went wrong")
             }
         },
-        #[cfg(feature = "feat-hmac")]
+        #[cfg(feature = "hmac")]
         AppMessage::HmacError(message) => message.to_string(),
-        #[cfg(feature = "feat-strum")]
+        #[cfg(feature = "strum")]
         AppMessage::StrumParseError(message) => message.to_string(),
-        #[cfg(feature = "feat-validator")]
+        #[cfg(feature = "validator")]
         AppMessage::FormValidationError(e) => String::from(e.to_string().as_str()),
         _ => String::from("Internal Server Error"),
     }
@@ -183,7 +187,7 @@ pub fn get_middleware_level_message(app: &AppMessage) -> String {
         AppMessage::ForbiddenMessageString(message) => message.to_owned(),
         AppMessage::InternalServerErrorMessage(message) => message.to_string(),
         AppMessage::Anyhow(message) => message.to_string(),
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         AppMessage::JwtError(_) => "failed to authenticate your jwt token".to_string(),
         _ => {
             error!("[middleware-level-error] {:?}", app);
@@ -210,37 +214,37 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("IO Error: {}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-database")]
+        #[cfg(feature = "database")]
         AppMessage::R2d2Error(message) => {
             log::error!("R2d2 Error: {}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         AppMessage::JwtError(message) => {
             log::error!("Jwt Error: {}", message);
             Responder::message("invalid jwt token", StatusCode::UNAUTHORIZED)
         }
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "crypto")]
         AppMessage::ArgonError(message) => {
             log::error!("Argon Error: {}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-rabbitmq")]
+        #[cfg(feature = "rabbitmq")]
         AppMessage::RabbitmqError(message) => {
             log::error!("Rabbitmq Error: {}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-redis")]
+        #[cfg(feature = "redis")]
         AppMessage::RedisError(message) => {
             log::error!("Redis Error: {}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-redis")]
+        #[cfg(feature = "redis")]
         AppMessage::RedisPoolError(message) => {
             log::error!("Redis Pool Error: {}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-rabbitmq")]
+        #[cfg(feature = "rabbitmq")]
         AppMessage::RmqPoolError(message) => {
             log::error!("RabbitMQ Pool Error: {}", message);
             Responder::internal_server_error()
@@ -263,12 +267,12 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("Utf8 Conversion Error: {:?}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-base64")]
+        #[cfg(feature = "base64")]
         AppMessage::Base64Error(message) => {
             log::error!("Base64 Error: {:?}", message);
             Responder::internal_server_error()
         }
-        #[cfg(feature = "feat-strum")]
+        #[cfg(feature = "strum")]
         AppMessage::StrumParseError(message) => {
             log::error!("Strum Parse Error: {:?}", message);
             Responder::internal_server_error()
@@ -329,13 +333,19 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
             log::error!("Failed To Parse DateTime: {}", message);
             Responder::message(&message, StatusCode::BAD_REQUEST)
         }
-        #[cfg(feature = "feat-validator")]
+        #[cfg(feature = "validator")]
         AppMessage::FormValidationError(e) => Responder::failure(
             e,
             Some(String::from("Validation Error")),
             StatusCode::BAD_REQUEST,
         ),
-        #[cfg(feature = "feat-database")]
+        #[cfg(feature = "multipart")]
+        AppMessage::MultipartError(e) => Responder::failure(
+            e.to_string(),
+            Some(String::from("Multipart Error")),
+            StatusCode::BAD_REQUEST,
+        ),
+        #[cfg(feature = "database")]
         AppMessage::DatabaseError(err) => match err {
             diesel::result::Error::NotFound => {
                 Responder::not_found_message("Such entity not found")
@@ -354,7 +364,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
                 Responder::internal_server_error_message(&message.message())
             }
         },
-        #[cfg(feature = "feat-hmac")]
+        #[cfg(feature = "hmac")]
         AppMessage::HmacError(err) => {
             error!("{:?}", err);
             Responder::internal_server_error()
@@ -364,7 +374,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
 }
 
 fn get_status_code(status: &AppMessage) -> StatusCode {
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     use diesel::result::Error as DieselError;
 
     match status {
@@ -375,16 +385,18 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         | AppMessage::SerdeError(_)
         | AppMessage::ChronoParseError(_) => StatusCode::BAD_REQUEST,
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
-        #[cfg(feature = "feat-database")]
+        #[cfg(feature = "multipart")]
+        AppMessage::MultipartError(_) => StatusCode::BAD_REQUEST,
+        #[cfg(feature = "database")]
         AppMessage::DatabaseError(DieselError::NotFound) => StatusCode::NOT_FOUND,
-        #[cfg(feature = "feat-database")]
+        #[cfg(feature = "database")]
         AppMessage::DatabaseError(DieselError::DatabaseError(
             diesel::result::DatabaseErrorKind::UniqueViolation,
             _,
         )) => StatusCode::CONFLICT,
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         AppMessage::JwtError(_) => StatusCode::UNAUTHORIZED,
-        #[cfg(feature = "feat-validator")]
+        #[cfg(feature = "validator")]
         AppMessage::FormValidationError(_) => StatusCode::BAD_REQUEST,
         AppMessage::ErrorMessage(_, status) => *status,
         AppMessage::UnAuthorized
@@ -403,7 +415,7 @@ impl Debug for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-validator")]
+#[cfg(feature = "validator")]
 impl From<validator::ValidationErrors> for AppMessage {
     fn from(value: validator::ValidationErrors) -> Self {
         AppMessage::FormValidationError(value)
@@ -428,14 +440,14 @@ impl From<io::Error> for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-jwt")]
+#[cfg(feature = "jwt")]
 impl From<jsonwebtoken::errors::Error> for AppMessage {
     fn from(value: jsonwebtoken::errors::Error) -> Self {
         AppMessage::JwtError(value)
     }
 }
 
-#[cfg(feature = "feat-crypto")]
+#[cfg(feature = "crypto")]
 impl From<argon2::Error> for AppMessage {
     fn from(value: argon2::Error) -> Self {
         AppMessage::ArgonError(value)
@@ -455,7 +467,7 @@ impl From<ntex::http::error::PayloadError> for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 impl From<r2d2::Error> for AppMessage {
     fn from(value: r2d2::Error) -> Self {
         AppMessage::R2d2Error(value)
@@ -492,28 +504,28 @@ impl From<BlockingError<io::Error>> for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-rabbitmq")]
+#[cfg(feature = "rabbitmq")]
 impl From<lapin::Error> for AppMessage {
     fn from(value: lapin::Error) -> Self {
         AppMessage::RabbitmqError(value)
     }
 }
 
-#[cfg(feature = "feat-redis")]
+#[cfg(feature = "redis")]
 impl From<redis::RedisError> for AppMessage {
     fn from(value: redis::RedisError) -> Self {
         AppMessage::RedisError(value)
     }
 }
 
-#[cfg(feature = "feat-rabbitmq")]
+#[cfg(feature = "rabbitmq")]
 impl From<deadpool::managed::PoolError<lapin::Error>> for AppMessage {
     fn from(value: deadpool::managed::PoolError<lapin::Error>) -> Self {
         AppMessage::RmqPoolError(value)
     }
 }
 
-#[cfg(feature = "feat-hmac")]
+#[cfg(feature = "hmac")]
 impl From<hmac::digest::InvalidLength> for AppMessage {
     fn from(value: hmac::digest::InvalidLength) -> Self {
         AppMessage::HmacError(value)
@@ -544,28 +556,35 @@ impl From<std::str::Utf8Error> for AppMessage {
     }
 }
 
-#[cfg(feature = "feat-strum")]
+#[cfg(feature = "strum")]
 impl From<strum::ParseError> for AppMessage {
     fn from(value: strum::ParseError) -> Self {
         AppMessage::StrumParseError(value)
     }
 }
 
-#[cfg(feature = "feat-base64")]
+#[cfg(feature = "multipart")]
+impl From<medullah_multipart::MultipartError> for AppMessage {
+    fn from(value: medullah_multipart::MultipartError) -> Self {
+        AppMessage::MultipartError(value)
+    }
+}
+
+#[cfg(feature = "base64")]
 impl From<base64::DecodeError> for AppMessage {
     fn from(value: base64::DecodeError) -> Self {
         AppMessage::Base64Error(value)
     }
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 impl From<diesel::result::Error> for AppMessage {
     fn from(value: diesel::result::Error) -> Self {
         AppMessage::DatabaseError(value)
     }
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 impl From<AppMessage> for diesel::result::Error {
     fn from(value: AppMessage) -> Self {
         use diesel::result::Error as DieselError;

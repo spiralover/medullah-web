@@ -2,14 +2,14 @@
 use std::sync::{Arc, OnceLock};
 
 use crate::app_state::{AppHelpers, MedullahState};
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use crate::database::DatabaseConnectionHelper;
-#[cfg(feature = "feat-redis")]
+#[cfg(feature = "redis")]
 use crate::services::cache_service::CacheService;
 use crate::MEDULLAH;
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use diesel::r2d2::ConnectionManager;
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use diesel::PgConnection;
 
 pub trait OnceLockHelper {
@@ -25,47 +25,47 @@ pub trait OnceLockHelper {
         self.app().frontend(url)
     }
 
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     fn database(&self) -> &crate::database::DBPool {
         MEDULLAH.get().unwrap().database()
     }
 
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     fn redis_client(&self) -> Arc<redis::Client> {
         Arc::clone(&self.app().redis_client)
     }
 
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     fn redis_pool(&self) -> deadpool_redis::Pool {
         self.app().redis_pool.clone()
     }
 
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     fn redis(&self) -> &crate::redis::Redis {
         &MEDULLAH.get().unwrap().redis
     }
 
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     fn rabbitmq_client(&self) -> Arc<lapin::Connection> {
         Arc::clone(&self.app().rabbitmq_client)
     }
 
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     fn rabbitmq_pool(&self) -> deadpool_lapin::Pool {
         self.app().rabbitmq_pool.clone()
     }
 
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     fn rabbitmq(&self) -> Arc<tokio::sync::Mutex<crate::prelude::RabbitMQ>> {
         Arc::clone(&self.app().rabbitmq)
     }
 
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     fn cache(&self) -> &CacheService {
         &MEDULLAH.get().unwrap().services.cache
     }
 
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     fn db(
         &self,
     ) -> crate::prelude::AppResult<r2d2::PooledConnection<ConnectionManager<PgConnection>>> {

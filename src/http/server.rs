@@ -20,7 +20,7 @@ where
     pub public_key: String,
     pub auth_iss_public_key: String,
 
-    #[cfg(feature = "feat-static")]
+    #[cfg(feature = "static")]
     pub static_config: StaticFileConfig,
 
     /// whether the app bootstrap has started
@@ -32,7 +32,7 @@ where
     pub boot_thread: TB,
 }
 
-#[cfg(feature = "feat-static")]
+#[cfg(feature = "static")]
 pub struct StaticFileConfig {
     pub path: String,
     pub dir: String,
@@ -86,8 +86,8 @@ where
             .wrap(setup_cors(app_state.allowed_origins.clone()).finish())
             .default_service(ntex_default_service());
 
-        if cfg!(feature = "feat-static") {
-            #[cfg(feature = "feat-static")]
+        if cfg!(feature = "static") {
+            #[cfg(feature = "static")]
             {
                 return app.service(ntex_files::Files::new(
                     &config.static_config.path,

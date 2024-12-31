@@ -3,34 +3,34 @@ use std::path::Path;
 use std::sync::Arc;
 use std::{env, fs};
 
-#[cfg(feature = "feat-mailer")]
+#[cfg(feature = "mailer")]
 use crate::app_state::AppMailerConfig;
 use crate::app_state::{AppHelpers, AppServices, MedullahState};
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use crate::database::DBPool;
-#[cfg(feature = "feat-jwt")]
+#[cfg(feature = "jwt")]
 use crate::helpers::jwt::Jwt;
-#[cfg(feature = "feat-crypto")]
+#[cfg(feature = "crypto")]
 use crate::helpers::password::Password;
-#[cfg(feature = "feat-rabbitmq")]
+#[cfg(feature = "rabbitmq")]
 use crate::prelude::RabbitMQ;
-#[cfg(feature = "feat-redis")]
+#[cfg(feature = "redis")]
 use crate::prelude::Redis;
-#[cfg(feature = "feat-rabbitmq")]
+#[cfg(feature = "rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection;
-#[cfg(feature = "feat-rabbitmq")]
+#[cfg(feature = "rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection_pool;
-#[cfg(feature = "feat-redis")]
+#[cfg(feature = "redis")]
 use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
-#[cfg(feature = "feat-redis")]
+#[cfg(feature = "redis")]
 use crate::services::cache_service::CacheService;
 use crate::MEDULLAH;
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use diesel::r2d2::ConnectionManager;
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 use diesel::PgConnection;
 use log::info;
-#[cfg(feature = "feat-templating")]
+#[cfg(feature = "templating")]
 use tera::Tera;
 
 pub struct MedullahSetup {
@@ -53,30 +53,30 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
     let helpers = make_helpers(&setup.env_prefix, &setup);
     let env_prefix = setup.env_prefix;
 
-    #[cfg(feature = "feat-database")]
+    #[cfg(feature = "database")]
     let database_pool = establish_database_connection(&env_prefix);
 
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     let redis_client = establish_redis_connection(&env_prefix);
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     let redis_pool = establish_redis_connection_pool(&env_prefix);
-    #[cfg(feature = "feat-redis")]
+    #[cfg(feature = "redis")]
     let redis = Arc::new(Redis::new(redis_pool.clone()));
 
     // RabbitMQ
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     let rabbit_client = Arc::new(establish_rabbit_connection(&env_prefix).await);
 
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     let rabbitmq_pool = establish_rabbit_connection_pool(&env_prefix).await;
 
-    #[cfg(feature = "feat-rabbitmq")]
+    #[cfg(feature = "rabbitmq")]
     let rabbitmq = Arc::new(tokio::sync::Mutex::new(
         RabbitMQ::new(rabbitmq_pool.clone()).await.unwrap(),
     ));
 
     // templating
-    #[cfg(feature = "feat-templating")]
+    #[cfg(feature = "templating")]
     let tera_templating = {
         let tpl_dir = crate::helpers::fs::get_cwd() + "/resources/templates/**/*.tera.html";
         Tera::new(tpl_dir.as_str()).unwrap()
@@ -96,28 +96,28 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         app_public_key: setup.public_key,
         app_key: env::var(format!("{}_APP_KEY", env_prefix)).unwrap(),
 
-        #[cfg(feature = "feat-redis")]
+        #[cfg(feature = "redis")]
         redis_client: Arc::new(redis_client),
-        #[cfg(feature = "feat-redis")]
+        #[cfg(feature = "redis")]
         redis_pool,
-        #[cfg(feature = "feat-redis")]
+        #[cfg(feature = "redis")]
         redis: redis.clone(),
-        #[cfg(feature = "feat-rabbitmq")]
+        #[cfg(feature = "rabbitmq")]
         rabbitmq_client: rabbit_client.clone(),
-        #[cfg(feature = "feat-rabbitmq")]
+        #[cfg(feature = "rabbitmq")]
         rabbitmq_pool,
-        #[cfg(feature = "feat-rabbitmq")]
+        #[cfg(feature = "rabbitmq")]
         rabbitmq,
-        #[cfg(feature = "feat-database")]
+        #[cfg(feature = "database")]
         database: database_pool,
-        #[cfg(feature = "feat-templating")]
+        #[cfg(feature = "templating")]
         tera: tera_templating,
 
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         auth_iss_public_key: setup.auth_iss_public_key,
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         auth_pat_prefix: env::var(format!("{}_AUTH_PAT_PREFIX", env_prefix)).unwrap(),
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         auth_token_lifetime: env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
             .unwrap()
             .parse()
@@ -125,11 +125,11 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
 
         allowed_origins: setup.allowed_origins,
 
-        #[cfg(feature = "feat-mailer")]
+        #[cfg(feature = "mailer")]
         mailer_config: make_mailer_config(&env_prefix),
 
         services: AppServices {
-            #[cfg(feature = "feat-redis")]
+            #[cfg(feature = "redis")]
             cache: Arc::new(CacheService::new(redis)),
         },
     }
@@ -150,28 +150,28 @@ pub fn get_server_host_config(env_prefix: &String) -> (String, u16, usize) {
 
 #[allow(unused_variables)]
 fn make_helpers(env_prefix: &str, setup: &MedullahSetup) -> AppHelpers {
-    #[cfg(feature = "feat-crypto")]
+    #[cfg(feature = "crypto")]
     let app_key = env::var(format!("{}_APP_KEY", env_prefix)).unwrap();
 
-    #[cfg(feature = "feat-jwt")]
+    #[cfg(feature = "jwt")]
     let token_lifetime: i64 = env::var(format!("{}_AUTH_TOKEN_LIFETIME", env_prefix))
         .unwrap()
         .parse()
         .unwrap();
 
     AppHelpers {
-        #[cfg(feature = "feat-jwt")]
+        #[cfg(feature = "jwt")]
         jwt: Arc::new(Jwt::new(
             setup.auth_iss_public_key.clone(),
             setup.private_key.clone(),
             token_lifetime,
         )),
-        #[cfg(feature = "feat-crypto")]
+        #[cfg(feature = "crypto")]
         password: Arc::new(Password::new(app_key)),
     }
 }
 
-#[cfg(feature = "feat-mailer")]
+#[cfg(feature = "mailer")]
 fn make_mailer_config(env_prefix: &str) -> AppMailerConfig {
     AppMailerConfig {
         from_name: env::var(format!("{}_MAIL_FROM_NAME", env_prefix)).unwrap(),
@@ -183,7 +183,7 @@ fn make_mailer_config(env_prefix: &str) -> AppMailerConfig {
     }
 }
 
-#[cfg(feature = "feat-database")]
+#[cfg(feature = "database")]
 pub fn establish_database_connection(env_prefix: &String) -> DBPool {
     let db_url: String = env::var(format!("{}_DATABASE_DSN", env_prefix)).unwrap();
     let manager = ConnectionManager::<PgConnection>::new(db_url);

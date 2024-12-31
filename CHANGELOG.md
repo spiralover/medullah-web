@@ -90,10 +90,10 @@ medullah-web changelog file
 * fix(mailer): scope import to feature
 
 ## 0.15.1 (2024-08-20)
-* fix(helpers): jwt helper should be scoped to feat-jwt
+* fix(helpers): jwt helper should be scoped to jwt
 
 ## 0.15.0 (2024-08-20)
-* feat(jwt): introduced new feat-jwt feature to help decouple jwt from crypto dependencies
+* feat(jwt): introduced new jwt feature to help decouple jwt from crypto dependencies
 * fix(jwt): send customized error message for middleware-level error
 * fix(json): renamed 'json()' to 'deserialize()'
 * feat(json): can now collect serde_json::Value from extractor
@@ -125,7 +125,7 @@ medullah-web changelog file
 ## 0.14.2 (2024-08-17)
 * fix(cache): add more debug info
 * fix(redis): avoid unwrapping serde result
-* fix(mailer): config setup should be scoped to "feat-mailer"
+* fix(mailer): config setup should be scoped to "mailer"
 
 ## 0.14.1 (2024-08-16)
 * fix(nerve): removed partially implemented feature
@@ -140,10 +140,10 @@ medullah-web changelog file
 * refactor(database): feature is now optional
 * fix(readme): broken changelog link
 * refactor(id-generator): removed feature
-* refactor(redis + cache): scope feature to "feat-redis"
+* refactor(redis + cache): scope feature to "redis"
 
 ## 0.12.0 (2024-08-14)
-* fix(reqwest): scope feature to "feat-reqwest"
+* fix(reqwest): scope feature to "reqwest"
 * refactor(responder): 'respond_map' now has http status-like names
 * test(responder): unit test mappable
 * test(responder): unit test .respond() & .respond_msg()
@@ -162,7 +162,7 @@ medullah-web changelog file
 * test(test): unit test for hmac & currency
 * refactor(helpers): separate password & string helper
 * feat(string): str-based uuid generation helper
-* refactor(mailer): scope feature to "feat-mailer"
+* refactor(mailer): scope feature to "mailer"
 * test(jwt): added unit test
 
 ## 0.9.0 (2024-08-11)
