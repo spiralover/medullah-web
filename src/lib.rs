@@ -37,3 +37,8 @@ pub mod prelude {
     pub use crate::results::{app_result::IntoAppResult, AppResult};
     pub use crate::MEDULLAH;
 }
+
+#[cfg(feature = "multipart")]
+pub mod multipart {
+    pub use medullah_multipart::*;
+}
