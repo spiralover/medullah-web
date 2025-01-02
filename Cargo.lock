@@ -2071,9 +2071,9 @@ dependencies = [
 
 [[package]]
 name = "medullah-multipart"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b718206e435d261f70332fced98e202b83e803baf451b164f7ed36c45de30840"
+checksum = "de50b7850b1bf41f7a3b87ec5ed966fd6bb3892bd65f0bbec4bf7ed160eca208"
 dependencies = [
  "futures",
  "ntex",
@@ -2083,7 +2083,7 @@ dependencies = [
 
 [[package]]
 name = "medullah-web"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
