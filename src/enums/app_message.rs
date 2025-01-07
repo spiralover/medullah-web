@@ -393,7 +393,9 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         AppMessage::MultipartError(err) => match err {
             MultipartError::ValidationError(err) => match err.error {
                 MultipartErrorMessage::InvalidFileExtension(_)
-                | MultipartErrorMessage::InvalidContentType(_) => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                | MultipartErrorMessage::InvalidContentType(_) => {
+                    StatusCode::UNSUPPORTED_MEDIA_TYPE
+                }
                 _ => StatusCode::BAD_REQUEST,
             },
             _ => StatusCode::BAD_REQUEST,

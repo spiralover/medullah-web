@@ -15,6 +15,7 @@ pub mod redis;
 pub mod helpers;
 
 pub mod app_setup;
+pub mod contracts;
 pub mod env_logger;
 pub mod http;
 pub mod macros;
@@ -22,7 +23,6 @@ pub mod macros;
 pub mod rabbitmq;
 pub mod services;
 pub mod tokio;
-pub mod contracts;
 
 pub static MEDULLAH: OnceLock<MedullahState> = OnceLock::new();
 

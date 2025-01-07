@@ -1,12 +1,12 @@
+use crate::enums::ResponseCode;
+use crate::helpers::responder::Responder;
+use crate::http::middlewares::Middleware;
 use log::info;
 use ntex::http::header;
 use ntex::web::middleware::Logger;
 use ntex::web::ServiceConfig;
 use ntex::{web, web::Route as NtexRoute};
 use ntex_cors::Cors;
-use crate::enums::ResponseCode;
-use crate::helpers::responder::Responder;
-use crate::http::middlewares::Middleware;
 
 pub struct Controller {
     pub path: String,
