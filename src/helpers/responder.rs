@@ -1,19 +1,19 @@
 use std::fmt::{Display, Formatter};
 
+use crate::contracts::ResponseCodeContract;
+use crate::enums::ResponseCode;
+use crate::helpers::json::json_empty;
+use crate::helpers::json_message::JsonMessage;
 use ntex::http::{Response, StatusCode};
 use ntex::web::HttpResponse;
 use serde::{Deserialize, Serialize};
-
-use crate::helpers::json::json_empty;
-use crate::helpers::json_message::JsonMessage;
 
 pub struct Responder;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct JsonResponse<T: Serialize> {
-    pub code: u16,
+    pub code: String,
     pub success: bool,
-    pub status: String,
     pub timestamp: u64,
     pub message: Option<String>,
     pub data: T,
@@ -21,9 +21,8 @@ pub struct JsonResponse<T: Serialize> {
 
 #[derive(Debug, Serialize)]
 pub struct SeJsonResponse<T> {
-    pub code: u16,
+    pub code: String,
     pub success: bool,
-    pub status: String,
     pub timestamp: u64,
     pub message: Option<String>,
     pub data: T,
@@ -31,9 +30,8 @@ pub struct SeJsonResponse<T> {
 
 #[derive(Debug, Deserialize)]
 pub struct DeJsonResponse<T> {
-    pub code: u16,
+    pub code: String,
     pub success: bool,
-    pub status: String,
     pub timestamp: u64,
     pub message: Option<String>,
     pub data: T,
@@ -46,20 +44,30 @@ impl<T: Serialize> Display for JsonResponse<T> {
 }
 
 impl Responder {
-    pub fn ok<T: Serialize>(data: T, msg: &str) -> Response {
-        Self::respond(JsonMessage::ok(data, Some(msg.to_string())), StatusCode::OK)
+    pub fn send_msg<C, D>(data: D, code: C, msg: &str) -> Response
+    where
+        C: ResponseCodeContract,
+        D: Serialize,
+    {
+        Self::respond(
+            JsonMessage::make(data, code.code(), code.success(), Some(msg.to_string())),
+            code.status(),
+        )
     }
 
-    pub fn success<T: Serialize>(data: T, message: Option<String>, status: StatusCode) -> Response {
-        Self::respond(JsonMessage::success(data, message, status), status)
-    }
-
-    pub fn failure<T: Serialize>(data: T, message: Option<String>, status: StatusCode) -> Response {
-        Self::respond(JsonMessage::failure(data, message, status), status)
+    pub fn send<C, D>(data: D, code: C) -> Response
+    where
+        C: ResponseCodeContract,
+        D: Serialize,
+    {
+        Self::respond(
+            JsonMessage::make(data, code.code(), code.success(), None),
+            code.status(),
+        )
     }
 
     pub fn ok_message(msg: &str) -> Response {
-        Self::message(msg, StatusCode::OK)
+        Self::message(msg, ResponseCode::Ok)
     }
 
     pub fn success_message(msg: &str) -> Response {
@@ -71,11 +79,11 @@ impl Responder {
     }
 
     pub fn bad_req_message(msg: &str) -> Response {
-        Self::message(msg, StatusCode::BAD_REQUEST)
+        Self::message(msg, ResponseCode::BadRequest)
     }
 
     pub fn not_found_message(msg: &str) -> Response {
-        Self::message(msg, StatusCode::NOT_FOUND)
+        Self::message(msg, ResponseCode::NotFound)
     }
 
     pub fn entity_not_found_message(entity: &str) -> Response {
@@ -84,7 +92,7 @@ impl Responder {
     }
 
     pub fn internal_server_error_message(msg: &str) -> Response {
-        Self::message(msg, StatusCode::INTERNAL_SERVER_ERROR)
+        Self::message(msg, ResponseCode::InternalServerError)
     }
 
     pub fn not_found() -> Response {
@@ -95,13 +103,15 @@ impl Responder {
         Self::internal_server_error_message("Internal Server Error")
     }
 
-    pub fn message(msg: &str, status: StatusCode) -> Response {
-        let message = match status.is_success() {
-            true => JsonMessage::success(json_empty(), Some(msg.to_owned()), status),
-            false => JsonMessage::failure(json_empty(), Some(msg.to_owned()), status),
-        };
+    pub fn message<C: ResponseCodeContract>(msg: &str, code: C) -> Response {
+        let message = JsonMessage::make(
+            json_empty(),
+            code.code(),
+            code.success(),
+            Some(msg.to_owned()),
+        );
 
-        Self::respond(message, status)
+        Self::respond(message, code.status())
     }
 
     /// Send a response without the standard response wrapper
@@ -158,33 +168,27 @@ mod tests {
     #[tokio::test]
     async fn test_ok() {
         let data = json!({"key": "value"});
-        let response = Responder::ok(data.clone(), "Success");
+        let response = Responder::send_msg(data.clone(), ResponseCode::Ok, "Success");
 
         assert_eq!(response.status(), StatusCode::OK);
         let resp_body = collect_raw_body(response).await;
         let body: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
-        assert_eq!(body["code"], 200);
+        assert_eq!(body["code"], "000");
         assert_eq!(body["success"], true);
-        assert_eq!(body["status"], "200 OK");
         assert_eq!(body["message"], "Success");
         assert_eq!(body["data"], data);
     }
 
     #[tokio::test]
-    async fn test_success() {
+    async fn test_created() {
         let data = json!({"key": "value"});
-        let response = Responder::success(
-            data.clone(),
-            Some("Success".to_string()),
-            StatusCode::CREATED,
-        );
+        let response = Responder::send_msg(data.clone(), ResponseCode::Created, "Success");
 
         assert_eq!(response.status(), StatusCode::CREATED);
         let resp_body = collect_raw_body(response).await;
         let body: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
-        assert_eq!(body["code"], 201);
+        assert_eq!(body["code"], "001");
         assert_eq!(body["success"], true);
-        assert_eq!(body["status"], "201 Created");
         assert_eq!(body["message"], "Success");
         assert_eq!(body["data"], data);
     }
@@ -192,48 +196,15 @@ mod tests {
     #[tokio::test]
     async fn test_failure() {
         let data = json!({"key": "value"});
-        let response = Responder::failure(
-            data.clone(),
-            Some("Failure".to_string()),
-            StatusCode::BAD_REQUEST,
-        );
-
-        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-        let resp_body = collect_raw_body(response).await;
-        let body: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
-        assert_eq!(body["code"], 400);
-        assert_eq!(body["success"], false);
-        assert_eq!(body["status"], "400 Bad Request");
-        assert_eq!(body["message"], "Failure");
-        assert_eq!(body["data"], data);
-    }
-
-    #[tokio::test]
-    async fn test_message_success() {
-        let response = Responder::message("User Created", StatusCode::CREATED);
-
-        assert_eq!(response.status(), StatusCode::CREATED);
-        let resp_body = collect_raw_body(response).await;
-        let body: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
-        assert_eq!(body["code"], 201);
-        assert_eq!(body["success"], true);
-        assert_eq!(body["status"], "201 Created");
-        assert_eq!(body["message"], "User Created");
-        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap()); // assuming `json_empty()` returns an empty object
-    }
-
-    #[tokio::test]
-    async fn test_message_failure() {
-        let response = Responder::message("Error Message", StatusCode::NOT_FOUND);
+        let response = Responder::send_msg(data.clone(), ResponseCode::NotFound, "Failure");
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
         let resp_body = collect_raw_body(response).await;
         let body: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
-        assert_eq!(body["code"], 404);
+        assert_eq!(body["code"], "008");
         assert_eq!(body["success"], false);
-        assert_eq!(body["status"], "404 Not Found");
-        assert_eq!(body["message"], "Error Message");
-        assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap()); // assuming `json_empty()` returns an empty object
+        assert_eq!(body["message"], "Failure");
+        assert_eq!(body["data"], data);
     }
 
     #[tokio::test]
@@ -260,9 +231,8 @@ mod tests {
         assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
         let resp_body = collect_raw_body(response).await;
         let body: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
-        assert_eq!(body["code"], 500);
+        assert_eq!(body["code"], "010");
         assert_eq!(body["success"], false);
-        assert_eq!(body["status"], "500 Internal Server Error");
         assert_eq!(body["message"], "Internal Server Error");
         assert_eq!(body["data"], serde_json::to_value(json_empty()).unwrap()); // assuming `json_empty()` returns an empty object
     }

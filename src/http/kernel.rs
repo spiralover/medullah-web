@@ -1,10 +1,10 @@
 use log::info;
-use ntex::http::{header, StatusCode};
+use ntex::http::header;
 use ntex::web::middleware::Logger;
 use ntex::web::ServiceConfig;
 use ntex::{web, web::Route as NtexRoute};
 use ntex_cors::Cors;
-
+use crate::enums::ResponseCode;
 use crate::helpers::responder::Responder;
 use crate::http::middlewares::Middleware;
 
@@ -92,7 +92,7 @@ pub fn setup_cors(origins: Vec<String>) -> Cors {
 
 pub fn ntex_default_service() -> NtexRoute {
     web::to(|| async {
-        Responder::message("Requested Resource(s) Not Found", StatusCode::NOT_FOUND)
+        Responder::message("Requested Resource(s) Not Found", ResponseCode::NotFound)
     })
 }
 

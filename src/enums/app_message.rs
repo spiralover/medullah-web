@@ -1,7 +1,11 @@
+use crate::contracts::ResponseCodeContract;
+use crate::enums::ResponseCode;
 #[cfg(feature = "reqwest")]
 use crate::helpers::reqwest::ReqwestResponseError;
 use crate::helpers::responder::Responder;
 use log::error;
+#[cfg(feature = "multipart")]
+use medullah_multipart::{ErrorMessage as MultipartErrorMessage, MultipartError};
 use ntex::http::error::BlockingError;
 use ntex::http::StatusCode;
 use ntex::web::{HttpRequest, WebResponseError};
@@ -222,7 +226,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
         #[cfg(feature = "jwt")]
         AppMessage::JwtError(message) => {
             log::error!("Jwt Error: {}", message);
-            Responder::message("invalid jwt token", StatusCode::UNAUTHORIZED)
+            Responder::message("invalid jwt token", ResponseCode::Unauthorized)
         }
         #[cfg(feature = "crypto")]
         AppMessage::ArgonError(message) => {
@@ -279,7 +283,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
         }
         AppMessage::SerdeError(message) => {
             log::error!("Serde Error: {:?}", message);
-            Responder::message(&message.to_string(), StatusCode::BAD_REQUEST)
+            Responder::message(&message.to_string(), ResponseCode::BadRequest)
         }
         AppMessage::SerdeError500(message) => {
             log::error!("Serde Error: {}", message);
@@ -313,38 +317,38 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
         }
         AppMessage::SuccessMessage(message) => Responder::ok_message(message),
         AppMessage::SuccessMessageString(message) => Responder::ok_message(message),
-        AppMessage::ErrorMessage(message, status) => Responder::message(message, *status),
+        AppMessage::ErrorMessage(message, status) => {
+            Responder::message(message, ResponseCode::from_status(*status))
+        }
         AppMessage::UnAuthorized => {
-            Responder::message(&message.message(), StatusCode::UNAUTHORIZED)
+            Responder::message(&message.message(), ResponseCode::Unauthorized)
         }
         AppMessage::UnAuthorizedMessage(message) => {
-            Responder::message(message, StatusCode::UNAUTHORIZED)
+            Responder::message(message, ResponseCode::Unauthorized)
         }
         AppMessage::UnAuthorizedMessageString(message) => {
-            Responder::message(message, StatusCode::UNAUTHORIZED)
+            Responder::message(message, ResponseCode::Unauthorized)
         }
-        AppMessage::Forbidden => Responder::message(&message.message(), StatusCode::FORBIDDEN),
-        AppMessage::ForbiddenMessage(message) => Responder::message(message, StatusCode::FORBIDDEN),
+        AppMessage::Forbidden => Responder::message(&message.message(), ResponseCode::Forbidden),
+        AppMessage::ForbiddenMessage(message) => {
+            Responder::message(message, ResponseCode::Forbidden)
+        }
         AppMessage::ForbiddenMessageString(message) => {
-            Responder::message(message, StatusCode::FORBIDDEN)
+            Responder::message(message, ResponseCode::Forbidden)
         }
         AppMessage::ChronoParseError(error) => {
             let message = error.to_string();
             log::error!("Failed To Parse DateTime: {}", message);
-            Responder::message(&message, StatusCode::BAD_REQUEST)
+            Responder::message(&message, ResponseCode::BadRequest)
         }
         #[cfg(feature = "validator")]
-        AppMessage::FormValidationError(e) => Responder::failure(
-            e,
-            Some(String::from("Validation Error")),
-            StatusCode::BAD_REQUEST,
-        ),
+        AppMessage::FormValidationError(e) => {
+            Responder::send_msg(e, ResponseCode::BadRequest, "Validation Error")
+        }
         #[cfg(feature = "multipart")]
-        AppMessage::MultipartError(e) => Responder::failure(
-            e.to_string(),
-            Some(String::from("Multipart Error")),
-            StatusCode::BAD_REQUEST,
-        ),
+        AppMessage::MultipartError(e) => {
+            Responder::send_msg(e.to_string(), ResponseCode::BadRequest, "File Upload Error")
+        }
         #[cfg(feature = "database")]
         AppMessage::DatabaseError(err) => match err {
             diesel::result::Error::NotFound => {
@@ -354,7 +358,7 @@ fn send_response(message: &AppMessage) -> ntex::web::HttpResponse {
                 error!("database error: {:?}", err);
                 match err {
                     diesel::result::DatabaseErrorKind::UniqueViolation => {
-                        Responder::message(&message.message(), StatusCode::CONFLICT)
+                        Responder::message(&message.message(), ResponseCode::BadRequest)
                     }
                     _ => Responder::internal_server_error(),
                 }
@@ -386,7 +390,14 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         | AppMessage::ChronoParseError(_) => StatusCode::BAD_REQUEST,
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
         #[cfg(feature = "multipart")]
-        AppMessage::MultipartError(_) => StatusCode::BAD_REQUEST,
+        AppMessage::MultipartError(err) => match err {
+            MultipartError::ValidationError(err) => match err.error {
+                MultipartErrorMessage::InvalidFileExtension(_)
+                | MultipartErrorMessage::InvalidContentType(_) => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                _ => StatusCode::BAD_REQUEST,
+            },
+            _ => StatusCode::BAD_REQUEST,
+        },
         #[cfg(feature = "database")]
         AppMessage::DatabaseError(DieselError::NotFound) => StatusCode::NOT_FOUND,
         #[cfg(feature = "database")]
