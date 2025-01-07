@@ -1,3 +1,5 @@
+use crate::contracts::ResponseCodeContract;
+use crate::enums::ResponseCode;
 use crate::http::response::defs::{NtexBlockingResultResponder, ResultResponse};
 use crate::prelude::IntoAppResult;
 use crate::prelude::{AppMessage, AppResult, HttpResult};
@@ -8,12 +10,16 @@ impl<T> NtexBlockingResultResponder for AppResult<T>
 where
     T: Sized + Serialize,
 {
-    fn respond(self) -> HttpResult {
-        self.send_result()
+    fn respond_code<C: ResponseCodeContract>(self, msg: &str, code: C) -> HttpResult {
+        self.send_result_msg(code, msg)
     }
 
-    fn respond_msg(self, suc: &str) -> HttpResult {
-        self.send_result_msg(suc)
+    fn respond_msg(self, msg: &str) -> HttpResult {
+        self.send_result_msg(ResponseCode::Ok, msg)
+    }
+
+    fn respond(self) -> HttpResult {
+        self.send_result(ResponseCode::Ok)
     }
 }
 
@@ -21,24 +27,65 @@ impl<T> NtexBlockingResultResponder for Result<T, BlockingError<AppMessage>>
 where
     T: Serialize + Sized,
 {
-    fn respond(self) -> HttpResult {
-        <Result<T, AppMessage> as ResultResponse>::send_result(self.into_app_result())
+    fn respond_code<C: ResponseCodeContract>(self, msg: &str, code: C) -> HttpResult {
+        <Result<T, AppMessage> as ResultResponse>::send_result_msg(
+            self.into_app_result(),
+            code,
+            msg,
+        )
     }
 
     fn respond_msg(self, msg: &str) -> HttpResult {
-        <Result<T, AppMessage> as ResultResponse>::send_result_msg(self.into_app_result(), msg)
+        <Result<T, AppMessage> as ResultResponse>::send_result_msg(
+            self.into_app_result(),
+            ResponseCode::Ok,
+            msg,
+        )
+    }
+
+    fn respond(self) -> HttpResult {
+        <Result<T, AppMessage> as ResultResponse>::send_result(
+            self.into_app_result(),
+            ResponseCode::Ok,
+        )
+    }
+}
+
+impl NtexBlockingResultResponder for Result<AppMessage, AppMessage> {
+    fn respond_code<C: ResponseCodeContract>(self, msg: &str, code: C) -> HttpResult {
+        self.send_result_msg(code.clone(), msg)
+    }
+
+    fn respond_msg(self, msg: &str) -> HttpResult {
+        self.send_result_msg(ResponseCode::Ok, msg)
+    }
+
+    fn respond(self) -> HttpResult {
+        self.send_result(ResponseCode::Ok)
     }
 }
 
 impl NtexBlockingResultResponder for Result<AppMessage, BlockingError<AppMessage>> {
-    fn respond(self) -> HttpResult {
-        <Result<AppMessage, AppMessage> as ResultResponse>::send_result(self.into_app_result())
+    fn respond_code<C: ResponseCodeContract>(self, msg: &str, code: C) -> HttpResult {
+        <Result<AppMessage, AppMessage> as ResultResponse>::send_result_msg(
+            self.into_app_result(),
+            code,
+            msg,
+        )
     }
 
     fn respond_msg(self, msg: &str) -> HttpResult {
         <Result<AppMessage, AppMessage> as ResultResponse>::send_result_msg(
             self.into_app_result(),
+            ResponseCode::Ok,
             msg,
+        )
+    }
+
+    fn respond(self) -> HttpResult {
+        <Result<AppMessage, AppMessage> as ResultResponse>::send_result(
+            self.into_app_result(),
+            ResponseCode::Ok,
         )
     }
 }
