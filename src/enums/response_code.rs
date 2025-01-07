@@ -14,6 +14,7 @@ pub enum ResponseCode {
     NotFound,
     Conflict,
     InternalServerError,
+    ServiceUnavailable,
 }
 
 impl ResponseCodeContract for ResponseCode {
@@ -30,6 +31,7 @@ impl ResponseCodeContract for ResponseCode {
             ResponseCode::NotFound => "008",
             ResponseCode::Conflict => "009",
             ResponseCode::InternalServerError => "010",
+            ResponseCode::ServiceUnavailable => "011",
         }
     }
 
@@ -46,6 +48,7 @@ impl ResponseCodeContract for ResponseCode {
             ResponseCode::NotFound => StatusCode::NOT_FOUND,
             ResponseCode::Conflict => StatusCode::CONFLICT,
             ResponseCode::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
+            ResponseCode::ServiceUnavailable => StatusCode::SERVICE_UNAVAILABLE,
         }
     }
 
@@ -62,6 +65,7 @@ impl ResponseCodeContract for ResponseCode {
             "008" => ResponseCode::NotFound,
             "009" => ResponseCode::Conflict,
             "010" => ResponseCode::InternalServerError,
+            "011" => ResponseCode::ServiceUnavailable,
             _ => panic!("Invalid response code"),
         }
     }
@@ -79,6 +83,7 @@ impl ResponseCodeContract for ResponseCode {
             StatusCode::NOT_FOUND => ResponseCode::NotFound,
             StatusCode::CONFLICT => ResponseCode::Conflict,
             StatusCode::INTERNAL_SERVER_ERROR => ResponseCode::InternalServerError,
+            StatusCode::SERVICE_UNAVAILABLE => ResponseCode::ServiceUnavailable,
             _ => panic!("Invalid status code"),
         }
     }
