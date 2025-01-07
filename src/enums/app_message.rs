@@ -4,6 +4,8 @@ use crate::enums::ResponseCode;
 use crate::helpers::reqwest::ReqwestResponseError;
 use crate::helpers::responder::Responder;
 use log::error;
+#[cfg(feature = "multipart")]
+use medullah_multipart::{ErrorMessage as MultipartErrorMessage, MultipartError};
 use ntex::http::error::BlockingError;
 use ntex::http::StatusCode;
 use ntex::web::{HttpRequest, WebResponseError};
@@ -388,7 +390,14 @@ fn get_status_code(status: &AppMessage) -> StatusCode {
         | AppMessage::ChronoParseError(_) => StatusCode::BAD_REQUEST,
         AppMessage::EntityNotFound(_msg) => StatusCode::NOT_FOUND,
         #[cfg(feature = "multipart")]
-        AppMessage::MultipartError(_) => StatusCode::BAD_REQUEST,
+        AppMessage::MultipartError(err) => match err {
+            MultipartError::ValidationError(err) => match err.error {
+                MultipartErrorMessage::InvalidFileExtension(_)
+                | MultipartErrorMessage::InvalidContentType(_) => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                _ => StatusCode::BAD_REQUEST,
+            },
+            _ => StatusCode::BAD_REQUEST,
+        },
         #[cfg(feature = "database")]
         AppMessage::DatabaseError(DieselError::NotFound) => StatusCode::NOT_FOUND,
         #[cfg(feature = "database")]
