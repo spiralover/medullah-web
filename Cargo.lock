@@ -796,7 +796,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfae6799b68a735270e4344ee3e834365f707c72da09c9a8bb89b45cc3351395"
 dependencies = [
  "deadpool",
- "redis 0.27.6",
+ "redis",
 ]
 
 [[package]]
@@ -1902,7 +1902,7 @@ dependencies = [
  "ntex-cors",
  "ntex-files",
  "r2d2",
- "redis 0.28.1",
+ "redis",
  "reqwest",
  "rust-argon2",
  "serde",
@@ -2830,32 +2830,12 @@ checksum = "09d8f99a4090c89cc489a94833c901ead69bfbf3877b4867d5482e321ee875bc"
 dependencies = [
  "arc-swap",
  "async-trait",
- "bytes",
- "combine",
- "futures-util",
- "itertools",
- "itoa",
- "num-bigint",
- "percent-encoding",
- "pin-project-lite",
- "ryu",
- "tokio",
- "tokio-util",
- "url",
-]
-
-[[package]]
-name = "redis"
-version = "0.28.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f89727cba9cec05cc579942321ff6dd09fe57a8b3217f52f952301efa010da5"
-dependencies = [
- "arc-swap",
  "backon",
  "bytes",
  "combine",
- "futures-channel",
+ "futures",
  "futures-util",
+ "itertools",
  "itoa",
  "native-tls",
  "num-bigint",
@@ -3583,9 +3563,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.42.0"
+version = "1.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cec9b21b0450273377fc97bd4c33a8acffc8c996c987a7c5b319a0083707551"
+checksum = "3d61fa4ffa3de412bfea335c6ecff681de2b609ba3c77ef3e00e521813a9ed9e"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3611,9 +3591,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "2.4.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "693d596312e88961bc67d7f1f97af8a70227d9f90c31bba5806eec004978d752"
+checksum = "6e06d43f1345a3bcd39f6a56dbb7dcab2ba47e68e8ac134855e7e2bdbaf8cab8"
 dependencies = [
  "proc-macro2",
  "quote",
