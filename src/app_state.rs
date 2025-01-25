@@ -6,6 +6,7 @@ use std::sync::Arc;
 use crate::helpers::jwt::Jwt;
 #[cfg(feature = "crypto")]
 use crate::helpers::password::Password;
+use crate::http::Method;
 #[cfg(feature = "rabbitmq")]
 use crate::rabbitmq::RabbitMQ;
 #[cfg(feature = "redis")]
@@ -16,7 +17,6 @@ use crate::services::cache_service::CacheService;
 use redis::Client as RedisClient;
 #[cfg(feature = "templating")]
 use tera::{Context, Tera};
-use crate::http::Method;
 
 #[derive(Clone)]
 pub struct MedullahState {

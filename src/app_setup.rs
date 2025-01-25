@@ -12,6 +12,7 @@ use crate::database::DBPool;
 use crate::helpers::jwt::Jwt;
 #[cfg(feature = "crypto")]
 use crate::helpers::password::Password;
+use crate::http::Method;
 #[cfg(feature = "rabbitmq")]
 use crate::prelude::RabbitMQ;
 #[cfg(feature = "redis")]
@@ -32,7 +33,6 @@ use diesel::PgConnection;
 use log::info;
 #[cfg(feature = "templating")]
 use tera::Tera;
-use crate::http::Method;
 
 pub struct MedullahSetup {
     pub env_prefix: String,
