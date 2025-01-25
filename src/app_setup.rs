@@ -32,6 +32,7 @@ use diesel::PgConnection;
 use log::info;
 #[cfg(feature = "templating")]
 use tera::Tera;
+use crate::http::Method;
 
 pub struct MedullahSetup {
     pub env_prefix: String,
@@ -39,6 +40,7 @@ pub struct MedullahSetup {
     pub public_key: String,
     pub auth_iss_public_key: String,
     pub allowed_origins: Vec<String>,
+    pub allowed_methods: Vec<Method>,
 }
 
 pub async fn make_app_state(setup: MedullahSetup) -> MedullahState {
@@ -124,6 +126,7 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
             .unwrap(),
 
         allowed_origins: setup.allowed_origins,
+        allowed_methods: setup.allowed_methods,
 
         #[cfg(feature = "mailer")]
         mailer_config: make_mailer_config(&env_prefix),
