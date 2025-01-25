@@ -8,6 +8,7 @@ use crate::app_setup::{
 };
 use crate::env_logger::init_env_logger;
 use crate::http::kernel::{ntex_default_service, register_routes, setup_cors, setup_logger, Route};
+use crate::http::Method;
 use crate::prelude::{AppResult, MedullahState};
 
 pub struct ServerConfig<TB>
@@ -26,8 +27,11 @@ where
     /// whether the app bootstrap has started
     pub has_started_bootstrap: bool,
 
-    /// list of comma-separated allowed origins
+    /// list of allowed CORS origins
     pub allowed_origins: Vec<String>,
+
+    /// list of allowed CORS origins
+    pub allowed_methods: Vec<Method>,
 
     pub boot_thread: TB,
 }
@@ -63,6 +67,7 @@ where
         env_prefix: config.env_prefix.clone(),
         auth_iss_public_key: config.auth_iss_public_key,
         allowed_origins: config.allowed_origins,
+        allowed_methods: config.allowed_methods,
     })
     .await;
 
@@ -83,7 +88,13 @@ where
             .state(app_state.clone())
             .configure(|cfg| register_routes(cfg, routes))
             .wrap(setup_logger())
-            .wrap(setup_cors(app_state.allowed_origins.clone()).finish())
+            .wrap(
+                setup_cors(
+                    app_state.allowed_origins.clone(),
+                    app_state.allowed_methods.clone(),
+                )
+                .finish(),
+            )
             .default_service(ntex_default_service());
 
         if cfg!(feature = "static") {

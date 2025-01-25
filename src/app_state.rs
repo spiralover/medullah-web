@@ -16,6 +16,7 @@ use crate::services::cache_service::CacheService;
 use redis::Client as RedisClient;
 #[cfg(feature = "templating")]
 use tera::{Context, Tera};
+use crate::http::Method;
 
 #[derive(Clone)]
 pub struct MedullahState {
@@ -59,8 +60,11 @@ pub struct MedullahState {
     #[cfg(feature = "jwt")]
     pub auth_iss_public_key: String,
 
-    /// list of comma-separated allowed origins
+    /// list of allowed origins
     pub allowed_origins: Vec<String>,
+
+    /// list of allowed methods
+    pub allowed_methods: Vec<Method>,
 
     #[cfg(feature = "mailer")]
     pub mailer_config: AppMailerConfig,

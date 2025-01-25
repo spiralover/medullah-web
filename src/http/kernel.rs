@@ -1,6 +1,7 @@
 use crate::enums::ResponseCode;
 use crate::helpers::responder::Responder;
 use crate::http::middlewares::Middleware;
+use crate::http::Method;
 use log::info;
 use ntex::http::header;
 use ntex::web::middleware::Logger;
@@ -69,8 +70,8 @@ pub fn setup_logger() -> Logger {
         .exclude("/system/docker-health-check")
 }
 
-pub fn setup_cors(origins: Vec<String>) -> Cors {
-    let mut cors = Cors::new();
+pub fn setup_cors(origins: Vec<String>, methods: Vec<Method>) -> Cors {
+    let mut cors = Cors::new().send_wildcard();
 
     for origin in origins {
         info!("registering cors origin: {origin}...");
@@ -84,7 +85,19 @@ pub fn setup_cors(origins: Vec<String>) -> Cors {
         cors = cors.allowed_origin(origin.as_str());
     }
 
-    cors.allowed_methods(vec!["GET", "POST", "PUT", "PATCH", "DELETE"])
+    let allowed_methods = match methods.is_empty() {
+        false => methods,
+        true => vec![
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::PATCH,
+            Method::DELETE,
+            Method::OPTIONS,
+        ],
+    };
+
+    cors.allowed_methods(allowed_methods)
         .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
         .allowed_header(header::CONTENT_TYPE)
         .max_age(3600)
