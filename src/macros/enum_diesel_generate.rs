@@ -1,14 +1,14 @@
 #[macro_export]
 macro_rules! generate_diesel_enum {
     // The macro takes the enum name and its variants as input
-    ($enum_name:ident { $($variant_name:ident),* }) => {
+    ($enum_name:ident { $($variant_name:ident $( ($variant_type:ty) )? ),* $(,)? }) => {
         // Conditional derive attributes for the database feature
         #[derive(diesel::AsExpression, diesel::FromSqlRow, strum_macros::EnumString, strum_macros::Display, Clone, Eq, PartialEq)]
         #[diesel(sql_type = diesel::sql_types::Text)]
         #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
         pub enum $enum_name {
             $(
-                $variant_name,  // Add each variant to the enum
+                $variant_name $( ($variant_type) )?,
             )*
         }
 
@@ -23,7 +23,7 @@ macro_rules! generate_diesel_enum {
 #[macro_export]
 macro_rules! generate_diesel_enum_with_optional_features {
     // The macro accepts a feature name, enum name, and its variants as input
-    ($feature:literal, $enum_name:ident { $($variant_name:ident),* }) => {
+    ($feature:literal, $enum_name:ident { $($variant_name:ident $( ($variant_type:ty) )? ),* $(,)? }) => {
         // Conditional derive attributes based on the feature passed
         #[cfg_attr(feature = $feature, derive(diesel::AsExpression, diesel::FromSqlRow))]
         #[cfg_attr(feature = $feature, diesel(sql_type = diesel::sql_types::Text))]
@@ -31,14 +31,14 @@ macro_rules! generate_diesel_enum_with_optional_features {
         #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
         pub enum $enum_name {
             $(
-                $variant_name,  // Add each variant to the enum
+                $variant_name $( ($variant_type) )?,
             )*
         }
 
         // Implement common traits for the enum
         medullah_web::impl_enum_common_traits!($enum_name);
 
-        // Optionally, if the database feature is enabled, implement additional database traits
+        // Optionally, if the database feature is enabled, implement additional Diesel traits
         #[cfg(feature = $feature)]
         medullah_web::impl_enum_diesel_traits!($enum_name);
     };
