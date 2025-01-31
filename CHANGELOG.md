@@ -1,6 +1,10 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.30.0 (2025-01-31)
+* feat(enum): tuple variants support
+* bump(ntex): to version 2.11.0
+
 ## 0.29.1 (2025-01-31)
 * feat(rabbitmq): ensure connection is usable
 
