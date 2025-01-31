@@ -1,6 +1,61 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.29.1 (2025-01-31)
+* feat(rabbitmq): ensure connection is usable
+
+## 0.28.0 (2024-12-8)
+* refactor(regex): introduce case-sensitivity
+* feat(http): expose allowed methods
+
+## 0.27.0 (2024-12-21)
+* refactor(responder): introduce "response code" mechanism, user can provide it dynamically
+
+## 0.25.0 (2024-12-30)
+* refactor(multipart): remove re-export of multipart crate 
+
+## 0.24.0 (2024-12-30)
+* fix(cargo): remove unused "spiral" registry
+* fix(once-lock): remove unneeded lifetime
+* fix(log): use default logger
+* fix(auth): bind auth props with "jwt" feature
+* feat(anyhow): support error type
+* feat(responder): expose Responder::respond() method send response 
+* feat(multipart): native multipart support
+* bump(multipart): allow minor auto-update package
+
+## 0.22.3 (2024-12-04)
+* refactor(server): collect cors origins from server config
+
+## 0.22.3 (2024-11-24)
+* feat(strum): optional feature to handle strum conversion error
+
+## 0.22.2 (2024-11-24)
+* deps: cleanup unused dependencies
+
+## 0.22.1 (2024-11-18)
+* refactor(enum): use "snake_case" instead of "SCREAMING_SNAKE_CASE"
+* refactor(enum): use "SCREAMING_SNAKE_CASE" instead of "snake_case"
+* feat(regex): introduced regex struct with enum that comes up with pre…
+* refactor/app
+* feat(regex): add "Alphabetic" regex by
+
+## 0.21.5 (2024-11-09)
+* refactor(enum): generation macro should be diesel-dependant
+* refactor(enum): separate diesel enum generator with regular enum gene
+* refactor(enum): separate diesel enum generator with feature with whic
+
+## 0.21.2 (2024-11-09)
+~~* Refactor/app
+* fix(enum): enum generator should be exported
+* fix(enum): database feature should be "feat-database"~~
+
+## 0.21.0 (2024-11-09)
+* feat(macros): diesel enum & common enum traits
+
+## 0.20.9 (2024-11-08)
+* bump(crates): to their respective latest versions
+
 ## 0.20.8 (2024-10-03)
 * feat(rabbitmq): expose `lapin::types::ReplyCode` to ease the `close` method
 
