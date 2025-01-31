@@ -186,7 +186,30 @@ impl RabbitMQ {
         F: Fn(Message) -> Fut + Send + Copy + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
-        info!("subscribing to {}...", queue);
+        info!("subscribing to '{}'...", queue);
+        loop {
+            match self.start_consume(queue, tag, func).await {
+                Ok(_) => {
+                    info!("Consumer {} stopped normally", tag);
+                    break;
+                }
+                Err(err) => {
+                    error!(
+                        "Consumer {} encountered an error: {:?}, restarting...",
+                        tag, err
+                    );
+                    sleep(Self::RETRY_DELAY).await;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    async fn start_consume<F, Fut>(&mut self, queue: &str, tag: &str, func: F) -> AppResult<()>
+    where
+        F: Fn(Message) -> Fut + Send + Copy + 'static,
+        Fut: Future<Output = AppResult<()>> + Send + 'static,
+    {
         self.ensure_channel_is_usable(false).await?;
 
         let mut consumer = self
@@ -201,10 +224,10 @@ impl RabbitMQ {
 
         let instance = self.clone();
         while let Some(result) = consumer.next().await {
-            let consumer_tag = tag.to_owned();
-
             if let Ok(delivery) = result {
                 let mut instance = instance.clone();
+                let consumer_tag = tag.to_owned();
+
                 let handler = async move {
                     let delivery_tag = delivery.delivery_tag;
                     match func(Message::new(delivery)).await {
@@ -304,17 +327,17 @@ impl RabbitMQ {
                 false => &self.consume_channel,
             };
 
+            // Check if the connection is still valid before checking the channel
+            let connection = self.conn_pool.get().await;
+            if connection.is_err() {
+                warn!("Lost connection to RabbitMQ, attempting to reconnect...");
+                self.recreate_connection().await?;
+                continue;
+            }
+
             match channel.status().state() {
-                ChannelState::Closed => {
-                    warn!("channel is closed, reconnecting...");
-                    self.recreate_channel(is_publish_channel).await?;
-                }
-                ChannelState::Closing => {
-                    warn!("channel is closing, reconnecting...");
-                    self.recreate_channel(is_publish_channel).await?;
-                }
-                ChannelState::Error => {
-                    warn!("channel is in error state, reconnecting...");
+                ChannelState::Closed | ChannelState::Closing | ChannelState::Error => {
+                    warn!("Channel is not usable, recreating...");
                     self.recreate_channel(is_publish_channel).await?;
                 }
                 _ => break,
@@ -345,5 +368,40 @@ impl RabbitMQ {
         }
 
         Ok(())
+    }
+
+    async fn recreate_connection(&mut self) -> AppResult<()> {
+        if !self.can_reconnect {
+            return Err(AppMessage::RabbitmqError(
+                lapin::Error::InvalidConnectionState(ConnectionState::Closed),
+            ));
+        }
+
+        let mut delay = Duration::from_secs(1);
+        for attempt in 1..=5 {
+            match self.conn_pool.get().await {
+                Ok(connection) => {
+                    self.publish_channel = connection.create_channel().await?;
+                    self.consume_channel = connection.create_channel().await?;
+                    info!(
+                        "Reconnected to RabbitMQ successfully on attempt {}",
+                        attempt
+                    );
+                    return Ok(());
+                }
+                Err(err) => {
+                    warn!(
+                        "Failed to reconnect to RabbitMQ (attempt {}): {}",
+                        attempt, err
+                    );
+                    sleep(delay).await;
+                    delay = delay.saturating_mul(2); // Exponential backoff
+                }
+            }
+        }
+
+        Err(AppMessage::RabbitmqError(
+            lapin::Error::InvalidConnectionState(ConnectionState::Closed),
+        ))
     }
 }
