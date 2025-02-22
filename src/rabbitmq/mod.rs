@@ -34,6 +34,16 @@ pub struct RabbitMQ {
     requeue_on_failure: bool,
     /// whether the handler should be executed in the background (asynchronously) or not.
     execute_handler_asynchronously: bool,
+    /// max reconnection attempts, defaults to 1,000,000
+    max_reconnection_attempts: usize,
+    /// max reconnection delay, defaults to 1 second
+    max_reconnection_delay: Duration,
+    /// default publish options
+    default_publish_options: BasicPublishOptions,
+    /// default publish properties
+    default_publish_props: BasicProperties,
+    /// default consume options
+    default_consume_options: BasicConsumeOptions,
 }
 
 #[derive(Default)]
@@ -78,14 +88,20 @@ impl RabbitMQ {
         let connection = pool.get().await?;
         let publish_channel = connection.create_channel().await?;
         let consume_channel = connection.create_channel().await?;
+
         Ok(Self {
             conn_pool: pool,
             publish_channel,
             consume_channel,
             can_reconnect: true,
+            max_reconnection_attempts: 1_000_000,
+            max_reconnection_delay: Duration::from_secs(1),
             nack_on_failure: opt.nack_on_failure,
             requeue_on_failure: opt.requeue_on_failure,
             execute_handler_asynchronously: opt.execute_handler_asynchronously,
+            default_publish_options: BasicPublishOptions::default(),
+            default_publish_props: BasicProperties::default(),
+            default_consume_options: BasicConsumeOptions::default(),
         })
     }
 
@@ -125,11 +141,16 @@ impl RabbitMQ {
         Ok(())
     }
 
-    pub async fn declare_queue(&mut self, queue: &str) -> AppResult<()> {
+    pub async fn declare_queue(
+        &mut self,
+        queue: &str,
+        options: QueueDeclareOptions,
+        args: FieldTable,
+    ) -> AppResult<()> {
         self.ensure_channel_is_usable(true).await?;
 
         self.publish_channel
-            .queue_declare(queue, QueueDeclareOptions::default(), FieldTable::default())
+            .queue_declare(queue, options, args)
             .await?;
 
         Ok(())
@@ -140,17 +161,13 @@ impl RabbitMQ {
         queue: &str,
         exchange: &str,
         routing_key: R,
+        options: QueueBindOptions,
+        args: FieldTable,
     ) -> AppResult<()> {
         self.ensure_channel_is_usable(true).await?;
 
         self.publish_channel
-            .queue_bind(
-                queue,
-                exchange,
-                &routing_key.to_string(),
-                QueueBindOptions::default(),
-                FieldTable::default(),
-            )
+            .queue_bind(queue, exchange, &routing_key.to_string(), options, args)
             .await?;
 
         Ok(())
@@ -172,9 +189,9 @@ impl RabbitMQ {
             .basic_publish(
                 &exchange.to_string(),
                 &routing_key.to_string(),
-                BasicPublishOptions::default(),
+                self.default_publish_options,
                 payload,
-                BasicProperties::default(),
+                self.default_publish_props.clone(),
             )
             .await?;
 
@@ -217,7 +234,7 @@ impl RabbitMQ {
             .basic_consume(
                 queue,
                 tag,
-                BasicConsumeOptions::default(),
+                self.default_consume_options,
                 FieldTable::default(),
             )
             .await?;
@@ -377,8 +394,9 @@ impl RabbitMQ {
             ));
         }
 
-        let mut delay = Duration::from_secs(1);
-        for attempt in 1..=5 {
+        let mut delay = self.max_reconnection_delay;
+        for attempt in 1..=self.max_reconnection_attempts {
+            info!("Attempting to reconnect to RabbitMQ, attempt {attempt}...");
             match self.conn_pool.get().await {
                 Ok(connection) => {
                     self.publish_channel = connection.create_channel().await?;
