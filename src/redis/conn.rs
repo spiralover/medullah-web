@@ -3,7 +3,7 @@ use std::env;
 use deadpool_redis::{Manager, Pool};
 use redis::Client;
 
-pub fn establish_redis_connection(env_prefix: &String) -> Client {
+pub fn establish_redis_connection(env_prefix: &str) -> Client {
     let redis_url: String = env::var(format!("{}_REDIS_DSN", env_prefix)).unwrap();
     Client::open(redis_url).unwrap()
 }

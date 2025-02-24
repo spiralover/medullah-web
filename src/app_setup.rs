@@ -18,11 +18,9 @@ use crate::prelude::RabbitMQ;
 #[cfg(feature = "redis")]
 use crate::prelude::Redis;
 #[cfg(feature = "rabbitmq")]
-use crate::rabbitmq::conn::establish_rabbit_connection;
-#[cfg(feature = "rabbitmq")]
 use crate::rabbitmq::conn::establish_rabbit_connection_pool;
 #[cfg(feature = "redis")]
-use crate::redis::conn::{establish_redis_connection, establish_redis_connection_pool};
+use crate::redis::conn::establish_redis_connection_pool;
 #[cfg(feature = "redis")]
 use crate::services::cache_service::CacheService;
 use crate::MEDULLAH;
@@ -59,16 +57,11 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
     let database_pool = establish_database_connection(&env_prefix);
 
     #[cfg(feature = "redis")]
-    let redis_client = establish_redis_connection(&env_prefix);
-    #[cfg(feature = "redis")]
     let redis_pool = establish_redis_connection_pool(&env_prefix);
     #[cfg(feature = "redis")]
     let redis = Arc::new(Redis::new(redis_pool.clone()));
 
     // RabbitMQ
-    #[cfg(feature = "rabbitmq")]
-    let rabbit_client = Arc::new(establish_rabbit_connection(&env_prefix).await);
-
     #[cfg(feature = "rabbitmq")]
     let rabbitmq_pool = establish_rabbit_connection_pool(&env_prefix).await;
 
@@ -99,13 +92,9 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
         app_key: env::var(format!("{}_APP_KEY", env_prefix)).unwrap(),
 
         #[cfg(feature = "redis")]
-        redis_client: Arc::new(redis_client),
-        #[cfg(feature = "redis")]
         redis_pool,
         #[cfg(feature = "redis")]
         redis: redis.clone(),
-        #[cfg(feature = "rabbitmq")]
-        rabbitmq_client: rabbit_client.clone(),
         #[cfg(feature = "rabbitmq")]
         rabbitmq_pool,
         #[cfg(feature = "rabbitmq")]
@@ -135,6 +124,8 @@ async fn create_app_state(setup: MedullahSetup) -> MedullahState {
             #[cfg(feature = "redis")]
             cache: Arc::new(CacheService::new(redis)),
         },
+
+        app_env_prefix: env_prefix,
     }
 }
 
