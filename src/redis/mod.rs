@@ -1,4 +1,5 @@
 use crate::prelude::{AppMessage, AppResult, OnceLockHelper};
+use crate::redis::conn::establish_redis_connection;
 use crate::results::redis_result::RedisResultToAppResult;
 use crate::MEDULLAH;
 use futures_util::StreamExt;
@@ -10,7 +11,6 @@ use std::num::{NonZeroU64, NonZeroUsize};
 use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio::time;
-use crate::redis::conn::establish_redis_connection;
 
 pub mod conn;
 
