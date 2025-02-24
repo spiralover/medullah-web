@@ -13,8 +13,6 @@ use crate::rabbitmq::RabbitMQ;
 use crate::redis::Redis;
 #[cfg(feature = "redis")]
 use crate::services::cache_service::CacheService;
-#[cfg(feature = "redis")]
-use redis::Client as RedisClient;
 #[cfg(feature = "templating")]
 use tera::{Context, Tera};
 
@@ -29,18 +27,15 @@ pub struct MedullahState {
     pub app_key: String,
     pub app_private_key: String,
     pub app_public_key: String,
+    pub app_env_prefix: String,
 
     #[cfg(feature = "templating")]
     pub(crate) tera: Tera,
 
     #[cfg(feature = "redis")]
-    pub(crate) redis_client: Arc<RedisClient>,
-    #[cfg(feature = "redis")]
     pub(crate) redis_pool: deadpool_redis::Pool,
     #[cfg(feature = "redis")]
     pub(crate) redis: Arc<Redis>,
-    #[cfg(feature = "rabbitmq")]
-    pub rabbitmq_client: Arc<lapin::Connection>,
     #[cfg(feature = "rabbitmq")]
     pub rabbitmq_pool: deadpool_lapin::Pool,
     #[cfg(feature = "rabbitmq")]
@@ -111,7 +106,7 @@ impl MedullahState {
 
     #[cfg(feature = "rabbitmq")]
     pub fn rabbitmq(&self) -> Arc<tokio::sync::Mutex<RabbitMQ>> {
-        Arc::clone(&self.rabbitmq)
+        self.rabbitmq.clone()
     }
 
     pub fn title(&self, text: &str) -> String {

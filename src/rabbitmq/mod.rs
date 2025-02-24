@@ -352,9 +352,10 @@ impl RabbitMQ {
                 continue;
             }
 
-            match channel.status().state() {
+            let state = channel.status().state();
+            match state {
                 ChannelState::Closed | ChannelState::Closing | ChannelState::Error => {
-                    warn!("Channel is not usable, recreating...");
+                    warn!("Channel is not usable: {state:?}, recreating...");
                     self.recreate_channel(is_publish_channel).await?;
                 }
                 _ => break,
@@ -365,30 +366,49 @@ impl RabbitMQ {
     }
 
     async fn recreate_channel(&mut self, is_publish_channel: bool) -> AppResult<()> {
+        info!("Recreating unusable channel...");
+
         if !self.can_reconnect {
+            warn!("Cannot reconnect, channel recreation aborted");
             return Err(AppMessage::RabbitmqError(
                 lapin::Error::InvalidConnectionState(ConnectionState::Closed),
             ));
         }
 
         let connection = self.conn_pool.get().await?;
+        let state = connection.status().state();
+
+        if state != ConnectionState::Connected {
+            warn!("Connection is not usable: {state:?}, attempting to re-establish...");
+            self.recreate_connection().await?;
+        }
 
         sleep(Self::RETRY_DELAY).await;
 
-        match is_publish_channel {
-            true => {
-                self.publish_channel = connection.create_channel().await?;
-            }
-            false => {
-                self.consume_channel = connection.create_channel().await?;
-            }
+        info!("Performing channel recreation...");
+        let result = match is_publish_channel {
+            true => connection.create_channel().await,
+            false => connection.create_channel().await,
+        };
+
+        if result.is_err() {
+            warn!("Failed to recreate channel, attempting to re-establish connection...");
+            self.recreate_connection().await?;
         }
+
+        match is_publish_channel {
+            true => self.publish_channel = connection.create_channel().await?,
+            false => self.consume_channel = connection.create_channel().await?,
+        };
+
+        info!("Channel recreation completed ✔");
 
         Ok(())
     }
 
     async fn recreate_connection(&mut self) -> AppResult<()> {
         if !self.can_reconnect {
+            warn!("Cannot reconnect, re-establishing connection aborted");
             return Err(AppMessage::RabbitmqError(
                 lapin::Error::InvalidConnectionState(ConnectionState::Closed),
             ));
@@ -418,6 +438,7 @@ impl RabbitMQ {
             }
         }
 
+        error!("Max reconnection attempts reached, giving up");
         Err(AppMessage::RabbitmqError(
             lapin::Error::InvalidConnectionState(ConnectionState::Closed),
         ))

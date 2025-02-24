@@ -10,6 +10,7 @@ use std::num::{NonZeroU64, NonZeroUsize};
 use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio::time;
+use crate::redis::conn::establish_redis_connection;
 
 pub mod conn;
 
@@ -191,12 +192,15 @@ impl Redis {
     }
 
     /// Subscribes to a Redis channel and executes `func` on each message received
+    ///
+    /// **Note:** this method will establish new redis connection
     pub async fn subscribe<F, Fut>(channel: String, mut func: F) -> AppResult<()>
     where
         F: FnMut(AppResult<String>) -> Fut + Copy + Send + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
-        let mut pubsub = MEDULLAH.redis_client().get_async_pubsub().await?;
+        let client = establish_redis_connection(&MEDULLAH.app().app_env_prefix);
+        let mut pubsub = client.get_async_pubsub().await?;
         info!("[subscriber] subscribing to: {}", channel);
 
         pubsub.subscribe(&[channel.clone()]).await?;
