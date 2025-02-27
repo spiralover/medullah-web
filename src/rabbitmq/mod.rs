@@ -347,6 +347,27 @@ impl RabbitMQ {
         })
     }
 
+    /// Consume a queue forever, restarting if it fails.
+    /// This method will run in detached mode :)
+    pub async fn consume_forever_detached<F, Fut>(
+        &self,
+        queue: &str,
+        tag: &str,
+        func: F,
+    ) -> JoinHandle<AppResult<()>>
+    where
+        F: Fn(Message) -> Fut + Copy + Send + Sync + 'static,
+        Fut: Future<Output = AppResult<()>> + Send + 'static,
+    {
+        let tag = tag.to_owned();
+        let queue = queue.to_owned();
+        let instance = self.clone();
+        Handle::current().spawn(async move {
+            let mut instance = instance.clone();
+            instance.consume_forever(&queue, &tag, func).await
+        })
+    }
+
     pub async fn ack(&mut self, delivery_tag: u64) -> AppResult<()> {
         self.ensure_channel_is_usable(false).await?;
 
