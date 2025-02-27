@@ -2,7 +2,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-pub use jsonwebtoken::{Validation, Algorithm};
+pub use jsonwebtoken::{Algorithm, Validation};
 
 use crate::prelude::AppResult;
 
