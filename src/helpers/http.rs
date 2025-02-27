@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use ntex::http::header;
 use ntex::web::types::Query;
@@ -9,16 +10,58 @@ use crate::enums::app_message::AppMessage;
 
 pub type TheQueryParams = Query<QueryParams>;
 
+/// Represents common query parameters used for filtering, pagination, and sorting in API requests.
 #[derive(Deserialize, Clone, Default)]
 pub struct QueryParams {
+    /// Search term for filtering results based on relevant text.
+    ///
+    /// Example: `?search=example`
     pub search: Option<String>,
+
+    /// The maximum number of results to return.
+    ///
+    /// Example: `?limit=50`
     pub limit: Option<i64>,
+
+    /// The current page number for paginated results.
+    ///
+    /// Example: `?page=2`
     pub page: Option<i64>,
+
+    /// Number of results per page.
+    ///
+    /// Example: `?per_page=20`
     pub per_page: Option<i64>,
+
+    /// Filter results based on their status.
+    ///
+    /// Example: `?status=active`
     pub status: Option<String>,
+
+    /// Filter results based on their stage in a process or workflow.
+    ///
+    /// Example: `?stage=pending`
     pub stage: Option<String>,
-    pub network_id: Option<Uuid>,
-    pub category_id: Option<Uuid>,
+
+    /// Specifies the column to be used for sorting the results.
+    ///
+    /// Example: `?order_col=created_at`
+    pub order_col: Option<String>,
+
+    /// Specifies the sorting direction: `asc` (ascending) or `desc` (descending).
+    ///
+    /// Example: `?order_dir=desc`
+    pub order_dir: Option<String>,
+
+    /// Filters results by a start date (inclusive). Expected format: `YYYY-MM-DD`.
+    ///
+    /// Example: `?start_date=2024-01-01`
+    pub start_date: Option<NaiveDate>,
+
+    /// Filters results by an end date (inclusive). Expected format: `YYYY-MM-DD`.
+    ///
+    /// Example: `?end_date=2024-12-31`
+    pub end_date: Option<NaiveDate>,
 }
 
 #[derive(Deserialize)]
@@ -52,11 +95,7 @@ impl QueryParams {
     }
 
     pub fn limit(&self) -> i64 {
-        let limit = self.limit.unwrap_or(10);
-        match limit > 50 {
-            true => 50,
-            false => limit,
-        }
+        self.limit.unwrap_or(10).min(150)
     }
 
     pub fn curr_page(&self) -> i64 {
@@ -64,11 +103,7 @@ impl QueryParams {
     }
 
     pub fn per_page(&self) -> i64 {
-        let limit = self.per_page.unwrap_or(10);
-        match limit > 50 {
-            true => 50,
-            false => limit,
-        }
+        self.per_page.unwrap_or(10).min(150)
     }
 }
 
