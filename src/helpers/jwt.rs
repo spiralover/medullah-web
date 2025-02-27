@@ -1,8 +1,8 @@
-use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
-};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+
+pub use jsonwebtoken::{Validation, Algorithm};
 
 use crate::prelude::AppResult;
 
@@ -93,7 +93,7 @@ impl Jwt {
     ///     iat: 0,
     ///     exp: 0,
     ///     iss: "".to_string(),
-    ///     aud: "".to_string(),
+    ///     aud: "my-audience".to_string(),
     ///     jti: "abc".to_string(),
     /// };
     /// let token = jwt.generate(claims).unwrap();
@@ -118,29 +118,34 @@ impl Jwt {
     /// # Arguments
     ///
     /// * `token`:
+    /// * `val`: Validation, something like `Validation::new(Algorithm::RS256)`
     ///
     /// returns: Result<TokenData<C>, AppMessage>
     ///
     /// # Examples
     ///
     /// ```
-    /// use medullah_web::helpers::jwt::Jwt;
-    /// use medullah_web::helpers::jwt::JwtTokenClaims;
+    /// use medullah_web::helpers::jwt::{Jwt, Validation, JwtTokenClaims, Algorithm};
     ///
     /// let private_key = "private_key".to_string();
     /// let public_key = "public_key".to_string();
     /// let jwt = Jwt::new(public_key, private_key, 60);
     ///
     /// let token = "my-jwt-token";
-    /// let claims = jwt.decode::<JwtTokenClaims>(&token).unwrap();
+    /// let val = Validation::new(Algorithm::RS256);
+    /// let claims = jwt.decode::<JwtTokenClaims>(&token, &val).unwrap();
     ///
     /// println!("Token Payload: {}", claims.claims.sub);
     /// ```
-    pub fn decode<C: DeserializeOwned>(&self, token: &str) -> AppResult<TokenData<C>> {
+    pub fn decode<C: DeserializeOwned>(
+        &self,
+        token: &str,
+        val: &Validation,
+    ) -> AppResult<TokenData<C>> {
         Ok(decode::<C>(
             token,
             &DecodingKey::from_rsa_pem(self.public_key.as_ref())?,
-            &Validation::new(Algorithm::RS256),
+            val,
         )?)
     }
 }
@@ -245,7 +250,9 @@ eTkx3HO0Z4DJuTLqgAtKDr/+CWhE+ROQQQIDAQAB
 
         let generated_token = jwt.generate(claims.clone()).unwrap();
 
-        let decoded = jwt.decode::<JwtTokenClaims>(&generated_token.access_token);
+        let mut validation = Validation::new(Algorithm::RS256);
+        validation.set_audience(&["test_audience"]);
+        let decoded = jwt.decode::<JwtTokenClaims>(&generated_token.access_token, &validation);
 
         assert!(decoded.is_ok());
         let decoded_claims = decoded.unwrap().claims;
@@ -262,7 +269,8 @@ eTkx3HO0Z4DJuTLqgAtKDr/+CWhE+ROQQQIDAQAB
 
         let invalid_token = "invalid_token";
 
-        let result = jwt.decode::<JwtTokenClaims>(invalid_token);
+        let result =
+            jwt.decode::<JwtTokenClaims>(invalid_token, &Validation::new(Algorithm::RS256));
 
         assert!(result.is_err());
         // assert_eq!(result.unwrap_err(), &ErrorKind::InvalidToken);
