@@ -1,8 +1,7 @@
-use crate::helpers::http::get_ip_and_ua;
+use crate::helpers::request::RequestHelper;
+use crate::prelude::AppMessage;
 use ntex::http::Payload;
 use ntex::web::{FromRequest, HttpRequest};
-
-use crate::prelude::AppMessage;
 
 pub struct ClientInfo {
     pub ip: Option<String>,
@@ -19,11 +18,9 @@ impl<Err> FromRequest<Err> for ClientInfo {
     type Error = AppMessage;
 
     async fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Result<Self, Self::Error> {
-        let (ip_address, user_agent) = get_ip_and_ua(req);
-
         Ok(ClientInfo {
-            ip: ip_address,
-            ua: user_agent,
+            ip: req.ip(),
+            ua: req.user_agent(),
         })
     }
 }
