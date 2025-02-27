@@ -1,7 +1,7 @@
 # Medullah Changelog
 medullah-web changelog file 
 
-## 0.34.0 (2025-01-31)
+## 0.34.0 (2025-02-27)
 * feat(rabbitmq): setup function to run after successful connection/reconnection
 * feat(rabbitmq): consume-forever function to consume messages, this func keeps retrying after failures
 * chore: improved logs
