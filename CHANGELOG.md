@@ -1,6 +1,11 @@
 # Medullah Changelog
 medullah-web changelog file 
 
+## 0.34.0 (2025-01-31)
+* feat(rabbitmq): setup function to run after successful connection/reconnection
+* feat(rabbitmq): consume-forever function to consume messages, this func keeps retrying after failures
+* chore: improved logs
+
 ## 0.30.0 (2025-01-31)
 * feat(enum): tuple variants support
 * bump(ntex): to version 2.11.0
