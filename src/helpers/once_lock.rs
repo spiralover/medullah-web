@@ -47,7 +47,7 @@ pub trait OnceLockHelper {
 
     #[cfg(feature = "rabbitmq")]
     fn rabbitmq(&self) -> Arc<tokio::sync::Mutex<crate::prelude::RabbitMQ>> {
-        Arc::clone(&self.app().rabbitmq)
+        self.app().rabbitmq.clone()
     }
 
     #[cfg(feature = "redis")]

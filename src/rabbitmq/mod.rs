@@ -1,8 +1,10 @@
+use futures_util::future::BoxFuture;
 use futures_util::StreamExt;
 use lapin::types::FieldTable;
-use lapin::{BasicProperties, Channel, ChannelState, ConnectionState};
+use lapin::{BasicProperties, ConnectionState};
 use log::{error, info, warn};
 use std::future::Future;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio::task::JoinHandle;
@@ -11,7 +13,7 @@ use tokio::time::sleep;
 pub use {
     lapin::message::{Delivery, DeliveryResult},
     lapin::types::ReplyCode,
-    lapin::{options::*, ExchangeKind},
+    lapin::{options::*, Channel, ChannelState, ExchangeKind},
 };
 
 use crate::prelude::{AppMessage, AppResult, OnceLockHelper};
@@ -20,6 +22,8 @@ use crate::MEDULLAH;
 
 pub mod conn;
 mod message;
+
+pub type RabbitMQSetupFn = Arc<dyn Fn(RabbitMQ) -> BoxFuture<'static, AppResult<()>> + Send + Sync>;
 
 #[derive(Clone)]
 pub struct RabbitMQ {
@@ -44,6 +48,8 @@ pub struct RabbitMQ {
     default_publish_props: BasicProperties,
     /// default consume options
     default_consume_options: BasicConsumeOptions,
+    /// setup function to run after the connection is established.
+    setup_fn: Option<RabbitMQSetupFn>,
 }
 
 #[derive(Default)]
@@ -90,6 +96,7 @@ impl RabbitMQ {
         let consume_channel = connection.create_channel().await?;
 
         Ok(Self {
+            setup_fn: None,
             conn_pool: pool,
             publish_channel,
             consume_channel,
@@ -123,6 +130,25 @@ impl RabbitMQ {
     /// Default value is `true`
     pub fn execute_handler_asynchronously(&mut self, state: bool) -> &mut Self {
         self.execute_handler_asynchronously = state;
+        self
+    }
+
+    /// Setup function to run after the connection is established.
+    pub async fn setup_fn<F>(&mut self, func: F) -> &mut Self
+    where
+        F: Fn(Self) -> BoxFuture<'static, AppResult<()>> + Send + Sync + 'static,
+    {
+        info!("Running setup function...");
+        match func(self.clone()).await {
+            Ok(_) => info!("Setup function completed successfully."),
+            Err(err) => {
+                error!("Setup function failed: {}", err);
+                return self;
+            }
+        }
+
+        self.setup_fn = Some(Arc::new(func));
+
         self
     }
 
@@ -183,17 +209,20 @@ impl RabbitMQ {
         E: ToString,
         R: ToString,
     {
+        let exchange = exchange.to_string();
+
         self.ensure_channel_is_usable(true).await?;
 
         self.publish_channel
             .basic_publish(
-                &exchange.to_string(),
+                &exchange,
                 &routing_key.to_string(),
                 self.default_publish_options,
                 payload,
                 self.default_publish_props.clone(),
             )
-            .await?;
+            .await
+            .inspect_err(|e| error!("Failed to publish message: {e:?}"))?;
 
         Ok(())
     }
@@ -207,12 +236,12 @@ impl RabbitMQ {
         loop {
             match self.start_consume(queue, tag, func).await {
                 Ok(_) => {
-                    info!("Consumer {} stopped normally", tag);
+                    info!("[{}] consumer stopped normally", tag);
                     break;
                 }
                 Err(err) => {
                     error!(
-                        "Consumer {} encountered an error: {:?}, restarting...",
+                        "[{}] consumer encountered an error: {:?}, restarting...",
                         tag, err
                     );
                     sleep(Self::RETRY_DELAY).await;
@@ -220,6 +249,29 @@ impl RabbitMQ {
             }
         }
         Ok(())
+    }
+
+    /// Consume a queue forever, restarting if it fails.
+    pub async fn consume_forever<F, Fut>(&mut self, queue: &str, tag: &str, func: F) -> !
+    where
+        F: Fn(Message) -> Fut + Send + Copy + 'static,
+        Fut: Future<Output = AppResult<()>> + Send + 'static,
+    {
+        loop {
+            match self.consume(queue, tag, func).await {
+                Ok(_) => {
+                    warn!("[{}] consumer stopped unexpectedly, restarting...", tag);
+                }
+                Err(err) => {
+                    error!(
+                        "[{}] consumer encountered an error: {:?}, retrying...",
+                        tag, err
+                    );
+                }
+            }
+
+            sleep(Self::RETRY_DELAY).await;
+        }
     }
 
     async fn start_consume<F, Fut>(&mut self, queue: &str, tag: &str, func: F) -> AppResult<()>
@@ -337,6 +389,12 @@ impl RabbitMQ {
         self.conn_pool.clone()
     }
 
+    pub async fn close_channels(&self, reply_code: ReplyCode, reply_text: &str) -> AppResult<()> {
+        self.publish_channel.close(reply_code, reply_text).await?;
+        self.consume_channel.close(reply_code, reply_text).await?;
+        Ok(())
+    }
+
     async fn ensure_channel_is_usable(&mut self, is_publish_channel: bool) -> AppResult<()> {
         loop {
             let channel = match is_publish_channel {
@@ -355,13 +413,32 @@ impl RabbitMQ {
             let state = channel.status().state();
             match state {
                 ChannelState::Closed | ChannelState::Closing | ChannelState::Error => {
-                    warn!("Channel is not usable: {state:?}, recreating...");
+                    warn!(
+                        "channel({}) is not usable: {state:?}, recreating...",
+                        channel.id().to_string()
+                    );
                     self.recreate_channel(is_publish_channel).await?;
                 }
                 _ => break,
             }
         }
 
+        Ok(())
+    }
+
+    /// Calls the user-defined `setup_fn`
+    async fn setup(&mut self) -> AppResult<()> {
+        match &self.setup_fn {
+            Some(func) => {
+                info!("Executing user-defined setup function...");
+                func(self.clone()).await?;
+            }
+            None => {
+                info!("No setup function provided, skipping...");
+            }
+        }
+
+        info!("Setup function executed successfully.");
         Ok(())
     }
 
@@ -383,8 +460,6 @@ impl RabbitMQ {
             self.recreate_connection().await?;
         }
 
-        sleep(Self::RETRY_DELAY).await;
-
         info!("Performing channel recreation...");
         let result = match is_publish_channel {
             true => connection.create_channel().await,
@@ -396,17 +471,31 @@ impl RabbitMQ {
             self.recreate_connection().await?;
         }
 
-        match is_publish_channel {
-            true => self.publish_channel = connection.create_channel().await?,
-            false => self.consume_channel = connection.create_channel().await?,
+        let channel = match is_publish_channel {
+            true => {
+                self.publish_channel = connection.create_channel().await?;
+                &self.publish_channel
+            }
+            false => {
+                self.consume_channel = connection.create_channel().await?;
+                &self.consume_channel
+            }
         };
 
-        info!("Channel recreation completed ✔");
+        info!(
+            "channel({}) recreation completed ✔",
+            channel.id().to_string()
+        );
+
+        // Run the user-provided setup function
+        self.setup().await?;
+
+        sleep(Duration::from_secs(1)).await;
 
         Ok(())
     }
 
-    async fn recreate_connection(&mut self) -> AppResult<()> {
+    async fn recreate_connection(&self) -> AppResult<()> {
         if !self.can_reconnect {
             warn!("Cannot reconnect, re-establishing connection aborted");
             return Err(AppMessage::RabbitmqError(
@@ -418,9 +507,7 @@ impl RabbitMQ {
         for attempt in 1..=self.max_reconnection_attempts {
             info!("Attempting to reconnect to RabbitMQ, attempt {attempt}...");
             match self.conn_pool.get().await {
-                Ok(connection) => {
-                    self.publish_channel = connection.create_channel().await?;
-                    self.consume_channel = connection.create_channel().await?;
+                Ok(_) => {
                     info!(
                         "Reconnected to RabbitMQ successfully on attempt {}",
                         attempt
