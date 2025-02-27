@@ -1,8 +1,6 @@
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
-use ntex::http::header;
 use ntex::web::types::Query;
-use ntex::web::HttpRequest;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -105,21 +103,6 @@ impl QueryParams {
     pub fn per_page(&self) -> i64 {
         self.per_page.unwrap_or(10).min(150)
     }
-}
-
-pub fn get_ip_and_ua(req: &HttpRequest) -> (Option<String>, Option<String>) {
-    let user_agent = req
-        .headers()
-        .get(header::USER_AGENT)
-        .map(|u| u.to_str().unwrap().to_string());
-
-    let ip_address = req
-        .connection_info()
-        .remote()
-        .map(|v| v.to_string())
-        .unwrap_or(req.peer_addr().map(|s| s.to_string()).unwrap());
-
-    (Some(ip_address), user_agent)
 }
 
 #[allow(dead_code)]

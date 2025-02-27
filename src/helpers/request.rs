@@ -1,11 +1,11 @@
 use log::debug;
+use ntex::http::header;
 use ntex::util::Bytes;
 use ntex::web::HttpRequest;
 use serde::de::DeserializeOwned;
 use serde_json::{json, Map, Value};
 
 use crate::app_state::MedullahState;
-use crate::helpers::http::get_ip_and_ua;
 use crate::http::extractors::client_info::ClientInfo;
 use crate::results::app_result::IntoAppResult;
 use crate::results::AppResult;
@@ -21,6 +21,10 @@ pub trait RequestHelper {
     fn get_headers(&self) -> Map<String, Value>;
 
     fn json<T: DeserializeOwned>(bytes: Bytes) -> AppResult<T>;
+
+    fn ip(&self) -> Option<String>;
+
+    fn user_agent(&self) -> Option<String>;
 }
 
 impl RequestHelper for HttpRequest {
@@ -34,11 +38,9 @@ impl RequestHelper for HttpRequest {
     }
 
     fn client_info(&self) -> ClientInfo {
-        let (ip_address, user_agent) = get_ip_and_ua(self);
-
         ClientInfo {
-            ip: ip_address,
-            ua: user_agent,
+            ip: self.ip(),
+            ua: self.user_agent(),
         }
     }
 
@@ -56,5 +58,18 @@ impl RequestHelper for HttpRequest {
         let raw = String::from_utf8(bytes.to_vec())?;
         debug!("[json-body]: {}", raw);
         serde_json::from_str::<T>(&raw).into_app_result()
+    }
+
+    fn ip(&self) -> Option<String> {
+        self.connection_info()
+            .remote()
+            .map(|v| v.to_string())
+            .or_else(|| self.peer_addr().map(|s| s.to_string()))
+    }
+
+    fn user_agent(&self) -> Option<String> {
+        self.headers()
+            .get(header::USER_AGENT)
+            .map(|ua| ua.to_str().unwrap().to_string())
     }
 }
