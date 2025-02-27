@@ -19,13 +19,18 @@ pub struct Jwt {
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JwtTokenClaims {
+    /// Identifies the subject (user or entity) the token is about.
     pub sub: String,
-    /// The time this claim is generated (timestamp)
+    /// Indicates when the token was issued. Useful for token freshness. (time in timestamp)
     pub iat: usize,
-    /// Expiry time in timestamp
+    /// Specifies when the token expires. Helps prevent token reuse.
     pub exp: usize,
-    /// Issuer
+    /// Identifies the entity that issued the token (e.g., authentication server).
     pub iss: String,
+    /// Defines the intended recipient of the token (e.g., a specific API).
+    pub aud: String,
+    /// A unique identifier for the token. Helps prevent replay attacks.
+    pub jti: String,
 }
 
 #[derive(Serialize, Debug)]
@@ -88,6 +93,8 @@ impl Jwt {
     ///     iat: 0,
     ///     exp: 0,
     ///     iss: "".to_string(),
+    ///     aud: "".to_string(),
+    ///     jti: "abc".to_string(),
     /// };
     /// let token = jwt.generate(claims).unwrap();
     ///
@@ -198,6 +205,8 @@ eTkx3HO0Z4DJuTLqgAtKDr/+CWhE+ROQQQIDAQAB
                 .as_secs()
                 + 3600) as usize,
             iss: "test_issuer".to_string(),
+            aud: "test_audience".to_string(),
+            jti: "test_jti".to_string(),
         }
     }
 
