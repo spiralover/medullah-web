@@ -141,11 +141,8 @@ impl RabbitMQ {
         info!("Running setup function...");
         match func(self.clone()).await {
             Ok(_) => info!("Setup function completed successfully."),
-            Err(err) => {
-                error!("Setup function failed: {}", err);
-                return self;
-            }
-        }
+            Err(err) => error!("Setup function failed: {}", err),
+        };
 
         self.setup_fn = Some(Arc::new(func));
 
@@ -232,16 +229,17 @@ impl RabbitMQ {
         F: Fn(Message) -> Fut + Send + Copy + 'static,
         Fut: Future<Output = AppResult<()>> + Send + 'static,
     {
-        info!("subscribing to '{}'...", queue);
+        info!("Subscribing to '{}'...", queue);
+
         loop {
             match self.start_consume(queue, tag, func).await {
                 Ok(_) => {
-                    info!("[{}] consumer stopped normally", tag);
+                    info!("[{}] Consumer stopped normally", tag);
                     break;
                 }
                 Err(err) => {
                     error!(
-                        "[{}] consumer encountered an error: {:?}, restarting...",
+                        "[{}] Consumer encountered an error: {:?}, restarting...",
                         tag, err
                     );
                     sleep(Self::RETRY_DELAY).await;
@@ -260,11 +258,11 @@ impl RabbitMQ {
         loop {
             match self.consume(queue, tag, func).await {
                 Ok(_) => {
-                    warn!("[{}] consumer stopped unexpectedly, restarting...", tag);
+                    warn!("[{}] Consumer stopped unexpectedly, restarting...", tag);
                 }
                 Err(err) => {
                     error!(
-                        "[{}] consumer encountered an error: {:?}, retrying...",
+                        "[{}] Consumer encountered an error: {:?}, retrying...",
                         tag, err
                     );
                 }
@@ -308,7 +306,7 @@ impl RabbitMQ {
                                     .await;
                             }
                             error!(
-                                "[consume-executor][{}] returned error: {:?}",
+                                "[consume-executor][{}] Returned error: {:?}",
                                 consumer_tag, err
                             );
                         }
@@ -416,6 +414,11 @@ impl RabbitMQ {
         Ok(())
     }
 
+    /// Check if setup function is set
+    pub fn has_setup_fn(&self) -> bool {
+        self.setup_fn.is_some()
+    }
+
     async fn ensure_channel_is_usable(&mut self, is_publish_channel: bool) -> AppResult<()> {
         loop {
             let channel = match is_publish_channel {
@@ -435,7 +438,7 @@ impl RabbitMQ {
             match state {
                 ChannelState::Closed | ChannelState::Closing | ChannelState::Error => {
                     warn!(
-                        "channel({}) is not usable: {state:?}, recreating...",
+                        "Channel({}) is not usable: {state:?}, recreating...",
                         channel.id().to_string()
                     );
                     self.recreate_channel(is_publish_channel).await?;
@@ -453,13 +456,13 @@ impl RabbitMQ {
             Some(func) => {
                 info!("Executing user-defined setup function...");
                 func(self.clone()).await?;
+                info!("Setup function executed successfully.");
             }
             None => {
-                info!("No setup function provided, skipping...");
+                warn!("No setup function provided, skipping...");
             }
         }
 
-        info!("Setup function executed successfully.");
         Ok(())
     }
 
@@ -503,10 +506,7 @@ impl RabbitMQ {
             }
         };
 
-        info!(
-            "channel({}) recreation completed ✔",
-            channel.id().to_string()
-        );
+        info!("Channel({}) recreation completed", channel.id().to_string());
 
         // Run the user-provided setup function
         self.setup().await?;
